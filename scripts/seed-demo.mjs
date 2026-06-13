@@ -58,6 +58,19 @@ for (const v of ventas) {
   if (r.error) throw r.error;
 }
 
+// gastos (crédito fiscal para el F29)
+const { data: catsG } = await sb.from('categorias_gasto').select('id, nombre');
+const catG = (n) => catsG.find((c) => c.nombre === n).id;
+for (const g of [
+  { cat: 'Insumos', desc: 'Compra de café en grano', total: 11900, iva: 19 },
+  { cat: 'Servicios básicos', desc: 'Cuenta de luz', total: 35700, iva: 19 },
+]) {
+  const r = await sb.rpc('registrar_gasto', {
+    p_categoria_gasto_id: catG(g.cat), p_descripcion: g.desc, p_monto_total: g.total, p_tasa_iva: g.iva,
+  });
+  if (r.error) throw r.error;
+}
+
 // Emitir cookies SSR usando la MISMA librería que la app
 let captured = [];
 const ssr = createServerClient(URL_, ANON, {

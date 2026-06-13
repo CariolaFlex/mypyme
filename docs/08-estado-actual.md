@@ -44,7 +44,7 @@ cuadratura, inventario, multi-tenant. Cliente confirmado: cafetería de un amigo
 `empresas`, `usuarios_empresa`, `configuracion_negocio`, `categorias_producto`, `productos`,
 `bodegas`, `metodos_pago`, `movimientos_inventario` (+ vista `vw_stock_actual`), `cajas`,
 `sesiones_caja`, `movimientos_caja`, `ventas`, `ventas_lineas`, `ventas_pagos`.
-Migraciones en `supabase/migrations/` (17 archivos, todas aplicadas en cloud).
+Migraciones en `supabase/migrations/` (18 archivos, todas aplicadas en cloud).
 Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin tablas nuevas).
 
 ---
@@ -89,8 +89,6 @@ Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin ta
   (entrada/salida en `/caja`), búsqueda + filtro por categoría en POS.
 - **Fase 4B — Órdenes de compra + recepción** (genera movimientos de inventario).
 - **Fase 4C — Cuentas por pagar** (facturas proveedor + pagos).
-- **Reporte IVA crédito**: ya hay datos (gastos con IVA en `gastos.monto_iva`); falta sumar el
-  crédito al reporte F29 (`/reportes/iva` hoy solo muestra débito de ventas).
 - **Reporte de ventas por cajero** — *pendiente menor* (las RPC aún no exponen `usuario_id`).
 - **Fase 6 — Suscripciones Flow.cl** (ver `docs/04-flow-integracion.md`).
 - **Fase 9 — SII/DTE** (OpenFactura, v2).

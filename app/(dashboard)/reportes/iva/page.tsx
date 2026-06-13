@@ -9,7 +9,8 @@ import { clp, MESES } from '@/lib/reportes';
 
 export const dynamic = 'force-dynamic';
 
-type FilaIva = { mes: number; neto: number; iva_debito: number; num_ventas: number };
+type FilaDebito = { mes: number; iva_debito: number };
+type FilaCredito = { mes: number; iva_credito: number };
 
 export default async function ReporteIvaPage({
   searchParams,
@@ -22,20 +23,30 @@ export default async function ReporteIvaPage({
   const anios = [anioActual, anioActual - 1, anioActual - 2];
 
   const supabase = await createClient();
-  const { data } = await supabase.rpc('reporte_iva_mensual', { p_anio: anio });
-  const filas = (data as FilaIva[] | null) ?? [];
-  const porMes = new Map(filas.map((f) => [f.mes, f]));
+  const [{ data: debitoData }, { data: creditoData }] = await Promise.all([
+    supabase.rpc('reporte_iva_mensual', { p_anio: anio }),
+    supabase.rpc('reporte_iva_credito_mensual', { p_anio: anio }),
+  ]);
 
-  const totNeto = filas.reduce((s, f) => s + Number(f.neto), 0);
-  const totIva = filas.reduce((s, f) => s + Number(f.iva_debito), 0);
-  const totVentas = filas.reduce((s, f) => s + Number(f.num_ventas), 0);
+  const debitoPorMes = new Map(
+    ((debitoData as FilaDebito[] | null) ?? []).map((f) => [f.mes, Number(f.iva_debito)])
+  );
+  const creditoPorMes = new Map(
+    ((creditoData as FilaCredito[] | null) ?? []).map((f) => [f.mes, Number(f.iva_credito)])
+  );
+
+  let totDebito = 0;
+  let totCredito = 0;
+  for (const v of debitoPorMes.values()) totDebito += v;
+  for (const v of creditoPorMes.values()) totCredito += v;
+  const totResultado = totDebito - totCredito;
 
   return (
     <div className="max-w-3xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Reporte de IVA (F29)</h1>
         <p className="text-sm text-muted-foreground">
-          IVA débito mensual a partir de las ventas. Insumo para el Formulario 29.
+          IVA débito (ventas) menos crédito (gastos) por mes. Insumo para el Formulario 29.
         </p>
       </div>
 
@@ -61,35 +72,41 @@ export default async function ReporteIvaPage({
             <TableHeader>
               <TableRow>
                 <TableHead>Mes</TableHead>
-                <TableHead className="text-right">Ventas</TableHead>
-                <TableHead className="text-right">Neto</TableHead>
                 <TableHead className="text-right">IVA débito</TableHead>
+                <TableHead className="text-right">IVA crédito</TableHead>
+                <TableHead className="text-right">Resultado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {MESES.map((nombre, i) => {
-                const f = porMes.get(i + 1);
-                const vacio = !f;
+                const debito = debitoPorMes.get(i + 1) ?? 0;
+                const credito = creditoPorMes.get(i + 1) ?? 0;
+                const resultado = debito - credito;
+                const vacio = debito === 0 && credito === 0;
                 return (
                   <TableRow key={nombre} className={vacio ? 'text-muted-foreground' : undefined}>
                     <TableCell>{nombre}</TableCell>
-                    <TableCell className="text-right">{Number(f?.num_ventas ?? 0)}</TableCell>
-                    <TableCell className="text-right">{clp.format(Number(f?.neto ?? 0))}</TableCell>
-                    <TableCell className="text-right">{clp.format(Number(f?.iva_debito ?? 0))}</TableCell>
+                    <TableCell className="text-right">{clp.format(debito)}</TableCell>
+                    <TableCell className="text-right">{clp.format(credito)}</TableCell>
+                    <TableCell className={cn('text-right', !vacio && resultado < 0 && 'text-green-600')}>
+                      {clp.format(resultado)}
+                    </TableCell>
                   </TableRow>
                 );
               })}
               <TableRow className="font-semibold">
                 <TableCell>Total {anio}</TableCell>
-                <TableCell className="text-right">{totVentas}</TableCell>
-                <TableCell className="text-right">{clp.format(totNeto)}</TableCell>
-                <TableCell className="text-right">{clp.format(totIva)}</TableCell>
+                <TableCell className="text-right">{clp.format(totDebito)}</TableCell>
+                <TableCell className="text-right">{clp.format(totCredito)}</TableCell>
+                <TableCell className={cn('text-right', totResultado < 0 && 'text-green-600')}>
+                  {clp.format(totResultado)}
+                </TableCell>
               </TableRow>
             </TableBody>
           </Table>
           <p className="mt-4 text-xs text-muted-foreground">
-            El crédito fiscal (IVA de compras y gastos) se incorporará con la Fase 4. Por ahora este
-            reporte cubre solo el débito fiscal generado por las ventas.
+            <strong>Resultado</strong> = débito − crédito. Positivo: IVA a pagar en el período.
+            Negativo (verde): remanente de crédito fiscal a favor para el mes siguiente.
           </p>
         </CardContent>
       </Card>
