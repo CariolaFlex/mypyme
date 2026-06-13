@@ -5,8 +5,9 @@ import { logout } from '../(auth)/actions';
 
 const NAV = [
   { href: '/', label: 'Dashboard' },
+  { href: '/inventario/productos', label: 'Productos' },
+  { href: '/inventario/categorias', label: 'Categorías' },
   { href: '/configuracion/negocio', label: 'Negocio' },
-  { href: '/configuracion/usuarios', label: 'Usuarios' },
 ];
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
