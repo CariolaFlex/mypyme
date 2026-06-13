@@ -28,14 +28,18 @@
 ## FASE 1 — Auth + Onboarding + Configuración (Semana 3-4)
 **Objetivo:** una empresa puede registrarse, configurar su negocio y gestionar usuarios.
 
-- [ ] Páginas `/login` y `/register` con Supabase Auth (email/password)
-- [ ] Onboarding: crear empresa, ingresar RUT (validación Módulo 11), configurar IVA
-- [ ] Auth Hook activado — JWT incluye `empresa_id` y `rol`
-- [ ] Middleware Next.js: protección de rutas, redirect a login si no autenticado
+### Bloque A — columna vertebral (✅ hecho, verificado e2e)
+- [x] Páginas `/login` y `/register` con Supabase Auth (email/password)
+- [x] Onboarding: crear empresa, RUT (validación Módulo 11), configurar IVA — RPC `crear_empresa_y_membresia`
+- [x] Auth Hook activado — JWT incluye `empresa_id` y `user_rol`
+- [x] Middleware Next.js: protección de rutas + gate de onboarding por claims
+- [x] RLS multi-tenant verificado (empresa A no ve datos de B)
+
+### Bloque B — pendiente
 - [ ] Página `/configuracion/negocio` — editar datos empresa
 - [ ] Página `/configuracion/usuarios` — invitar usuarios, asignar rol
-- [ ] Página `/configuracion/metodos-pago` — CRUD métodos de pago
-- [ ] RLS activado en todas las tablas con políticas completas
+- [ ] Página `/configuracion/metodos-pago` — CRUD métodos de pago (requiere tabla `metodos_pago`, Fase 2)
+- [ ] Probar el flujo real en navegador (requiere desactivar "Confirm email" en dev)
 
 **Entregable:** registro end-to-end, multi-tenant verificado (empresa A no ve datos de B).
 
