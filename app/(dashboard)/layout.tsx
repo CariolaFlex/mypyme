@@ -15,6 +15,7 @@ const NAV = [
   { href: '/inventario/categorias', label: 'Categorías' },
   { href: '/compras/proveedores', label: 'Proveedores' },
   { href: '/compras/ordenes', label: 'Órdenes de compra' },
+  { href: '/compras/facturas', label: 'Cuentas por pagar' },
   { href: '/gastos', label: 'Gastos' },
   { href: '/configuracion/negocio', label: 'Negocio' },
   { href: '/configuracion/metodos-pago', label: 'Métodos de pago' },

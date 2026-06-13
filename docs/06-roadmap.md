@@ -107,10 +107,11 @@
 - [x] Órdenes de compra: crear, aprobar, recibir (genera movimientos de inventario tipo 'compra')
 - [x] Recepción parcial de OC (estado borrador→aprobada→recibida_parcial→recibida; + cancelar)
 
-### Bloque C — Cuentas por pagar (pendiente)
-- [ ] Cuentas por pagar: facturas proveedor, pagos, saldo pendiente
+### Bloque C — Cuentas por pagar (✅ hecho, verificado e2e 13/13 + navegador)
+- [x] Cuentas por pagar: facturas proveedor, pagos, saldo pendiente (`/compras/facturas`)
+- [x] Pago en efectivo descuenta caja automáticamente (RPC `registrar_pago_proveedor`)
 
-**Entregable:** flujo completo de compras y gastos operativo.
+**Entregable:** flujo completo de compras y gastos operativo. ✅ (Fase 4 completa)
 
 ---
 
