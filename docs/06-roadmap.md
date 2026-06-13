@@ -68,19 +68,25 @@
 ## FASE 3 — POS + Caja (Semana 7-9)
 **Objetivo:** el POS funciona en tiempo real y en offline.
 
-- [ ] Layout POS: catálogo izquierda, carrito derecha, optimizado para touch
-- [ ] Búsqueda/filtro por categoría y texto
-- [ ] Manejo de cantidades en carrito
-- [ ] Cálculo de IVA según configuración del negocio
-- [ ] Cobro con múltiples métodos de pago, cálculo de vuelto
+### Bloque A — POS online (✅ hecho, verificado e2e en navegador)
+- [x] Layout POS: catálogo izquierda, carrito derecha, touch-friendly
+- [x] Manejo de cantidades en carrito
+- [x] Cálculo de IVA (neto derivado del precio c/IVA, autoritativo desde DB)
+- [x] Cobro con método de pago + RPC `process_sale` idempotente (UUID cliente)
+- [x] Descuento de stock atómico al vender (verificado)
+
+### Bloque B — Caja (pendiente)
 - [ ] Apertura y cierre de caja (sesiones)
 - [ ] Movimientos de caja (entrada/salida manual)
+- [ ] Cuadratura al cerrar caja: esperado vs contado
+- [ ] Cobro con múltiples métodos de pago a la vez + cálculo de vuelto (hoy: 1 método)
+- [ ] Búsqueda/filtro por categoría y texto en el POS
+
+### Bloque C — Offline (pendiente)
 - [ ] Dexie.js: schema local (`products_cache`, `sync_queue`)
 - [ ] Serwist: App Shell cacheado, operación sin internet
 - [ ] Sync Engine: cola FIFO, idempotencia con UUID, dead letter pattern
-- [ ] RPC `process_sale_idempotent` en PostgreSQL
 - [ ] Indicador visual de estado offline en POS
-- [ ] Cuadratura al cerrar caja: esperado vs contado
 
 **Entregable:** el cafetero puede cobrar, incluso si se cae el internet.
 
