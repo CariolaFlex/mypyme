@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
-import { abrirCaja, cerrarCaja } from './actions';
+import { abrirCaja, cerrarCaja, registrarMovimientoCaja } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +20,15 @@ const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' 
 const fmtFecha = (s: string | null) =>
   s ? new Date(s).toLocaleString('es-CL', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 
+const TIPO_MOV: Record<string, string> = {
+  venta: 'Venta',
+  entrada_manual: 'Entrada',
+  salida_manual: 'Salida',
+  gasto: 'Gasto',
+  pago_proveedor: 'Pago prov.',
+};
+const tipoMov = (t: string) => TIPO_MOV[t] ?? t;
+
 export default async function CajaPage({
   searchParams,
 }: {
@@ -36,14 +45,18 @@ export default async function CajaPage({
 
   // Efectivo acumulado de la sesión abierta (para mostrar el esperado en vivo).
   let esperado: number | null = null;
+  type Movimiento = { tipo: string; monto: number; descripcion: string | null; ocurrido_en: string };
+  let movimientos: Movimiento[] = [];
   if (abierta) {
     const { data: movs } = await supabase
       .from('movimientos_caja')
-      .select('monto')
-      .eq('sesion_caja_id', abierta.id);
+      .select('tipo, monto, descripcion, ocurrido_en')
+      .eq('sesion_caja_id', abierta.id)
+      .order('ocurrido_en', { ascending: false });
+    movimientos = (movs as Movimiento[] | null) ?? [];
     esperado =
       Number(abierta.monto_apertura) +
-      (movs ?? []).reduce((s, m) => s + Number(m.monto), 0);
+      movimientos.reduce((s, m) => s + Number(m.monto), 0);
   }
 
   const { data: sesiones } = await supabase
@@ -86,7 +99,53 @@ export default async function CajaPage({
                 <div className="text-lg font-semibold">{clp.format(esperado ?? 0)}</div>
               </div>
             </div>
-            <form action={cerrarCaja} className="flex items-end gap-2">
+            {/* Movimiento manual de efectivo */}
+            <div className="space-y-2 border-t pt-4">
+              <div className="text-sm font-medium">Movimiento manual de efectivo</div>
+              <form action={registrarMovimientoCaja} className="flex flex-wrap items-end gap-2">
+                <input type="hidden" name="sesion_id" value={abierta.id} />
+                <div className="space-y-1.5">
+                  <Label htmlFor="tipo">Tipo</Label>
+                  <select
+                    id="tipo"
+                    name="tipo"
+                    className="rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs"
+                  >
+                    <option value="entrada_manual">Entrada</option>
+                    <option value="salida_manual">Salida</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="monto">Monto</Label>
+                  <Input id="monto" name="monto" type="number" min="1" required className="w-32" />
+                </div>
+                <div className="flex-1 space-y-1.5">
+                  <Label htmlFor="descripcion">Descripción</Label>
+                  <Input id="descripcion" name="descripcion" placeholder="Ej. retiro a banco" />
+                </div>
+                <Button type="submit" variant="outline">
+                  Registrar
+                </Button>
+              </form>
+
+              {movimientos.length > 0 && (
+                <ul className="divide-y rounded-md border text-sm">
+                  {movimientos.map((m, i) => (
+                    <li key={i} className="flex items-center justify-between px-3 py-2">
+                      <span className="flex items-center gap-2">
+                        <Badge variant="secondary">{tipoMov(m.tipo)}</Badge>
+                        <span className="text-muted-foreground">{m.descripcion ?? '—'}</span>
+                      </span>
+                      <span className={`tabular-nums ${Number(m.monto) < 0 ? 'text-destructive' : ''}`}>
+                        {clp.format(Number(m.monto))}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <form action={cerrarCaja} className="flex items-end gap-2 border-t pt-4">
               <input type="hidden" name="sesion_id" value={abierta.id} />
               <div className="space-y-1.5">
                 <Label htmlFor="monto_contado">Efectivo contado al cierre</Label>

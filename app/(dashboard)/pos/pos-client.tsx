@@ -10,21 +10,36 @@ import { db, type ProductoCache } from '@/lib/db';
 import { flushQueue, enviarVenta, contarPendientes } from '@/lib/sync';
 
 type Metodo = { id: string; nombre: string; tipo: string | null };
+type Categoria = { id: string; nombre: string };
+type PagoRow = { key: string; metodoId: string };
 
 const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' });
+
+// Normaliza para búsqueda: minúsculas sin acentos.
+const norm = (s: string) =>
+  s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 export function PosClient({
   productos: productosIniciales,
   metodos,
+  categorias,
   sesionCajaId,
 }: {
   productos: ProductoCache[];
   metodos: Metodo[];
+  categorias: Categoria[];
   sesionCajaId: string | null;
 }) {
   const [productos, setProductos] = useState<ProductoCache[]>(productosIniciales);
   const [cart, setCart] = useState<Record<string, number>>({});
-  const [metodoId, setMetodoId] = useState(metodos[0]?.id ?? '');
+  const [busqueda, setBusqueda] = useState('');
+  const [catId, setCatId] = useState<string | null>(null);
+  // Multi-pago: una fila por método. Con 1 fila el monto es el total (y permite
+  // vuelto en efectivo); con 2+ filas se reparte el total (montos explícitos).
+  const [pagos, setPagos] = useState<PagoRow[]>([
+    { key: 'p0', metodoId: metodos[0]?.id ?? '' },
+  ]);
+  const [montos, setMontos] = useState<Record<string, string>>({});
   const [recibido, setRecibido] = useState('');
   const [online, setOnline] = useState(true);
   const [pendientes, setPendientes] = useState(0);
@@ -80,24 +95,69 @@ export function PosClient({
     0
   );
 
-  const metodo = metodos.find((m) => m.id === metodoId);
-  const esEfectivo = metodo?.tipo === 'cash';
+  // Catálogo filtrado por búsqueda + categoría.
+  const productosFiltrados = useMemo(() => {
+    const q = norm(busqueda.trim());
+    return productos.filter(
+      (p) =>
+        (catId === null || p.categoria_id === catId) &&
+        (q === '' || norm(p.nombre).includes(q))
+    );
+  }, [productos, busqueda, catId]);
+
+  // Multi-pago.
+  const multi = pagos.length > 1;
+  const tipoDe = (id: string) => metodos.find((m) => m.id === id)?.tipo ?? null;
+  const montoDe = (key: string) => Number(montos[key]) || 0;
+  const sumaPagos = multi ? pagos.reduce((s, p) => s + montoDe(p.key), 0) : total;
+  const resto = total - sumaPagos;
+
+  // Vuelto en efectivo: solo en pago simple con método cash.
+  const esEfectivoSimple = !multi && tipoDe(pagos[0]?.metodoId ?? '') === 'cash';
   const recibidoNum = Number(recibido) || 0;
-  const vuelto = esEfectivo && recibidoNum > total ? recibidoNum - total : 0;
+  const vuelto = esEfectivoSimple && recibidoNum > total ? recibidoNum - total : 0;
+
+  const pagosValidos =
+    pagos.every((p) => p.metodoId) &&
+    (!multi || (Math.abs(resto) < 1 && pagos.every((p) => montoDe(p.key) > 0)));
 
   const add = (id: string) => setCart((c) => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
   const dec = (id: string) => setCart((c) => ({ ...c, [id]: Math.max(0, (c[id] ?? 0) - 1) }));
 
+  const agregarPago = () => {
+    setPagos((prev) => {
+      // Al pasar a multi, fija el monto de la primera fila al total actual.
+      if (prev.length === 1) {
+        setMontos((m) => ({ ...m, [prev[0].key]: m[prev[0].key] || String(total) }));
+      }
+      const usado = metodos.find((m) => !prev.some((p) => p.metodoId === m.id));
+      const key = `p${Date.now()}`;
+      setMontos((m) => ({ ...m, [key]: String(Math.max(resto, 0)) }));
+      return [...prev, { key, metodoId: usado?.id ?? metodos[0]?.id ?? '' }];
+    });
+  };
+  const quitarPago = (key: string) =>
+    setPagos((prev) => (prev.length > 1 ? prev.filter((p) => p.key !== key) : prev));
+
   function onCobrar() {
-    if (!items.length || !sesionCajaId) return;
-    const montoRecibido = esEfectivo && recibidoNum > 0 ? recibidoNum : total;
+    if (!items.length || !sesionCajaId || !pagosValidos) return;
+    const pagosPayload = multi
+      ? pagos.map((p) => {
+          const monto = montoDe(p.key);
+          return { metodo_pago_id: p.metodoId, monto, monto_recibido: monto };
+        })
+      : [
+          {
+            metodo_pago_id: pagos[0].metodoId,
+            monto: total,
+            monto_recibido: esEfectivoSimple && recibidoNum > 0 ? recibidoNum : total,
+          },
+        ];
     const payload = {
       ventaId: crypto.randomUUID(),
       sesionCajaId,
       lineas: items.map(([producto_id, cantidad]) => ({ producto_id, cantidad })),
-      pagos: metodoId
-        ? [{ metodo_pago_id: metodoId, monto: total, monto_recibido: montoRecibido }]
-        : [],
+      pagos: pagosPayload,
     };
     const totalVenta = total;
     const vueltoVenta = vuelto;
@@ -106,6 +166,8 @@ export function PosClient({
       const limpiar = () => {
         setCart({});
         setRecibido('');
+        setPagos([{ key: 'p0', metodoId: metodos[0]?.id ?? '' }]);
+        setMontos({});
       };
       try {
         if (!navigator.onLine) throw new Error('offline');
@@ -161,23 +223,57 @@ export function PosClient({
 
       <div className="grid h-[calc(100vh-8rem)] grid-cols-[1fr_20rem] gap-4">
         {/* Catálogo */}
-        <div className="overflow-y-auto">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {productos.map((p) => (
+        <div className="flex flex-col gap-3 overflow-hidden">
+          <Input
+            placeholder="Buscar producto…"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
+          {categorias.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
               <button
-                key={p.id}
-                onClick={() => add(p.id)}
-                className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border bg-card p-3 text-center transition-colors hover:bg-muted active:translate-y-px"
+                type="button"
+                onClick={() => setCatId(null)}
+                className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                  catId === null ? 'border-primary bg-primary text-primary-foreground' : 'hover:bg-muted'
+                }`}
               >
-                <span className="text-sm font-medium leading-tight">{p.nombre}</span>
-                <span className="text-xs text-muted-foreground">{clp.format(p.precio_total ?? 0)}</span>
+                Todas
               </button>
-            ))}
-            {!productos.length && (
-              <p className="col-span-full py-10 text-center text-sm text-muted-foreground">
-                No hay productos activos. Créalos en Productos.
-              </p>
-            )}
+              {categorias.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setCatId(c.id)}
+                  className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                    catId === c.id ? 'border-primary bg-primary text-primary-foreground' : 'hover:bg-muted'
+                  }`}
+                >
+                  {c.nombre}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="overflow-y-auto">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {productosFiltrados.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => add(p.id)}
+                  className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border bg-card p-3 text-center transition-colors hover:bg-muted active:translate-y-px"
+                >
+                  <span className="text-sm font-medium leading-tight">{p.nombre}</span>
+                  <span className="text-xs text-muted-foreground">{clp.format(p.precio_total ?? 0)}</span>
+                </button>
+              ))}
+              {!productosFiltrados.length && (
+                <p className="col-span-full py-10 text-center text-sm text-muted-foreground">
+                  {productos.length
+                    ? 'Ningún producto coincide con el filtro.'
+                    : 'No hay productos activos. Créalos en Productos.'}
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -219,18 +315,67 @@ export function PosClient({
               <span>Total</span>
               <span className="tabular-nums">{clp.format(total)}</span>
             </div>
-            <select
-              value={metodoId}
-              onChange={(e) => setMetodoId(e.target.value)}
-              className="w-full rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs"
-            >
-              {metodos.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.nombre}
-                </option>
+            {/* Filas de pago (1 método o varios) */}
+            <div className="space-y-2">
+              {pagos.map((p) => (
+                <div key={p.key} className="flex items-center gap-2">
+                  <select
+                    value={p.metodoId}
+                    onChange={(e) =>
+                      setPagos((prev) =>
+                        prev.map((x) => (x.key === p.key ? { ...x, metodoId: e.target.value } : x))
+                      )
+                    }
+                    className="min-w-0 flex-1 rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs"
+                  >
+                    {metodos.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.nombre}
+                      </option>
+                    ))}
+                  </select>
+                  {multi && (
+                    <>
+                      <Input
+                        type="number"
+                        min="0"
+                        inputMode="numeric"
+                        placeholder="Monto"
+                        value={montos[p.key] ?? ''}
+                        onChange={(e) => setMontos((m) => ({ ...m, [p.key]: e.target.value }))}
+                        className="w-24"
+                      />
+                      <Button type="button" variant="outline" size="icon-sm" onClick={() => quitarPago(p.key)}>
+                        ×
+                      </Button>
+                    </>
+                  )}
+                </div>
               ))}
-            </select>
-            {esEfectivo && (
+            </div>
+
+            {metodos.length > 1 && (
+              <button
+                type="button"
+                onClick={agregarPago}
+                className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+              >
+                + Agregar pago (dividir)
+              </button>
+            )}
+
+            {multi && (
+              <div
+                className={`flex justify-between text-sm ${
+                  Math.abs(resto) < 1 ? 'text-muted-foreground' : 'text-destructive'
+                }`}
+              >
+                <span>{resto > 0 ? 'Falta' : resto < 0 ? 'Sobra' : 'Cuadrado'}</span>
+                <span className="tabular-nums">{clp.format(Math.abs(resto))}</span>
+              </div>
+            )}
+
+            {esEfectivoSimple && (
               <div className="space-y-1">
                 <Input
                   type="number"
@@ -252,7 +397,7 @@ export function PosClient({
               type="button"
               size="lg"
               className="w-full"
-              disabled={!items.length || pending || !sesionCajaId}
+              disabled={!items.length || pending || !sesionCajaId || !pagosValidos}
               onClick={onCobrar}
             >
               {pending ? 'Procesando…' : `Cobrar ${clp.format(total)}`}

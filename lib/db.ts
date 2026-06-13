@@ -21,6 +21,7 @@ export interface ProductoCache {
   id: string;
   nombre: string;
   precio_total: number | null;
+  categoria_id: string | null;
 }
 
 class MyPymeDB extends Dexie {

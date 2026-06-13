@@ -80,9 +80,9 @@
 - [x] Cuadratura al cerrar: esperado vs contado (diferencia)
 - [x] POS gated por sesión abierta; efectivo registrado en flujo de caja
 - [x] Cálculo de vuelto en efectivo (input recibido)
-- [ ] Movimientos de caja manuales (entrada/salida) — *pendiente menor*
-- [ ] Cobro con múltiples métodos a la vez (hoy: 1 método; RPC ya soporta varios) — *pendiente menor*
-- [ ] Búsqueda/filtro en el POS — *pendiente menor*
+- [x] Movimientos de caja manuales (entrada/salida) — form en `/caja` + lista; afecta el esperado
+- [x] Cobro con múltiples métodos a la vez — multi-pago en POS (split con validación de cuadre)
+- [x] Búsqueda/filtro en el POS — buscador por nombre + chips por categoría
 
 ### Bloque C — Offline (✅ hecho, verificado e2e en navegador)
 - [x] Dexie.js: DB local (`productos` cache, `ventasPendientes` cola)

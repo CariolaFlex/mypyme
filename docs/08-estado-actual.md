@@ -84,8 +84,8 @@ Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin ta
 ---
 
 ## Pendientes (próximas fases)
-- **Pendientes menores 3B:** movimientos de caja manuales (entrada/salida), multi-pago simultáneo
-  (el RPC ya acepta array de pagos), búsqueda/filtro por categoría en POS.
+- ~~Pendientes menores 3B~~ ✅ cerrados: multi-pago en POS, movimientos de caja manuales
+  (entrada/salida en `/caja`), búsqueda + filtro por categoría en POS.
 - **Fase 4 — Compras/Proveedores/Gastos** (esquema en `docs/02-modelo-datos.md`). Habilita el
   **crédito fiscal** del reporte IVA F29 (hoy solo débito).
 - **Reporte de ventas por cajero** — *pendiente menor* (las RPC aún no exponen `usuario_id`).
