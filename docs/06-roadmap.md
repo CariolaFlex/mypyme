@@ -48,8 +48,13 @@
 ## FASE 2 — Catálogo e Inventario (Semana 5-6)
 **Objetivo:** el admin puede cargar productos y gestionar stock.
 
-- [ ] CRUD categorías (árbol simple)
-- [ ] CRUD productos (nombre, SKU, precio, IVA, stock mínimo)
+### Bloque A (✅ hecho, verificado e2e)
+- [x] CRUD categorías
+- [x] CRUD productos (SKU, precio c/IVA → neto derivado, stock mínimo, activar/desactivar)
+- [x] Tablas catálogo + RLS (lectura tenant / escritura admin) + grants
+- [x] Onboarding siembra bodega "Principal" + métodos de pago estándar
+
+### Bloque B (pendiente)
 - [ ] Vista de stock actual (view calculada desde `movimientos_inventario`)
 - [ ] Registro de mermas / ajustes de inventario
 - [ ] Alertas de stock bajo (badge visual en sidebar)
