@@ -75,12 +75,14 @@
 - [x] Cobro con método de pago + RPC `process_sale` idempotente (UUID cliente)
 - [x] Descuento de stock atómico al vender (verificado)
 
-### Bloque B — Caja (pendiente)
-- [ ] Apertura y cierre de caja (sesiones)
-- [ ] Movimientos de caja (entrada/salida manual)
-- [ ] Cuadratura al cerrar caja: esperado vs contado
-- [ ] Cobro con múltiples métodos de pago a la vez + cálculo de vuelto (hoy: 1 método)
-- [ ] Búsqueda/filtro por categoría y texto en el POS
+### Bloque B — Caja (✅ hecho, verificado e2e + navegador)
+- [x] Apertura y cierre de caja (sesiones) — RPCs `abrir_caja`/`cerrar_caja`
+- [x] Cuadratura al cerrar: esperado vs contado (diferencia)
+- [x] POS gated por sesión abierta; efectivo registrado en flujo de caja
+- [x] Cálculo de vuelto en efectivo (input recibido)
+- [ ] Movimientos de caja manuales (entrada/salida) — *pendiente menor*
+- [ ] Cobro con múltiples métodos a la vez (hoy: 1 método; RPC ya soporta varios) — *pendiente menor*
+- [ ] Búsqueda/filtro en el POS — *pendiente menor*
 
 ### Bloque C — Offline (pendiente)
 - [ ] Dexie.js: schema local (`products_cache`, `sync_queue`)
