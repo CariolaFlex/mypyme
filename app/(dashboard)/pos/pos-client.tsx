@@ -1,30 +1,75 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState, useTransition } from 'react';
+import { useCallback, useEffect, useMemo, useState, useTransition } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { cobrar } from './actions';
+import { Badge } from '@/components/ui/badge';
+import { db, type ProductoCache } from '@/lib/db';
+import { flushQueue, enviarVenta, contarPendientes } from '@/lib/sync';
 
-type Producto = { id: string; nombre: string; precio_total: number | null };
 type Metodo = { id: string; nombre: string; tipo: string | null };
 
 const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' });
 
 export function PosClient({
-  productos,
+  productos: productosIniciales,
   metodos,
   sesionCajaId,
 }: {
-  productos: Producto[];
+  productos: ProductoCache[];
   metodos: Metodo[];
   sesionCajaId: string | null;
 }) {
+  const [productos, setProductos] = useState<ProductoCache[]>(productosIniciales);
   const [cart, setCart] = useState<Record<string, number>>({});
   const [metodoId, setMetodoId] = useState(metodos[0]?.id ?? '');
   const [recibido, setRecibido] = useState('');
+  const [online, setOnline] = useState(true);
+  const [pendientes, setPendientes] = useState(0);
   const [pending, startTransition] = useTransition();
+
+  const refrescarPendientes = useCallback(async () => {
+    setPendientes(await contarPendientes());
+  }, []);
+
+  const sincronizar = useCallback(async () => {
+    const n = await flushQueue();
+    if (n > 0) toast.success(`${n} venta(s) sincronizada(s)`);
+    await refrescarPendientes();
+  }, [refrescarPendientes]);
+
+  // Cachear catálogo para uso offline + cargar de cache si no llegó del server.
+  useEffect(() => {
+    (async () => {
+      if (productosIniciales.length) {
+        await db.productos.clear();
+        await db.productos.bulkPut(productosIniciales);
+      } else {
+        const cache = await db.productos.toArray();
+        if (cache.length) setProductos(cache);
+      }
+      await refrescarPendientes();
+      if (navigator.onLine) sincronizar();
+    })();
+  }, [productosIniciales, refrescarPendientes, sincronizar]);
+
+  // Estado de conexión + sync al reconectar.
+  useEffect(() => {
+    setOnline(navigator.onLine);
+    const onUp = () => {
+      setOnline(true);
+      sincronizar();
+    };
+    const onDown = () => setOnline(false);
+    window.addEventListener('online', onUp);
+    window.addEventListener('offline', onDown);
+    return () => {
+      window.removeEventListener('online', onUp);
+      window.removeEventListener('offline', onDown);
+    };
+  }, [sincronizar]);
 
   const productosById = useMemo(() => new Map(productos.map((p) => [p.id, p])), [productos]);
   const items = Object.entries(cart).filter(([, qty]) => qty > 0);
@@ -52,34 +97,67 @@ export function PosClient({
         ? [{ metodo_pago_id: metodoId, monto: total, monto_recibido: montoRecibido }]
         : [],
     };
+    const totalVenta = total;
+    const vueltoVenta = vuelto;
+
     startTransition(async () => {
-      const res = await cobrar(payload);
-      if (res.ok) {
-        toast.success(
-          vuelto > 0
-            ? `Venta ${clp.format(total)} · Vuelto ${clp.format(vuelto)}`
-            : `Venta registrada · ${clp.format(total)}`
-        );
+      const limpiar = () => {
         setCart({});
         setRecibido('');
-      } else {
-        toast.error(res.error ?? 'No se pudo cobrar');
+      };
+      try {
+        if (!navigator.onLine) throw new Error('offline');
+        await enviarVenta(payload);
+        toast.success(
+          vueltoVenta > 0
+            ? `Venta ${clp.format(totalVenta)} · Vuelto ${clp.format(vueltoVenta)}`
+            : `Venta registrada · ${clp.format(totalVenta)}`
+        );
+        limpiar();
+      } catch (e) {
+        if (!navigator.onLine || (e as Error).message === 'offline') {
+          // Encolar para sincronizar luego.
+          await db.ventasPendientes.add({
+            ventaId: payload.ventaId,
+            payload,
+            total: totalVenta,
+            creadoEn: Date.now(),
+          });
+          await refrescarPendientes();
+          toast.success(`Venta guardada sin conexión · se sincronizará (${clp.format(totalVenta)})`);
+          limpiar();
+        } else {
+          toast.error((e as Error).message || 'No se pudo cobrar');
+        }
       }
     });
   }
 
   return (
     <div className="space-y-3">
-      {!sesionCajaId && (
-        <div className="flex items-center justify-between rounded-md border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm">
-          <span>No hay caja abierta. Ábrela para poder cobrar.</span>
-          <Link href="/caja">
-            <Button size="sm">Ir a Caja</Button>
-          </Link>
+      <div className="flex items-center justify-between gap-2">
+        {!sesionCajaId ? (
+          <div className="flex flex-1 items-center justify-between rounded-md border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm">
+            <span>No hay caja abierta. Ábrela para poder cobrar.</span>
+            <Link href="/caja">
+              <Button size="sm">Ir a Caja</Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="text-sm text-muted-foreground">Caja abierta</div>
+        )}
+        <div className="flex items-center gap-2">
+          {pendientes > 0 && <Badge variant="secondary">{pendientes} por sincronizar</Badge>}
+          <Badge
+            variant={online ? 'outline' : 'destructive'}
+            className={online ? 'text-green-600' : ''}
+          >
+            {online ? '● En línea' : '● Sin conexión'}
+          </Badge>
         </div>
-      )}
+      </div>
 
-      <div className="grid h-[calc(100vh-7rem)] grid-cols-[1fr_20rem] gap-4">
+      <div className="grid h-[calc(100vh-8rem)] grid-cols-[1fr_20rem] gap-4">
         {/* Catálogo */}
         <div className="overflow-y-auto">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -175,7 +253,7 @@ export function PosClient({
               disabled={!items.length || pending || !sesionCajaId}
               onClick={onCobrar}
             >
-              {pending ? 'Cobrando…' : `Cobrar ${clp.format(total)}`}
+              {pending ? 'Procesando…' : `Cobrar ${clp.format(total)}`}
             </Button>
           </div>
         </div>
