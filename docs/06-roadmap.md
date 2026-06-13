@@ -9,13 +9,15 @@
 ## FASE 0 — Setup (Semana 1-2)
 **Objetivo:** proyecto andando localmente, DB configurada, deploy inicial en Vercel.
 
-- [ ] Crear proyecto Next.js 15 con App Router + TypeScript
-- [ ] Inicializar Supabase (nuevo proyecto)
-- [ ] Configurar `supabase/config.toml` con Auth Hook
-- [ ] Ejecutar migraciones: enums, tablas core, funciones RLS helpers, Auth Hook
+- [x] Crear proyecto Next.js 15 con App Router + TypeScript (Next 16.2.9 + React 19 + Tailwind v4)
+- [x] Inicializar Supabase (proyecto cloud `igpplasotoshtuwbdzmf` en São Paulo + `supabase init` local)
+- [x] Configurar `supabase/config.toml` con Auth Hook (`custom_access_token_hook`)
+- [x] Escribir migración core: enums, tablas núcleo, helpers RLS, validación RUT, Auth Hook (`20260613000000_core.sql`)
+- [ ] **Aplicar** la migración core a la DB cloud (pendiente: ver paso manual)
+- [x] Clientes Supabase (`lib/supabase/{client,server,admin}.ts`) + sanity check en home
 - [ ] Configurar Serwist para PWA
 - [ ] Deploy inicial en Vercel (`main` → producción, `develop` → preview)
-- [ ] Configurar variables de entorno (Supabase keys, Flow sandbox keys)
+- [~] Variables de entorno (`.env.local` creado con URL; faltan las 2 keys que pega Andrés)
 - [ ] GitHub: definir rama strategy (`main`, `develop`, `feature/*`)
 
 **Entregable:** URL en Vercel con login funcional, conexión a Supabase operativa.
