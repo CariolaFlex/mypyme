@@ -16,7 +16,7 @@ export default async function ProductosPage({
   const [{ data: productos }, { data: categorias }, { data: config }] = await Promise.all([
     supabase
       .from('productos')
-      .select('id, sku, nombre, precio_total, activo, categorias_producto(nombre)')
+      .select('id, sku, nombre, precio_total, activo, imagen_url, categorias_producto(nombre)')
       .order('nombre'),
     supabase.from('categorias_producto').select('id, nombre').order('nombre'),
     supabase.from('configuracion_negocio').select('tasa_iva_default').single(),
@@ -90,6 +90,15 @@ export default async function ProductosPage({
             className="w-full rounded-md border px-3 py-2 text-sm"
           />
         </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Imagen (opcional)</label>
+          <input
+            name="imagen"
+            type="file"
+            accept="image/*"
+            className="w-full rounded-md border px-3 py-1.5 text-sm file:mr-2 file:rounded file:border-0 file:bg-gray-100 file:px-2 file:py-1 file:text-xs"
+          />
+        </div>
         <div className="col-span-2">
           <button
             type="submit"
@@ -103,7 +112,8 @@ export default async function ProductosPage({
       <table className="w-full text-sm">
         <thead className="border-b text-left text-gray-500">
           <tr>
-            <th className="py-2">SKU</th>
+            <th className="py-2 w-12"></th>
+            <th>SKU</th>
             <th>Nombre</th>
             <th>Categoría</th>
             <th className="text-right">Precio</th>
@@ -116,7 +126,19 @@ export default async function ProductosPage({
               const cat = p.categorias_producto as unknown as { nombre: string } | null;
               return (
                 <tr key={p.id} className={p.activo ? '' : 'opacity-40'}>
-                  <td className="py-2 font-mono text-xs">{p.sku}</td>
+                  <td className="py-2">
+                    {p.imagen_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={p.imagen_url}
+                        alt={p.nombre}
+                        className="size-8 rounded object-cover"
+                      />
+                    ) : (
+                      <div className="size-8 rounded bg-gray-100" />
+                    )}
+                  </td>
+                  <td className="font-mono text-xs">{p.sku}</td>
                   <td>{p.nombre}</td>
                   <td className="text-gray-500">{cat?.nombre ?? '—'}</td>
                   <td className="text-right">{clp.format(p.precio_total ?? 0)}</td>
@@ -134,7 +156,7 @@ export default async function ProductosPage({
             })
           ) : (
             <tr>
-              <td colSpan={5} className="py-6 text-center text-gray-400">
+              <td colSpan={6} className="py-6 text-center text-gray-400">
                 Aún no hay productos.
               </td>
             </tr>

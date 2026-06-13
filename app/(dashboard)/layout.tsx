@@ -9,6 +9,7 @@ const NAV = [
   { href: '/inventario/stock', label: 'Inventario' },
   { href: '/inventario/categorias', label: 'Categorías' },
   { href: '/configuracion/negocio', label: 'Negocio' },
+  { href: '/configuracion/metodos-pago', label: 'Métodos de pago' },
 ];
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -22,6 +23,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect('/onboarding');
   }
 
+  // Conteo de productos bajo stock mínimo (para el badge de Inventario).
+  const [{ data: productos }, { data: stockRows }] = await Promise.all([
+    supabase.from('productos').select('id, stock_minimo').eq('activo', true),
+    supabase.from('vw_stock_actual').select('producto_id, stock'),
+  ]);
+  const stockPorProducto = new Map<string, number>();
+  for (const r of stockRows ?? []) {
+    stockPorProducto.set(r.producto_id, (stockPorProducto.get(r.producto_id) ?? 0) + Number(r.stock));
+  }
+  const stockBajo = (productos ?? []).filter(
+    (p) => p.stock_minimo != null && (stockPorProducto.get(p.id) ?? 0) <= Number(p.stock_minimo)
+  ).length;
+
   return (
     <div className="flex min-h-screen">
       <aside className="flex w-56 flex-col justify-between border-r p-4">
@@ -32,9 +46,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-md px-3 py-2 text-sm hover:bg-gray-100"
+                className="flex items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-gray-100"
               >
-                {item.label}
+                <span>{item.label}</span>
+                {item.href === '/inventario/stock' && stockBajo > 0 && (
+                  <span className="rounded-full bg-red-600 px-1.5 text-xs font-medium text-white">
+                    {stockBajo}
+                  </span>
+                )}
               </Link>
             ))}
           </nav>

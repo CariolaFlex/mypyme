@@ -25,6 +25,20 @@ export async function crearProducto(formData: FormData) {
   const categoriaId = String(formData.get('categoria_id') ?? '');
   const stockMin = formData.get('stock_minimo');
 
+  // Subir imagen (opcional) a Storage en la carpeta del tenant.
+  let imagenUrl: string | null = null;
+  const file = formData.get('imagen');
+  if (file instanceof File && file.size > 0) {
+    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const path = `${empresaId}/${Date.now()}.${ext}`;
+    const { error: upErr } = await supabase.storage
+      .from('productos')
+      .upload(path, file, { contentType: file.type || 'image/jpeg' });
+    if (!upErr) {
+      imagenUrl = supabase.storage.from('productos').getPublicUrl(path).data.publicUrl;
+    }
+  }
+
   const { error } = await supabase.from('productos').insert({
     empresa_id: empresaId,
     sku: String(formData.get('sku') ?? '').trim(),
@@ -34,6 +48,7 @@ export async function crearProducto(formData: FormData) {
     precio_neto: precioNeto,
     tasa_iva: tasaIva,
     stock_minimo: stockMin ? Number(stockMin) : null,
+    imagen_url: imagenUrl,
   });
 
   if (error) {
