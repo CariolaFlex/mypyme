@@ -6,6 +6,7 @@ import { logout } from '../(auth)/actions';
 const NAV = [
   { href: '/', label: 'Dashboard' },
   { href: '/inventario/productos', label: 'Productos' },
+  { href: '/inventario/stock', label: 'Inventario' },
   { href: '/inventario/categorias', label: 'Categorías' },
   { href: '/configuracion/negocio', label: 'Negocio' },
 ];
