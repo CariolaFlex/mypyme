@@ -15,7 +15,7 @@
 - [x] Escribir migración core: enums, tablas núcleo, helpers RLS, validación RUT, Auth Hook (`20260613000000_core.sql`)
 - [ ] **Aplicar** la migración core a la DB cloud (pendiente: ver paso manual)
 - [x] Clientes Supabase (`lib/supabase/{client,server,admin}.ts`) + sanity check en home
-- [ ] Configurar Serwist para PWA
+- [x] Configurar Serwist para PWA (`app/sw.ts`, manifest, icono; build forzado a webpack)
 - [ ] Deploy inicial en Vercel (`main` → producción, `develop` → preview)
 - [~] Variables de entorno (`.env.local` creado con URL; faltan las 2 keys que pega Andrés)
 - [ ] GitHub: definir rama strategy (`main`, `develop`, `feature/*`)

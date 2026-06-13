@@ -8,10 +8,11 @@ async function checkSupabase(): Promise<{ ok: boolean; detail: string }> {
   }
   try {
     const supabase = await createClient();
-    // Sin sesión, RLS devuelve 0 filas pero NO error → conexión OK.
-    const { error } = await supabase.from('empresas').select('id').limit(1);
+    // getSession valida URL+key sin depender de grants de tabla.
+    // Sin login devuelve session=null pero NO error → conexión OK.
+    const { error } = await supabase.auth.getSession();
     if (error) return { ok: false, detail: error.message };
-    return { ok: true, detail: 'Conexión y RLS operativos' };
+    return { ok: true, detail: 'Conexión operativa (sin sesión)' };
   } catch (e) {
     return { ok: false, detail: e instanceof Error ? e.message : 'Error desconocido' };
   }
