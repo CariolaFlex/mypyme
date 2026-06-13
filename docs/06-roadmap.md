@@ -84,11 +84,12 @@
 - [ ] Cobro con múltiples métodos a la vez (hoy: 1 método; RPC ya soporta varios) — *pendiente menor*
 - [ ] Búsqueda/filtro en el POS — *pendiente menor*
 
-### Bloque C — Offline (pendiente)
-- [ ] Dexie.js: schema local (`products_cache`, `sync_queue`)
-- [ ] Serwist: App Shell cacheado, operación sin internet
-- [ ] Sync Engine: cola FIFO, idempotencia con UUID, dead letter pattern
-- [ ] Indicador visual de estado offline en POS
+### Bloque C — Offline (✅ hecho, verificado e2e en navegador)
+- [x] Dexie.js: DB local (`productos` cache, `ventasPendientes` cola)
+- [x] Serwist: App Shell cacheado (configurado en Fase 0)
+- [x] Sync Engine: `flushQueue` FIFO, idempotencia con UUID (reenvío seguro)
+- [x] Indicador de estado offline + contador de pendientes en POS
+- [x] Verificado: venta offline → cola → reconexión → sync automático → persiste
 
 **Entregable:** el cafetero puede cobrar, incluso si se cae el internet.
 
