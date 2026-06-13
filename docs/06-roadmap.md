@@ -103,9 +103,9 @@
 - [x] CRUD gastos con categorías (`/gastos`; categorías sembradas en onboarding; neto/IVA derivados)
 - [x] Gastos en efectivo que descuentan caja automáticamente (RPC `registrar_gasto`, atómico)
 
-### Bloque B — Órdenes de compra (pendiente)
-- [ ] Órdenes de compra: crear, aprobar, recibir (genera movimientos de inventario)
-- [ ] Recepción parcial de OC
+### Bloque B — Órdenes de compra (✅ hecho, verificado e2e 14/14 + navegador)
+- [x] Órdenes de compra: crear, aprobar, recibir (genera movimientos de inventario tipo 'compra')
+- [x] Recepción parcial de OC (estado borrador→aprobada→recibida_parcial→recibida; + cancelar)
 
 ### Bloque C — Cuentas por pagar (pendiente)
 - [ ] Cuentas por pagar: facturas proveedor, pagos, saldo pendiente

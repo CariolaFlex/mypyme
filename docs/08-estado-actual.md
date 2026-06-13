@@ -39,12 +39,13 @@ cuadratura, inventario, multi-tenant. Cliente confirmado: cafetería de un amigo
 | 3C | Offline: Dexie (`lib/db.ts`) cola de ventas + `lib/sync.ts` (`flushQueue`), indicador online/offline, sync al reconectar |
 | 5  | Reportes: dashboard real (`/`), `/reportes/ventas`, `/reportes/iva` (F29). 5 RPCs en `20260613007000_reportes.sql`, helpers de fecha Santiago en `lib/reportes.ts` |
 | 4A | Proveedores + Gastos: `/compras/proveedores`, `/gastos`. RPC `registrar_gasto` (gasto efectivo descuenta caja). Migración `20260613008000_compras_gastos.sql` |
+| 4B | Órdenes de compra: `/compras/ordenes` (crear/aprobar/recibir parcial→total/cancelar). RPCs `crear/aprobar/recibir/cancelar_orden_compra`; recepción genera inventario. Migración `20260613010000_ordenes_compra.sql` |
 
 ## Modelo de datos (en `public`, todo bajo RLS multi-tenant)
 `empresas`, `usuarios_empresa`, `configuracion_negocio`, `categorias_producto`, `productos`,
 `bodegas`, `metodos_pago`, `movimientos_inventario` (+ vista `vw_stock_actual`), `cajas`,
 `sesiones_caja`, `movimientos_caja`, `ventas`, `ventas_lineas`, `ventas_pagos`.
-Migraciones en `supabase/migrations/` (18 archivos, todas aplicadas en cloud).
+Migraciones en `supabase/migrations/` (19 archivos, todas aplicadas en cloud).
 Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin tablas nuevas).
 
 ---
@@ -87,8 +88,8 @@ Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin ta
 ## Pendientes (próximas fases)
 - ~~Pendientes menores 3B~~ ✅ cerrados: multi-pago en POS, movimientos de caja manuales
   (entrada/salida en `/caja`), búsqueda + filtro por categoría en POS.
-- **Fase 4B — Órdenes de compra + recepción** (genera movimientos de inventario).
-- **Fase 4C — Cuentas por pagar** (facturas proveedor + pagos).
+- **Fase 4C — Cuentas por pagar** (facturas proveedor + pagos; `movimientos_caja.pago_proveedor_id`
+  aún por agregar). Cierra el ciclo OC → factura → pago.
 - **Reporte de ventas por cajero** — *pendiente menor* (las RPC aún no exponen `usuario_id`).
 - **Fase 6 — Suscripciones Flow.cl** (ver `docs/04-flow-integracion.md`).
 - **Fase 9 — SII/DTE** (OpenFactura, v2).
