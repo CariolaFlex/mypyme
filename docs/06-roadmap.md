@@ -54,11 +54,11 @@
 - [x] Tablas catálogo + RLS (lectura tenant / escritura admin) + grants
 - [x] Onboarding siembra bodega "Principal" + métodos de pago estándar
 
-### Bloque B (pendiente)
-- [ ] Vista de stock actual (view calculada desde `movimientos_inventario`)
-- [ ] Registro de mermas / ajustes de inventario
-- [ ] Alertas de stock bajo (badge visual en sidebar)
-- [ ] Upload de imagen de producto (Supabase Storage)
+### Bloque B (✅ hecho, verificado e2e)
+- [x] Vista de stock actual (`vw_stock_actual`, `security_invoker`, calculada desde `movimientos_inventario`)
+- [x] Registro de mermas / ajustes / entradas (RPC `registrar_movimiento` + página `/inventario/stock`)
+- [x] Alerta de stock bajo (badge en la tabla de stock) — *pendiente: badge en sidebar*
+- [ ] Upload de imagen de producto (Supabase Storage) — diferido
 
 **Entregable:** catálogo completo con inventario funcional.
 
