@@ -12,12 +12,13 @@
 - [x] Crear proyecto Next.js 15 con App Router + TypeScript (Next 16.2.9 + React 19 + Tailwind v4)
 - [x] Inicializar Supabase (proyecto cloud `igpplasotoshtuwbdzmf` en São Paulo + `supabase init` local)
 - [x] Configurar `supabase/config.toml` con Auth Hook (`custom_access_token_hook`)
-- [x] Escribir migración core: enums, tablas núcleo, helpers RLS, validación RUT, Auth Hook (`20260613000000_core.sql`)
-- [ ] **Aplicar** la migración core a la DB cloud (pendiente: ver paso manual)
+- [x] Escribir + aplicar migraciones: core, grants authenticated, grants service_role (verificadas en cloud)
+- [x] Validación RUT (Módulo 11) probada end-to-end contra la DB (rechaza inválido, acepta válido)
 - [x] Clientes Supabase (`lib/supabase/{client,server,admin}.ts`) + sanity check en home
 - [x] Configurar Serwist para PWA (`app/sw.ts`, manifest, icono; build forzado a webpack)
+- [x] Variables de entorno (`.env.local` con URL + publishable + secret keys)
+- [ ] **Activar el Auth Hook en el dashboard** (Authentication → Hooks → `custom_access_token_hook`)
 - [ ] Deploy inicial en Vercel (`main` → producción, `develop` → preview)
-- [~] Variables de entorno (`.env.local` creado con URL; faltan las 2 keys que pega Andrés)
 - [ ] GitHub: definir rama strategy (`main`, `develop`, `feature/*`)
 
 **Entregable:** URL en Vercel con login funcional, conexión a Supabase operativa.
