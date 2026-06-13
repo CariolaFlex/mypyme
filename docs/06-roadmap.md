@@ -98,12 +98,17 @@
 ## FASE 4 — Compras, Proveedores y Gastos (Semana 10-11)
 **Objetivo:** control completo de egresos.
 
-- [ ] CRUD proveedores
+### Bloque A — Proveedores + Gastos (✅ hecho, verificado e2e 9/9 + navegador)
+- [x] CRUD proveedores (`/compras/proveedores`, activar/desactivar)
+- [x] CRUD gastos con categorías (`/gastos`; categorías sembradas en onboarding; neto/IVA derivados)
+- [x] Gastos en efectivo que descuentan caja automáticamente (RPC `registrar_gasto`, atómico)
+
+### Bloque B — Órdenes de compra (pendiente)
 - [ ] Órdenes de compra: crear, aprobar, recibir (genera movimientos de inventario)
 - [ ] Recepción parcial de OC
+
+### Bloque C — Cuentas por pagar (pendiente)
 - [ ] Cuentas por pagar: facturas proveedor, pagos, saldo pendiente
-- [ ] CRUD gastos con categorías
-- [ ] Gastos en efectivo que descuentan caja automáticamente
 
 **Entregable:** flujo completo de compras y gastos operativo.
 

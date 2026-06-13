@@ -38,12 +38,13 @@ cuadratura, inventario, multi-tenant. Cliente confirmado: cafetería de un amigo
 | 3B | Caja: `/caja`, RPCs `abrir_caja`/`cerrar_caja` (cuadratura), POS gated por sesión, vuelto efectivo |
 | 3C | Offline: Dexie (`lib/db.ts`) cola de ventas + `lib/sync.ts` (`flushQueue`), indicador online/offline, sync al reconectar |
 | 5  | Reportes: dashboard real (`/`), `/reportes/ventas`, `/reportes/iva` (F29). 5 RPCs en `20260613007000_reportes.sql`, helpers de fecha Santiago en `lib/reportes.ts` |
+| 4A | Proveedores + Gastos: `/compras/proveedores`, `/gastos`. RPC `registrar_gasto` (gasto efectivo descuenta caja). Migración `20260613008000_compras_gastos.sql` |
 
 ## Modelo de datos (en `public`, todo bajo RLS multi-tenant)
 `empresas`, `usuarios_empresa`, `configuracion_negocio`, `categorias_producto`, `productos`,
 `bodegas`, `metodos_pago`, `movimientos_inventario` (+ vista `vw_stock_actual`), `cajas`,
 `sesiones_caja`, `movimientos_caja`, `ventas`, `ventas_lineas`, `ventas_pagos`.
-Migraciones en `supabase/migrations/` (14 archivos, todas aplicadas en cloud).
+Migraciones en `supabase/migrations/` (17 archivos, todas aplicadas en cloud).
 Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin tablas nuevas).
 
 ---
@@ -86,8 +87,10 @@ Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin ta
 ## Pendientes (próximas fases)
 - ~~Pendientes menores 3B~~ ✅ cerrados: multi-pago en POS, movimientos de caja manuales
   (entrada/salida en `/caja`), búsqueda + filtro por categoría en POS.
-- **Fase 4 — Compras/Proveedores/Gastos** (esquema en `docs/02-modelo-datos.md`). Habilita el
-  **crédito fiscal** del reporte IVA F29 (hoy solo débito).
+- **Fase 4B — Órdenes de compra + recepción** (genera movimientos de inventario).
+- **Fase 4C — Cuentas por pagar** (facturas proveedor + pagos).
+- **Reporte IVA crédito**: ya hay datos (gastos con IVA en `gastos.monto_iva`); falta sumar el
+  crédito al reporte F29 (`/reportes/iva` hoy solo muestra débito de ventas).
 - **Reporte de ventas por cajero** — *pendiente menor* (las RPC aún no exponen `usuario_id`).
 - **Fase 6 — Suscripciones Flow.cl** (ver `docs/04-flow-integracion.md`).
 - **Fase 9 — SII/DTE** (OpenFactura, v2).
