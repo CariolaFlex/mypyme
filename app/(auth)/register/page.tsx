@@ -1,5 +1,16 @@
 import Link from 'next/link';
 import { register } from '../actions';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 export default async function RegisterPage({
   searchParams,
@@ -9,62 +20,46 @@ export default async function RegisterPage({
   const { error } = await searchParams;
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="space-y-1 text-center">
-          <h1 className="text-2xl font-bold">mypyme</h1>
-          <p className="text-sm text-gray-500">Crea tu cuenta</p>
-        </div>
-
-        {error && (
-          <p className="rounded-md border border-red-600/30 bg-red-600/10 px-3 py-2 text-sm text-red-700">
-            {error}
-          </p>
-        )}
-
-        <form action={register} className="space-y-4">
-          <div className="space-y-1">
-            <label htmlFor="email" className="text-sm font-medium">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              autoComplete="email"
-              className="w-full rounded-md border px-3 py-2 text-sm"
-            />
-          </div>
-          <div className="space-y-1">
-            <label htmlFor="password" className="text-sm font-medium">
-              Contraseña
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              minLength={6}
-              autoComplete="new-password"
-              className="w-full rounded-md border px-3 py-2 text-sm"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full rounded-md bg-black px-3 py-2 text-sm font-medium text-white"
-          >
-            Crear cuenta
-          </button>
-        </form>
-
-        <p className="text-center text-sm text-gray-500">
-          ¿Ya tienes cuenta?{' '}
-          <Link href="/login" className="font-medium underline">
+    <main className="flex min-h-screen items-center justify-center bg-muted/30 p-6">
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">mypyme</CardTitle>
+          <CardDescription>Crea tu cuenta</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <p className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {error}
+            </p>
+          )}
+          <form action={register} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" name="email" type="email" required autoComplete="email" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Contraseña</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                required
+                minLength={6}
+                autoComplete="new-password"
+              />
+            </div>
+            <Button type="submit" className="w-full" size="lg">
+              Crear cuenta
+            </Button>
+          </form>
+        </CardContent>
+        <CardFooter className="justify-center text-sm text-muted-foreground">
+          ¿Ya tienes cuenta?&nbsp;
+          <Link href="/login" className="font-medium text-foreground underline">
             Inicia sesión
           </Link>
-        </p>
-      </div>
+        </CardFooter>
+      </Card>
     </main>
   );
 }

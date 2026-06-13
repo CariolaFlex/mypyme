@@ -1,11 +1,12 @@
 import { createClient } from '@/lib/supabase/server';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  // RLS filtra por empresa del JWT → solo devuelve la empresa del usuario.
   const { data: empresa } = await supabase
     .from('empresas')
     .select('razon_social, rut, plan, estado_suscripcion')
@@ -13,18 +14,27 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">{empresa?.razon_social ?? 'Tu negocio'}</h1>
-        <p className="text-sm text-gray-500">
-          RUT {empresa?.rut} · Plan {empresa?.plan} · {empresa?.estado_suscripcion}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">{empresa?.razon_social ?? 'Tu negocio'}</h1>
+          <p className="text-sm text-muted-foreground">RUT {empresa?.rut}</p>
+        </div>
+        <div className="flex gap-2">
+          <Badge variant="secondary">Plan {empresa?.plan}</Badge>
+          <Badge>{empresa?.estado_suscripcion}</Badge>
+        </div>
       </div>
 
-      <div className="rounded-lg border border-dashed p-8 text-center text-sm text-gray-500">
-        Aquí irá el resumen del día (ventas, caja, stock bajo).
-        <br />
-        Por ahora: cuenta creada y multi-tenant operativo. 🎉
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Resumen del día</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-muted-foreground">
+          Aquí irá el resumen del día (ventas, caja, stock bajo) cuando el POS esté activo.
+          <br />
+          Por ahora: cuenta creada y multi-tenant operativo. 🎉
+        </CardContent>
+      </Card>
     </div>
   );
 }
