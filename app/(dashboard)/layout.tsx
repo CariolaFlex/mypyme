@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 
 const NAV = [
   { href: '/', label: 'Dashboard' },
+  { href: '/pos', label: 'POS' },
   { href: '/inventario/productos', label: 'Productos' },
   { href: '/inventario/stock', label: 'Inventario' },
   { href: '/inventario/categorias', label: 'Categorías' },
