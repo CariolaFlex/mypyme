@@ -3,7 +3,8 @@
 **Fecha:** 2026-06-13 · **Rama:** `main` (todo pusheado a `CariolaFlex/mypyme`)
 
 > Documento de handoff. Resume qué está hecho, cómo funciona y qué sigue.
-> Verificado: build OK, ESLint 0 errores, TypeScript OK, 16/16 checks e2e, deploy Vercel sano.
+> Verificado: build OK, ESLint 0 errores, TypeScript OK, e2e backend (POS 16/16, reportes 15/15),
+> Fase 5 verificada en navegador con datos reales, deploy Vercel sano.
 
 ---
 
@@ -36,12 +37,14 @@ cuadratura, inventario, multi-tenant. Cliente confirmado: cafetería de un amigo
 | 3A | POS online: `/pos`, RPC `process_sale` idempotente, descuento de stock atómico |
 | 3B | Caja: `/caja`, RPCs `abrir_caja`/`cerrar_caja` (cuadratura), POS gated por sesión, vuelto efectivo |
 | 3C | Offline: Dexie (`lib/db.ts`) cola de ventas + `lib/sync.ts` (`flushQueue`), indicador online/offline, sync al reconectar |
+| 5  | Reportes: dashboard real (`/`), `/reportes/ventas`, `/reportes/iva` (F29). 5 RPCs en `20260613007000_reportes.sql`, helpers de fecha Santiago en `lib/reportes.ts` |
 
 ## Modelo de datos (en `public`, todo bajo RLS multi-tenant)
 `empresas`, `usuarios_empresa`, `configuracion_negocio`, `categorias_producto`, `productos`,
 `bodegas`, `metodos_pago`, `movimientos_inventario` (+ vista `vw_stock_actual`), `cajas`,
 `sesiones_caja`, `movimientos_caja`, `ventas`, `ventas_lineas`, `ventas_pagos`.
-Migraciones en `supabase/migrations/` (8 archivos, todas aplicadas en cloud).
+Migraciones en `supabase/migrations/` (14 archivos, todas aplicadas en cloud).
+Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin tablas nuevas).
 
 ---
 
@@ -64,6 +67,10 @@ Migraciones en `supabase/migrations/` (8 archivos, todas aplicadas en cloud).
    no server action. Si `!navigator.onLine` → encola en Dexie y confirma optimista.
 8. **shadcn**: selects y checkboxes se dejaron **nativos** (estilados) para no romper el submit con
    server actions; submit usa `<Button type="submit">` de Base UI.
+9. **Reportes (Fase 5)**: RPCs `security invoker` → la RLS de las tablas base filtra por tenant sola
+   (no exponen datos nuevos). Cortes de día/mes/año en `America/Santiago` tanto en SQL (`AT TIME ZONE`)
+   como en JS (`lib/reportes.ts`). **No formatear fechas date-only con `new Date(s)`** (retrocede un día
+   en tz negativa) → usar `fmtFecha` de `lib/reportes.ts` que reformatea el string.
 
 ## Cómo correr / probar
 - Local: `npm run dev` (webpack) → http://localhost:3000
@@ -79,8 +86,9 @@ Migraciones en `supabase/migrations/` (8 archivos, todas aplicadas en cloud).
 ## Pendientes (próximas fases)
 - **Pendientes menores 3B:** movimientos de caja manuales (entrada/salida), multi-pago simultáneo
   (el RPC ya acepta array de pagos), búsqueda/filtro por categoría en POS.
-- **Fase 4 — Compras/Proveedores/Gastos** (esquema en `docs/02-modelo-datos.md`).
-- **Fase 5 — Reportes** (ventas, caja, inventario, **IVA débito/crédito para F29**) + dashboard real.
+- **Fase 4 — Compras/Proveedores/Gastos** (esquema en `docs/02-modelo-datos.md`). Habilita el
+  **crédito fiscal** del reporte IVA F29 (hoy solo débito).
+- **Reporte de ventas por cajero** — *pendiente menor* (las RPC aún no exponen `usuario_id`).
 - **Fase 6 — Suscripciones Flow.cl** (ver `docs/04-flow-integracion.md`).
 - **Fase 9 — SII/DTE** (OpenFactura, v2).
 - `/configuracion/usuarios` (invitaciones — requiere SMTP).

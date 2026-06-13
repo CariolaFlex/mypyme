@@ -9,6 +9,7 @@ const NAV = [
   { href: '/', label: 'Dashboard' },
   { href: '/pos', label: 'POS' },
   { href: '/caja', label: 'Caja' },
+  { href: '/reportes/ventas', label: 'Reportes' },
   { href: '/inventario/productos', label: 'Productos' },
   { href: '/inventario/stock', label: 'Inventario' },
   { href: '/inventario/categorias', label: 'Categorías' },

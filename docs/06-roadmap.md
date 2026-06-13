@@ -109,16 +109,22 @@
 
 ---
 
-## FASE 5 — Reportes (Semana 12)
+## FASE 5 — Reportes (Semana 12) ✅ (verificado e2e + navegador)
 **Objetivo:** dashboards básicos que el dueño realmente usa.
 
-- [ ] Dashboard principal: ventas hoy/semana/mes; ticket promedio; top productos
-- [ ] Reporte ventas: por período, método de pago, cajero, producto
-- [ ] Reporte caja: historial de sesiones, cuadraturas
-- [ ] Reporte inventario: stock actual, movimientos, alertas
-- [ ] Reporte IVA: débito/crédito por mes (insumo para F29)
+Backend: migración `20260613007000_reportes.sql` — 5 RPCs `security invoker`
+(`reporte_ventas_resumen`, `reporte_top_productos`, `reporte_ventas_por_metodo`,
+`reporte_ventas_por_dia`, `reporte_iva_mensual`). Cortes de fecha en hora Santiago
+(`lib/reportes.ts`). Verificado 15/15 con `scripts/verify-reportes.mjs`.
 
-**Entregable:** el dueño ve su negocio en números sin abrir Excel.
+- [x] Dashboard principal: ventas hoy/7 días/mes; ticket promedio; top productos; IVA mes; stock bajo
+- [x] Reporte ventas (`/reportes/ventas`): por período, método de pago, por día, top productos
+  - [ ] desglose por cajero — *pendiente menor* (falta exponer usuario en las RPC)
+- [x] Reporte caja: historial de sesiones + cuadraturas — ya vive en `/caja`
+- [x] Reporte inventario: stock actual + alertas + movimientos — ya vive en `/inventario/stock`
+- [x] Reporte IVA (`/reportes/iva`): débito por mes/año (insumo F29). Crédito llega con Fase 4.
+
+**Entregable:** el dueño ve su negocio en números sin abrir Excel. ✅
 
 ---
 
