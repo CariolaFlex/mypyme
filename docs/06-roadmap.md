@@ -57,8 +57,9 @@
 ### Bloque B (✅ hecho, verificado e2e)
 - [x] Vista de stock actual (`vw_stock_actual`, `security_invoker`, calculada desde `movimientos_inventario`)
 - [x] Registro de mermas / ajustes / entradas (RPC `registrar_movimiento` + página `/inventario/stock`)
-- [x] Alerta de stock bajo (badge en la tabla de stock) — *pendiente: badge en sidebar*
-- [ ] Upload de imagen de producto (Supabase Storage) — diferido
+- [x] Alerta de stock bajo (badge en tabla **y** en el sidebar)
+- [x] Upload de imagen de producto (Supabase Storage, bucket con RLS por tenant verificado)
+- [x] Página `/configuracion/metodos-pago` (movida desde Fase 1, ya con tabla `metodos_pago`)
 
 **Entregable:** catálogo completo con inventario funcional.
 
