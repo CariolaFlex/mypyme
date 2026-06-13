@@ -57,6 +57,8 @@ export function PosClient({
 
   // Estado de conexión + sync al reconectar.
   useEffect(() => {
+    // Sincroniza con el estado real del navegador (sistema externo).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOnline(navigator.onLine);
     const onUp = () => {
       setOnline(true);
