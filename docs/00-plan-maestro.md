@@ -19,6 +19,7 @@
 | [05-modelo-comercial.md](05-modelo-comercial.md) | Planes, precios, proyecciones |
 | [06-roadmap.md](06-roadmap.md) | Fases 0–9 con entregables |
 | [07-tributario-operacion.md](07-tributario-operacion.md) | Régimen, IVA, obligaciones SII del SaaS |
+| [08-estado-actual.md](08-estado-actual.md) | **Estado actual / punto de continuación (handoff)** |
 
 ---
 
