@@ -6,6 +6,7 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { flowConfigurado, getPaymentStatus } from '@/lib/flow/client';
 import { estadoDesdeFlow } from '@/lib/flow/subscription';
+import { enviarBienvenidaSuscripcion } from '@/lib/email/resend';
 
 export const runtime = 'nodejs';
 
@@ -34,10 +35,35 @@ export async function POST(request: Request) {
   const subId = status.subscriptionId || status.commerceOrder;
   if (subId) {
     const admin = createAdminClient();
-    await admin
+    const nuevoEstado = estadoDesdeFlow(status.status);
+    const { data: emp } = await admin
       .from('empresas')
-      .update({ estado_suscripcion: estadoDesdeFlow(status.status) })
-      .eq('flow_subscription_id', subId);
+      .update({ estado_suscripcion: nuevoEstado })
+      .eq('flow_subscription_id', subId)
+      .select('id, razon_social')
+      .maybeSingle();
+
+    // Email de bienvenida al activarse (best-effort: no afecta la respuesta).
+    if (nuevoEstado === 'activa' && emp) {
+      try {
+        const { data: miembro } = await admin
+          .from('usuarios_empresa')
+          .select('usuario_id')
+          .eq('empresa_id', emp.id)
+          .eq('rol', 'admin')
+          .order('creado_en', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (miembro) {
+          const { data: u } = await admin.auth.admin.getUserById(miembro.usuario_id);
+          if (u?.user?.email) {
+            await enviarBienvenidaSuscripcion({ to: u.user.email, nombreNegocio: emp.razon_social });
+          }
+        }
+      } catch (e) {
+        console.error('Email bienvenida falló (ignorado):', e);
+      }
+    }
   }
 
   return new Response('OK', { status: 200 });

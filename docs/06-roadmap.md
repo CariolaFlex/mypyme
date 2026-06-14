@@ -153,8 +153,10 @@ Backend: migración `20260613007000_reportes.sql` — 5 RPCs `security invoker`
 **Pendiente:**
 - [ ] Probar el enroll punta a punta (inscribir tarjeta → subscription) — requiere habilitar `FLOW_ENROLL_ENABLED` y asumir un cobro real (o cuenta sandbox)
 - [ ] Restricción de acceso real (enforcement) según estado — lógica lista (`tieneAcceso`/`enforcementActivo`), activar con env `FLOW_ENFORCE`
-- [ ] Email de bienvenida post-pago (Resend o similar)
-- [ ] Cargar las 3 env vars de Flow en Vercel cuando se vaya a producción real
+- [~] Email de bienvenida post-pago (Resend) — **construido e inerte** (`lib/email/resend.ts`,
+  disparado desde el webhook al activarse; no-op sin `RESEND_API_KEY`). Falta: cuenta Resend +
+  dominio verificado + `RESEND_API_KEY`/`RESEND_FROM` para enviar de verdad.
+- [ ] Cargar env vars en Vercel cuando se vaya a producción real (Flow + Resend)
 
 **Entregable:** el sistema cobra solo, sin intervención manual.
 
