@@ -46,7 +46,7 @@ cuadratura, inventario, multi-tenant. Cliente confirmado: cafetería de un amigo
 `empresas`, `usuarios_empresa`, `configuracion_negocio`, `categorias_producto`, `productos`,
 `bodegas`, `metodos_pago`, `movimientos_inventario` (+ vista `vw_stock_actual`), `cajas`,
 `sesiones_caja`, `movimientos_caja`, `ventas`, `ventas_lineas`, `ventas_pagos`.
-Migraciones en `supabase/migrations/` (20 archivos, todas aplicadas en cloud).
+Migraciones en `supabase/migrations/` (21 archivos, todas aplicadas en cloud).
 Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin tablas nuevas).
 
 ---
@@ -91,7 +91,10 @@ Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin ta
   (entrada/salida en `/caja`), búsqueda + filtro por categoría en POS.
 - **Fase 6 — Suscripciones Flow.cl** (monetización; ver `docs/04-flow-integracion.md`).
 - **Fase 7 — Beta privada** (wizard onboarding, carga de datos del cliente, uso real).
-- **Reporte de ventas por cajero** — *pendiente menor* (las RPC aún no exponen `usuario_id`).
+- ~~Reporte de ventas por cajero~~ ✅ cerrado: RPC `reporte_ventas_por_cajero`
+  (SECURITY DEFINER, filtra por `get_tenant_id()` manual, resuelve email desde `auth.users`) +
+  tarjeta "Por cajero" en `/reportes/ventas`. Migración `20260613012000`. Verificado e2e 14/14
+  (`scripts/verify-cajero.mjs`, 2 cajeros + aislamiento tenant) + navegador.
 - **Fase 6 — Suscripciones Flow.cl** (ver `docs/04-flow-integracion.md`).
 - **Fase 9 — SII/DTE** (OpenFactura, v2).
 - `/configuracion/usuarios` (invitaciones — requiere SMTP).

@@ -49,11 +49,13 @@ export default async function ReporteVentasPage({
     { data: porMetodo },
     { data: porDia },
     { data: top },
+    { data: porCajero },
   ] = await Promise.all([
     supabase.rpc('reporte_ventas_resumen', { p_desde: desde, p_hasta: hasta }),
     supabase.rpc('reporte_ventas_por_metodo', { p_desde: desde, p_hasta: hasta }),
     supabase.rpc('reporte_ventas_por_dia', { p_desde: desde, p_hasta: hasta }),
     supabase.rpc('reporte_top_productos', { p_desde: desde, p_hasta: hasta, p_limite: 10 }),
+    supabase.rpc('reporte_ventas_por_cajero', { p_desde: desde, p_hasta: hasta }),
   ]);
 
   const R = (resumen?.[0] as Resumen | undefined) ?? null;
@@ -150,6 +152,37 @@ export default async function ReporteVentasPage({
           </CardContent>
         </Card>
       </div>
+
+      {/* Por cajero */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Por cajero</CardTitle></CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Cajero</TableHead>
+                <TableHead className="text-right">Ventas</TableHead>
+                <TableHead className="text-right">Ticket prom.</TableHead>
+                <TableHead className="text-right">Total</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {porCajero?.length ? (
+                porCajero.map((c: { usuario_id: string; cajero: string; num_ventas: number; ticket_promedio: number; total: number }) => (
+                  <TableRow key={c.usuario_id ?? c.cajero}>
+                    <TableCell className="font-medium">{c.cajero}</TableCell>
+                    <TableCell className="text-right">{Number(c.num_ventas)}</TableCell>
+                    <TableCell className="text-right">{clp.format(Number(c.ticket_promedio))}</TableCell>
+                    <TableCell className="text-right">{clp.format(Number(c.total))}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <Vacio cols={4} />
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       {/* Top productos */}
       <Card>

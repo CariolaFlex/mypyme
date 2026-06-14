@@ -125,7 +125,7 @@ Backend: migración `20260613007000_reportes.sql` — 5 RPCs `security invoker`
 
 - [x] Dashboard principal: ventas hoy/7 días/mes; ticket promedio; top productos; IVA mes; stock bajo
 - [x] Reporte ventas (`/reportes/ventas`): por período, método de pago, por día, top productos
-  - [ ] desglose por cajero — *pendiente menor* (falta exponer usuario en las RPC)
+  - [x] desglose por cajero — RPC `reporte_ventas_por_cajero` (SECURITY DEFINER, resuelve email desde auth.users) + tarjeta "Por cajero" en `/reportes/ventas`
 - [x] Reporte caja: historial de sesiones + cuadraturas — ya vive en `/caja`
 - [x] Reporte inventario: stock actual + alertas + movimientos — ya vive en `/inventario/stock`
 - [x] Reporte IVA (`/reportes/iva`): débito (ventas) − crédito (gastos) por mes/año = resultado F29.
