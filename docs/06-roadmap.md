@@ -145,12 +145,16 @@ Backend: migración `20260613007000_reportes.sql` — 5 RPCs `security invoker`
 - [x] Lógica de estados (`lib/flow/subscription.ts`): `estadoDesdeFlow`, `diasRestantesTrial`, `tieneAcceso`; firma HMAC (`lib/flow/signature.ts`)
 - [x] Página `/configuracion/suscripcion` (estado, plan, días de trial) + banner de trial por vencer en el dashboard
 
-**Pendiente (requiere credenciales/cuenta de Flow — en curso contra sandbox):**
-- [ ] Crear planes en Flow dashboard (Emprende y Pyme)
-- [ ] Widget de enroll de tarjeta (iframe) en página de suscripción
-- [ ] Crear Customer → Subscription en Flow al finalizar trial
+**Cableado con cuenta de Flow (producción, cuenta VECTIUM):**
+- [x] Planes creados en Flow vía API (`scripts/flow-setup.mjs`, idempotente): `mypyme_emprende` ($9.990) y `mypyme_pyme` ($19.990). Confirma firma + credenciales OK (sin cobro).
+- [x] Cliente Flow completo (`lib/flow/client.ts`): customer, registro de tarjeta, subscription, getStatus.
+- [~] Enroll de tarjeta cableado (`/configuracion/suscripcion` botón + `/retorno` route) — **construido pero NO probado contra la API real** y **apagado** tras `FLOW_ENROLL_ENABLED` (default off) para evitar cobros accidentales.
+
+**Pendiente:**
+- [ ] Probar el enroll punta a punta (inscribir tarjeta → subscription) — requiere habilitar `FLOW_ENROLL_ENABLED` y asumir un cobro real (o cuenta sandbox)
 - [ ] Restricción de acceso real (enforcement) según estado — lógica lista (`tieneAcceso`/`enforcementActivo`), activar con env `FLOW_ENFORCE`
 - [ ] Email de bienvenida post-pago (Resend o similar)
+- [ ] Cargar las 3 env vars de Flow en Vercel cuando se vaya a producción real
 
 **Entregable:** el sistema cobra solo, sin intervención manual.
 

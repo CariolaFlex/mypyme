@@ -99,6 +99,13 @@ Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin ta
   ⚠️ Regresión corregida esta sesión: `015000` recreó el onboarding desde la versión original y
   borró el sembrado (métodos/caja/categorías); `015100` lo restauró. **Lección: al CREATE OR REPLACE
   una función que migraciones posteriores extendieron, partir de la ÚLTIMA versión, no de la original.**
+- **Fase 6 — cableado con Flow producción (cuenta VECTIUM, vectiumspa@gmail.com):** llaves en
+  `.env.local` (gitignored, NO en Vercel todavía → prod sigue inerte). `scripts/flow-setup.mjs` creó
+  los planes `mypyme_emprende`/`mypyme_pyme` por API (idempotente, sin cobro) — confirma firma+creds OK.
+  Enroll de tarjeta (`/configuracion/suscripcion` + `/retorno`) **construido pero SIN probar contra la
+  API real**, apagado tras `FLOW_ENROLL_ENABLED` (default off) para evitar cobros accidentales. Para
+  probar enroll: habilitar el flag y asumir un cobro real (o usar sandbox). Planes/cliente verificados;
+  el handshake de registro de tarjeta (campos de respuesta de Flow) se confirma al habilitar el enroll.
 - **Fase 7 — Beta privada** (parcial): ✅ carga inicial de datos vía import masivo
   (`/inventario/importar`, RPC `importar_catalogo`, migración `20260613014000`, e2e 14/14 + navegador);
   ✅ onboarding guiado = tarjeta "Primeros pasos" en el dashboard (flag-free: visible cuando no hay

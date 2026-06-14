@@ -4,8 +4,8 @@
 export type EstadoSuscripcion = 'trial' | 'activa' | 'morosa' | 'cancelada' | 'suspendida';
 
 export const PLANES = {
-  emprende: { nombre: 'Emprende', precioMensual: 9990 },
-  pyme: { nombre: 'Pyme', precioMensual: 19990 },
+  emprende: { nombre: 'Emprende', precioMensual: 9990, flowPlanId: 'mypyme_emprende' },
+  pyme: { nombre: 'Pyme', precioMensual: 19990, flowPlanId: 'mypyme_pyme' },
 } as const;
 
 export type PlanKey = keyof typeof PLANES;
@@ -58,4 +58,13 @@ export function tieneAcceso(
 /** El enforcement de suscripción solo se activa con esta env (default: off). */
 export function enforcementActivo(): boolean {
   return process.env.FLOW_ENFORCE === 'true';
+}
+
+/**
+ * El enroll de tarjeta (único paso que puede gatillar un cobro real) solo se
+ * habilita con esta env (default: off). Tener credenciales de Flow NO basta:
+ * así crear planes / cablear no puede cobrar por accidente.
+ */
+export function enrollHabilitado(): boolean {
+  return process.env.FLOW_ENROLL_ENABLED === 'true';
 }

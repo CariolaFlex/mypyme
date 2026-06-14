@@ -1,9 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { clp, fmtFecha } from '@/lib/reportes';
-import { PLANES, diasRestantesTrial, type PlanKey } from '@/lib/flow/subscription';
+import { PLANES, diasRestantesTrial, enrollHabilitado, type PlanKey } from '@/lib/flow/subscription';
 import { flowConfigurado } from '@/lib/flow/client';
+import { iniciarSuscripcion } from './actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,7 +17,12 @@ const ESTADO_LABEL: Record<string, { label: string; variant: 'default' | 'second
   suspendida: { label: 'Suspendida', variant: 'destructive' },
 };
 
-export default async function SuscripcionPage() {
+export default async function SuscripcionPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ ok?: string; error?: string }>;
+}) {
+  const { ok, error } = await searchParams;
   const supabase = await createClient();
   const { data: empresa } = await supabase
     .from('empresas')
@@ -28,6 +35,7 @@ export default async function SuscripcionPage() {
   const dias = diasRestantesTrial(empresa?.trial_termina_en ?? null);
   const est = ESTADO_LABEL[estado] ?? ESTADO_LABEL.trial;
   const configurado = flowConfigurado();
+  const enrollOn = enrollHabilitado();
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -35,6 +43,17 @@ export default async function SuscripcionPage() {
         <h1 className="text-2xl font-bold">Suscripción</h1>
         <p className="text-sm text-muted-foreground">Tu plan y estado de pago.</p>
       </div>
+
+      {ok && (
+        <p className="rounded-md border border-emerald-600/30 bg-emerald-600/10 px-3 py-2 text-sm text-emerald-700">
+          {ok}
+        </p>
+      )}
+      {error && (
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {error}
+        </p>
+      )}
 
       <Card>
         <CardHeader className="pb-2">
@@ -70,18 +89,42 @@ export default async function SuscripcionPage() {
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Método de pago</CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          {configurado ? (
-            <p>
-              Conexión de pagos activa. Pronto podrás inscribir tu tarjeta aquí para la
-              suscripción mensual automática.
-            </p>
-          ) : (
+        <CardContent className="space-y-3 text-sm text-muted-foreground">
+          {!configurado && (
             <p>
               La cobranza automática (Flow.cl) aún no está conectada en este entorno. Mientras
               tanto tu cuenta funciona con normalidad en período de prueba. No se realizará ningún
               cargo.
             </p>
+          )}
+          {configurado && !enrollOn && (
+            <p>
+              Conexión de pagos lista, pero la inscripción de tarjeta está desactivada
+              (sin cargos). Se habilita cuando definas el plan a cobrar.
+            </p>
+          )}
+          {configurado && enrollOn && estado !== 'activa' && (
+            <form action={iniciarSuscripcion} className="flex flex-wrap items-end gap-3">
+              <div className="space-y-1">
+                <label htmlFor="plan" className="text-foreground">Plan a suscribir</label>
+                <select
+                  id="plan"
+                  name="plan"
+                  defaultValue={planKey}
+                  className="block rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs"
+                >
+                  {(Object.keys(PLANES) as PlanKey[]).map((k) => (
+                    <option key={k} value={k}>
+                      {PLANES[k].nombre} — {clp.format(PLANES[k].precioMensual)}/mes
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <Button type="submit">Inscribir tarjeta y suscribirme</Button>
+            </form>
+          )}
+          {configurado && enrollOn && estado === 'activa' && (
+            <p className="text-emerald-700">Suscripción activa. Los cargos se realizan automáticamente cada mes.</p>
           )}
         </CardContent>
       </Card>
