@@ -17,9 +17,9 @@
 - [x] Clientes Supabase (`lib/supabase/{client,server,admin}.ts`) + sanity check en home
 - [x] Configurar Serwist para PWA (`app/sw.ts`, manifest, icono; build forzado a webpack)
 - [x] Variables de entorno (`.env.local` con URL + publishable + secret keys)
-- [ ] **Activar el Auth Hook en el dashboard** (Authentication → Hooks → `custom_access_token_hook`)
-- [ ] Deploy inicial en Vercel (`main` → producción, `develop` → preview)
-- [ ] GitHub: definir rama strategy (`main`, `develop`, `feature/*`)
+- [x] **Activar el Auth Hook en el dashboard** (Authentication → Hooks → `custom_access_token_hook`)
+- [x] Deploy inicial en Vercel (`main` → producción, auto-deploy)
+- [x] GitHub: ramas `main` (prod) + `develop` (preview)
 
 **Entregable:** URL en Vercel con login funcional, conexión a Supabase operativa.
 
@@ -35,13 +35,13 @@
 - [x] Middleware Next.js: protección de rutas + gate de onboarding por claims
 - [x] RLS multi-tenant verificado (empresa A no ve datos de B)
 
-### Bloque B — pendiente
-- [ ] Página `/configuracion/negocio` — editar datos empresa
+### Bloque B — ✅ hecho
+- [x] Página `/configuracion/negocio` — editar datos empresa
 - [x] Página `/configuracion/usuarios` — gestionar miembros (listar, crear, rol, quitar).
   Sin SMTP: el admin crea la cuenta (email + clave temporal entregada en persona) o vincula
   una cuenta existente. Migración `20260613013000`. Verificado e2e 13/13 + alta 5/5 + navegador.
-- [ ] Página `/configuracion/metodos-pago` — CRUD métodos de pago (requiere tabla `metodos_pago`, Fase 2)
-- [ ] Probar el flujo real en navegador (requiere desactivar "Confirm email" en dev)
+- [x] Página `/configuracion/metodos-pago` — CRUD métodos de pago (hecho en Fase 2)
+- [x] Probar el flujo real en navegador (registro→onboarding→dashboard verificado)
 
 **Entregable:** registro end-to-end, multi-tenant verificado (empresa A no ve datos de B).
 
