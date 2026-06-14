@@ -46,7 +46,7 @@ cuadratura, inventario, multi-tenant. Cliente confirmado: cafetería de un amigo
 `empresas`, `usuarios_empresa`, `configuracion_negocio`, `categorias_producto`, `productos`,
 `bodegas`, `metodos_pago`, `movimientos_inventario` (+ vista `vw_stock_actual`), `cajas`,
 `sesiones_caja`, `movimientos_caja`, `ventas`, `ventas_lineas`, `ventas_pagos`.
-Migraciones en `supabase/migrations/` (21 archivos, todas aplicadas en cloud).
+Migraciones en `supabase/migrations/` (22 archivos, todas aplicadas en cloud).
 Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin tablas nuevas).
 
 ---
@@ -97,7 +97,11 @@ Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin ta
   (`scripts/verify-cajero.mjs`, 2 cajeros + aislamiento tenant) + navegador.
 - **Fase 6 — Suscripciones Flow.cl** (ver `docs/04-flow-integracion.md`).
 - **Fase 9 — SII/DTE** (OpenFactura, v2).
-- `/configuracion/usuarios` (invitaciones — requiere SMTP).
+- ~~`/configuracion/usuarios`~~ ✅ cerrado (sin SMTP): gestión de miembros (listar/crear/rol/quitar).
+  RPCs `listar_usuarios_empresa` (DEFINER, email desde auth.users), `cambiar_rol_usuario_empresa`,
+  `quitar_usuario_empresa` (INVOKER + guardas de último admin/auto-quita). Alta vía server action con
+  service_role (crea o vincula cuenta existente). Migración `20260613013000`. La invitación por email
+  (link) queda para cuando haya SMTP — opcional, el alta directa cubre el caso de la cafetería.
 - Setear `NEXT_PUBLIC_SITE_URL` / reactivar Confirm email para producción.
 
 > Roadmap detallado con checkboxes: `docs/06-roadmap.md`.

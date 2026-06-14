@@ -19,6 +19,7 @@ const NAV = [
   { href: '/gastos', label: 'Gastos' },
   { href: '/configuracion/negocio', label: 'Negocio' },
   { href: '/configuracion/metodos-pago', label: 'Métodos de pago' },
+  { href: '/configuracion/usuarios', label: 'Usuarios' },
 ];
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {

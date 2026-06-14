@@ -37,7 +37,9 @@
 
 ### Bloque B — pendiente
 - [ ] Página `/configuracion/negocio` — editar datos empresa
-- [ ] Página `/configuracion/usuarios` — invitar usuarios, asignar rol
+- [x] Página `/configuracion/usuarios` — gestionar miembros (listar, crear, rol, quitar).
+  Sin SMTP: el admin crea la cuenta (email + clave temporal entregada en persona) o vincula
+  una cuenta existente. Migración `20260613013000`. Verificado e2e 13/13 + alta 5/5 + navegador.
 - [ ] Página `/configuracion/metodos-pago` — CRUD métodos de pago (requiere tabla `metodos_pago`, Fase 2)
 - [ ] Probar el flujo real en navegador (requiere desactivar "Confirm email" en dev)
 
