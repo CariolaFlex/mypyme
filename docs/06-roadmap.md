@@ -139,14 +139,18 @@ Backend: migración `20260613007000_reportes.sql` — 5 RPCs `security invoker`
 ## FASE 6 — Suscripciones Flow.cl (Semana 13)
 **Objetivo:** monetización automática real.
 
+**Fundación lista (commit, migraciones `20260613015000` + fix `015100`), verificada 23/23:**
+- [x] Migración: `flow_customer_id` + `flow_subscription_id` + `trial_termina_en` en `empresas`; onboarding setea trial de 14 días
+- [x] Webhook `/api/webhooks/flow` con verificación doble fase — **inerte sin credenciales** (200 no-op); excluido del gate de login en middleware
+- [x] Lógica de estados (`lib/flow/subscription.ts`): `estadoDesdeFlow`, `diasRestantesTrial`, `tieneAcceso`; firma HMAC (`lib/flow/signature.ts`)
+- [x] Página `/configuracion/suscripcion` (estado, plan, días de trial) + banner de trial por vencer en el dashboard
+
+**Pendiente (requiere credenciales/cuenta de Flow — en curso contra sandbox):**
 - [ ] Crear planes en Flow dashboard (Emprende y Pyme)
 - [ ] Widget de enroll de tarjeta (iframe) en página de suscripción
 - [ ] Crear Customer → Subscription en Flow al finalizar trial
-- [ ] Webhook `/api/webhooks/flow` con verificación doble fase
-- [ ] Lógica de estados: activa, morosa, cancelada
-- [ ] Restricción de acceso según estado de suscripción (middleware)
+- [ ] Restricción de acceso real (enforcement) según estado — lógica lista (`tieneAcceso`/`enforcementActivo`), activar con env `FLOW_ENFORCE`
 - [ ] Email de bienvenida post-pago (Resend o similar)
-- [ ] Migración: agregar `flow_subscription_id` a `empresas`
 
 **Entregable:** el sistema cobra solo, sin intervención manual.
 

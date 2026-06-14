@@ -9,9 +9,10 @@ export const config = {
   matcher: [
     /*
      * Todas las rutas excepto:
+     * - api/webhooks (callbacks externos, p.ej. Flow — sin sesión)
      * - _next/static, _next/image (assets de Next)
      * - favicon, sw.js, manifest, iconos, imágenes
      */
-    '/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api/webhooks|_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

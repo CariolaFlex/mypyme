@@ -89,7 +89,16 @@ Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin ta
 ## Pendientes (próximas fases)
 - ~~Pendientes menores 3B~~ ✅ cerrados: multi-pago en POS, movimientos de caja manuales
   (entrada/salida en `/caja`), búsqueda + filtro por categoría en POS.
-- **Fase 6 — Suscripciones Flow.cl** (monetización; ver `docs/04-flow-integracion.md`).
+- **Fase 6 — Suscripciones Flow.cl** (fundación lista, verificada 23/23): migraciones
+  `20260613015000` + fix `015100` (`flow_customer_id`/`flow_subscription_id`/`trial_termina_en`,
+  onboarding setea trial 14d), `lib/flow/{signature,subscription,client}.ts`, webhook
+  `/api/webhooks/flow` (doble fase, **inerte sin credenciales**, excluido del gate en middleware),
+  `/configuracion/suscripcion` + banner de trial. **Falta** (requiere cuenta Flow, en curso contra
+  sandbox): crear planes, widget enroll de tarjeta, crear customer/subscription, enforcement real
+  (`FLOW_ENFORCE`), email post-pago. Ver `docs/04-flow-integracion.md`.
+  ⚠️ Regresión corregida esta sesión: `015000` recreó el onboarding desde la versión original y
+  borró el sembrado (métodos/caja/categorías); `015100` lo restauró. **Lección: al CREATE OR REPLACE
+  una función que migraciones posteriores extendieron, partir de la ÚLTIMA versión, no de la original.**
 - **Fase 7 — Beta privada** (parcial): ✅ carga inicial de datos vía import masivo
   (`/inventario/importar`, RPC `importar_catalogo`, migración `20260613014000`, e2e 14/14 + navegador);
   ✅ onboarding guiado = tarjeta "Primeros pasos" en el dashboard (flag-free: visible cuando no hay

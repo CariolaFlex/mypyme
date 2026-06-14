@@ -6,6 +6,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 import { clp, inicioDiaSantiago, inicioHaceDias, inicioMesSantiago } from '@/lib/reportes';
+import { diasRestantesTrial } from '@/lib/flow/subscription';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,7 +36,7 @@ export default async function DashboardPage() {
     { data: productos },
     { data: stockRows },
   ] = await Promise.all([
-    supabase.from('empresas').select('razon_social, rut, plan, estado_suscripcion').single(),
+    supabase.from('empresas').select('razon_social, rut, plan, estado_suscripcion, trial_termina_en').single(),
     supabase.rpc('reporte_ventas_resumen', { p_desde: hoy, p_hasta: hasta }),
     supabase.rpc('reporte_ventas_resumen', { p_desde: semana, p_hasta: hasta }),
     supabase.rpc('reporte_ventas_resumen', { p_desde: mes, p_hasta: hasta }),
@@ -66,6 +67,12 @@ export default async function DashboardPage() {
   // "Primeros pasos": sin productos cargados = recién empieza. Se va solo al cargar el menú.
   const sinProductos = (productos?.length ?? 0) === 0;
 
+  // Aviso de trial por vencer (no bloquea; solo informa).
+  const estadoSus = (empresa as { estado_suscripcion?: string; trial_termina_en?: string | null } | null)?.estado_suscripcion;
+  const trialTermina = (empresa as { trial_termina_en?: string | null } | null)?.trial_termina_en ?? null;
+  const diasTrial = estadoSus === 'trial' ? diasRestantesTrial(trialTermina) : null;
+  const avisoTrial = diasTrial !== null && diasTrial <= 3;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -78,6 +85,19 @@ export default async function DashboardPage() {
           <Badge>{empresa?.estado_suscripcion}</Badge>
         </div>
       </div>
+
+      {/* Aviso de trial por vencer (informativo, no bloquea) */}
+      {avisoTrial && (
+        <Link
+          href="/configuracion/suscripcion"
+          className="block rounded-md border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 transition-colors hover:bg-amber-500/15"
+        >
+          {diasTrial! < 0
+            ? 'Tu período de prueba venció.'
+            : `Tu período de prueba termina en ${diasTrial} día(s).`}{' '}
+          <span className="font-medium underline underline-offset-2">Ver suscripción →</span>
+        </Link>
+      )}
 
       {/* Primeros pasos (solo cuando aún no hay productos) */}
       {sinProductos && (
