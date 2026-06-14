@@ -13,6 +13,7 @@ const NAV = [
   { href: '/inventario/productos', label: 'Productos' },
   { href: '/inventario/stock', label: 'Inventario' },
   { href: '/inventario/categorias', label: 'Categorías' },
+  { href: '/inventario/importar', label: 'Importar catálogo' },
   { href: '/compras/proveedores', label: 'Proveedores' },
   { href: '/compras/ordenes', label: 'Órdenes de compra' },
   { href: '/compras/facturas', label: 'Cuentas por pagar' },

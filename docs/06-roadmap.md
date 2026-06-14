@@ -156,7 +156,10 @@ Backend: migración `20260613007000_reportes.sql` — 5 RPCs `security invoker`
 **Objetivo:** lanzamiento con el primer cliente real y feedback loop.
 
 - [ ] Onboarding guiado (wizard de 3 pasos al primer login)
-- [ ] Carga inicial de datos del amigo (menú, stock, categorías)
+- [x] Carga inicial de datos (menú, stock, categorías) — herramienta de import masivo
+  `/inventario/importar`: pega líneas `Nombre; Precio; Categoría; Stock` (categorías nuevas se
+  crean solas, stock opcional, neto derivado del IVA, SKU autogenerado). RPC atómica
+  `importar_catalogo`. Migración `20260613014000`. Verificado e2e 14/14 + navegador.
 - [ ] Sesión de uso real con el cliente — observación directa
 - [ ] Lista de bugs y mejoras UX priorizadas
 - [ ] Soporte mínimo: email directo + WhatsApp
