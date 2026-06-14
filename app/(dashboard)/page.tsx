@@ -1,10 +1,14 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
+import {
+  Sun, CalendarDays, CalendarRange, Receipt, AlertTriangle, BarChart3,
+  ArrowRight, type LucideIcon,
+} from 'lucide-react';
 import { clp, inicioDiaSantiago, inicioHaceDias, inicioMesSantiago } from '@/lib/reportes';
 import { diasRestantesTrial } from '@/lib/flow/subscription';
 
@@ -58,10 +62,10 @@ export default async function DashboardPage() {
     (p) => p.stock_minimo != null && (stockPorProducto.get(p.id) ?? 0) <= Number(p.stock_minimo)
   ).length;
 
-  const periodos: { label: string; r: Resumen | null }[] = [
-    { label: 'Hoy', r: hoyR },
-    { label: 'Últimos 7 días', r: semanaR },
-    { label: 'Este mes', r: mesR },
+  const periodos: { label: string; r: Resumen | null; icon: LucideIcon }[] = [
+    { label: 'Hoy', r: hoyR, icon: Sun },
+    { label: 'Últimos 7 días', r: semanaR, icon: CalendarDays },
+    { label: 'Este mes', r: mesR, icon: CalendarRange },
   ];
 
   // "Primeros pasos": sin productos cargados = recién empieza. Se va solo al cargar el menú.
@@ -134,14 +138,19 @@ export default async function DashboardPage() {
 
       {/* KPIs por período */}
       <div className="grid gap-4 sm:grid-cols-3">
-        {periodos.map(({ label, r }) => (
-          <Card key={label}>
+        {periodos.map(({ label, r, icon: Icon }) => (
+          <Card key={label} className="transition-shadow duration-200 hover:shadow-md">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
+              <CardAction>
+                <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Icon className="size-[18px]" />
+                </div>
+              </CardAction>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{clp.format(Number(r?.total ?? 0))}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-2xl font-bold tracking-tight tabular-nums">{clp.format(Number(r?.total ?? 0))}</div>
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 {Number(r?.num_ventas ?? 0)} {Number(r?.num_ventas) === 1 ? 'venta' : 'ventas'}
                 {Number(r?.num_ventas ?? 0) > 0 && (
                   <> · ticket {clp.format(Number(r?.ticket_promedio ?? 0))}</>
@@ -154,37 +163,56 @@ export default async function DashboardPage() {
 
       {/* IVA del mes + stock bajo */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
+        <Card className="transition-shadow duration-200 hover:shadow-md">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">IVA débito del mes</CardTitle>
+            <CardAction>
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Receipt className="size-[18px]" />
+              </div>
+            </CardAction>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{clp.format(Number(mesR?.iva ?? 0))}</div>
-            <p className="text-xs text-muted-foreground">
-              Neto {clp.format(Number(mesR?.neto ?? 0))}
-            </p>
+            <div className="text-2xl font-bold tracking-tight tabular-nums">{clp.format(Number(mesR?.iva ?? 0))}</div>
+            <p className="mt-0.5 text-xs text-muted-foreground">Neto {clp.format(Number(mesR?.neto ?? 0))}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="transition-shadow duration-200 hover:shadow-md">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Stock bajo</CardTitle>
+            <CardAction>
+              <div className={`flex size-9 items-center justify-center rounded-lg ${stockBajo > 0 ? 'bg-amber-500/15 text-amber-600' : 'bg-emerald-500/15 text-emerald-600'}`}>
+                <AlertTriangle className="size-[18px]" />
+              </div>
+            </CardAction>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stockBajo}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold tracking-tight tabular-nums">{stockBajo}</div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
               <Link href="/inventario/stock" className="underline-offset-2 hover:underline">
                 {stockBajo > 0 ? 'productos por reponer' : 'todo en orden'}
               </Link>
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="transition-shadow duration-200 hover:shadow-md">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Reportes</CardTitle>
+            <CardAction>
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <BarChart3 className="size-[18px]" />
+              </div>
+            </CardAction>
           </CardHeader>
-          <CardContent className="flex flex-col gap-1 text-sm">
-            <Link href="/reportes/ventas" className="underline-offset-2 hover:underline">Reporte de ventas →</Link>
-            <Link href="/reportes/iva" className="underline-offset-2 hover:underline">Reporte de IVA (F29) →</Link>
+          <CardContent className="flex flex-col gap-1.5 text-sm">
+            <Link href="/reportes/ventas" className="group inline-flex items-center gap-1 text-primary transition-colors hover:text-primary/80">
+              Reporte de ventas
+              <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link href="/reportes/iva" className="group inline-flex items-center gap-1 text-primary transition-colors hover:text-primary/80">
+              Reporte de IVA (F29)
+              <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+            </Link>
           </CardContent>
         </Card>
       </div>

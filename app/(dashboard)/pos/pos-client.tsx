@@ -260,10 +260,12 @@ export function PosClient({
                 <button
                   key={p.id}
                   onClick={() => add(p.id)}
-                  className="flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border bg-card p-3 text-center transition-colors hover:bg-muted active:translate-y-px"
+                  className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-xl border bg-card p-3 text-center shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md active:translate-y-0 active:shadow-xs"
                 >
                   <span className="text-sm font-medium leading-tight">{p.nombre}</span>
-                  <span className="text-xs text-muted-foreground">{clp.format(p.precio_total ?? 0)}</span>
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary tabular-nums">
+                    {clp.format(p.precio_total ?? 0)}
+                  </span>
                 </button>
               ))}
               {!productosFiltrados.length && (

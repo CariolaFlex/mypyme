@@ -18,6 +18,10 @@ cuadratura, inventario, multi-tenant. Cliente confirmado: cafetería de un amigo
 - Supabase: Postgres + Auth + RLS + Storage (proyecto `igpplasotoshtuwbdzmf`, São Paulo)
 - Dexie (IndexedDB) + Serwist (PWA) para offline
 - Deploy: Vercel `https://mypyme-blond.vercel.app` (auto-deploy desde `main`)
+- **UI:** color de marca **índigo** (tokens en `app/globals.css`, oklch hue 277). Sidebar
+  rediseñado (`components/app-sidebar.tsx`, client: iconos Lucide, secciones, estado activo por
+  `usePathname`). Dashboard con KPI cards (icono+acento+hover), POS con chips de precio. Animaciones
+  vía CSS/tw-animate-css (fade-in de contenido, hover lift); **sin framer-motion** (reduce scope).
 
 ## Recursos
 - Repo: https://github.com/CariolaFlex/mypyme
