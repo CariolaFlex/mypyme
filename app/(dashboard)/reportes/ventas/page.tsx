@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import {
   clp, fmtFecha, inicioDiaSantiago, inicioHaceDias, inicioMesSantiago,
 } from '@/lib/reportes';
+import { VentasPorDiaChart, VentasPorMetodoChart } from '@/components/charts/dynamic';
 
 export const dynamic = 'force-dynamic';
 
@@ -91,6 +92,22 @@ export default async function ReporteVentasPage({
         <Kpi label="Ventas" value={String(Number(R?.num_ventas ?? 0))} />
         <Kpi label="Ticket promedio" value={clp.format(Number(R?.ticket_promedio ?? 0))} />
         <Kpi label="IVA débito" value={clp.format(Number(R?.iva ?? 0))} sub={`Neto ${clp.format(Number(R?.neto ?? 0))}`} />
+      </div>
+
+      {/* Gráficos */}
+      <div className="grid gap-6 lg:grid-cols-5">
+        <Card className="lg:col-span-3">
+          <CardHeader><CardTitle className="text-base">Ventas por día</CardTitle></CardHeader>
+          <CardContent>
+            <VentasPorDiaChart data={(porDia ?? []) as { dia: string; num_ventas: number; total: number }[]} />
+          </CardContent>
+        </Card>
+        <Card className="lg:col-span-2">
+          <CardHeader><CardTitle className="text-base">Distribución por método</CardTitle></CardHeader>
+          <CardContent>
+            <VentasPorMetodoChart data={(porMetodo ?? []) as { metodo: string; total: number }[]} />
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

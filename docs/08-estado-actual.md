@@ -20,8 +20,10 @@ cuadratura, inventario, multi-tenant. Cliente confirmado: cafetería de un amigo
 - Deploy: Vercel `https://mypyme-blond.vercel.app` (auto-deploy desde `main`)
 - **UI:** color de marca **índigo** (tokens en `app/globals.css`, oklch hue 277). Sidebar
   rediseñado (`components/app-sidebar.tsx`, client: iconos Lucide, secciones, estado activo por
-  `usePathname`). Dashboard con KPI cards (icono+acento+hover), POS con chips de precio. Animaciones
-  vía CSS/tw-animate-css (fade-in de contenido, hover lift); **sin framer-motion** (reduce scope).
+  `usePathname`). Dashboard con KPI cards (icono+acento+hover), POS con chips de precio, login/registro
+  con logo+blobs. **Gráficos (Recharts 3.x, dynamic import `ssr:false` en `components/charts/`):**
+  barras de ventas por día + dona por método en `/reportes/ventas`; tendencia 7 días en el dashboard.
+  Animaciones vía CSS/tw-animate-css (fade-in, hover lift); **sin framer-motion** (reduce scope).
 
 ## Recursos
 - Repo: https://github.com/CariolaFlex/mypyme

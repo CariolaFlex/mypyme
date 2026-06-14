@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { clp, inicioDiaSantiago, inicioHaceDias, inicioMesSantiago } from '@/lib/reportes';
 import { diasRestantesTrial } from '@/lib/flow/subscription';
+import { VentasPorDiaChart } from '@/components/charts/dynamic';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,6 +38,7 @@ export default async function DashboardPage() {
     { data: rSemana },
     { data: rMes },
     { data: top },
+    { data: porDia7 },
     { data: productos },
     { data: stockRows },
   ] = await Promise.all([
@@ -45,6 +47,7 @@ export default async function DashboardPage() {
     supabase.rpc('reporte_ventas_resumen', { p_desde: semana, p_hasta: hasta }),
     supabase.rpc('reporte_ventas_resumen', { p_desde: mes, p_hasta: hasta }),
     supabase.rpc('reporte_top_productos', { p_desde: mes, p_hasta: hasta, p_limite: 5 }),
+    supabase.rpc('reporte_ventas_por_dia', { p_desde: semana, p_hasta: hasta }),
     supabase.from('productos').select('id, stock_minimo').eq('activo', true),
     supabase.from('vw_stock_actual').select('producto_id, stock'),
   ]);
@@ -216,6 +219,16 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Tendencia de ventas (7 días) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Ventas — últimos 7 días</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <VentasPorDiaChart data={(porDia7 ?? []) as { dia: string; num_ventas: number; total: number }[]} />
+        </CardContent>
+      </Card>
 
       {/* Top productos del mes */}
       <Card>
