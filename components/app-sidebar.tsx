@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, ShoppingCart, Wallet, Package, Boxes, Tags, Upload,
   Truck, ClipboardList, ReceiptText, TrendingDown, BarChart3,
-  Building2, CreditCard, Users, Sparkles, LogOut, Store,
+  Building2, CreditCard, Users, Sparkles, LogOut, Store, History,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -53,6 +53,7 @@ export function AppSidebar({ empresaNombre, stockBajo }: { empresaNombre: string
         { href: '/configuracion/negocio', label: 'Negocio', icon: Building2 },
         { href: '/configuracion/metodos-pago', label: 'Métodos de pago', icon: CreditCard },
         { href: '/configuracion/usuarios', label: 'Usuarios', icon: Users },
+        { href: '/configuracion/auditoria', label: 'Bitácora', icon: History },
         { href: '/configuracion/suscripcion', label: 'Suscripción', icon: Sparkles },
       ],
     },

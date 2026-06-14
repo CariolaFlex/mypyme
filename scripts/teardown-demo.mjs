@@ -14,6 +14,8 @@ const stateUrl = new URL('./.demo-state.json', import.meta.url);
 const { userId, empresaId, email } = JSON.parse(readFileSync(stateUrl, 'utf8'));
 
 if (empresaId) await admin.from('empresas').delete().eq('id', empresaId);
+// auditoria no tiene FK a empresas → limpiar sus filas a mano tras el cascade.
+if (empresaId) await admin.from('auditoria').delete().eq('empresa_id', empresaId);
 if (userId) await admin.auth.admin.deleteUser(userId);
 rmSync(stateUrl);
 console.log(`Demo eliminada: ${email}`);

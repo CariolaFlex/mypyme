@@ -58,6 +58,10 @@ estética. Un POS que cobra mal o filtra datos entre empresas es un problema; un
 **Objetivo:** que la app sea correcta y a prueba de fugas para cualquier empresa con varios
 trabajadores, sin importar el rol.
 
+**1A — Bitácora de cambios ✅ HECHO** (migración `20260613016000`, verificado 8/8 + navegador):
+triggers Postgres en datos maestros → tabla `auditoria` con actor + antes/después (imposible
+saltárselo); página admin `/configuracion/auditoria` con diff. Borrado = desactivar (recuperable).
+
 - [ ] **Gating de UI por rol** (admin vs empleado): el sidebar y cada pantalla muestran solo lo
       permitido. Hoy un empleado ve botones de admin que la RLS rechaza → UX rota. Ocultar:
       config, usuarios, suscripción, creación/edición de catálogo, compras, etc. para empleados.
