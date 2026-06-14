@@ -16,7 +16,9 @@ import { logout } from '@/app/(auth)/actions';
 type Item = { href: string; label: string; icon: LucideIcon; badge?: number };
 type Grupo = { titulo: string; items: Item[] };
 
-export function AppSidebar({ empresaNombre, stockBajo }: { empresaNombre: string; stockBajo: number }) {
+export function AppSidebar({
+  empresaNombre, stockBajo, esAdmin,
+}: { empresaNombre: string; stockBajo: number; esAdmin: boolean }) {
   const pathname = usePathname();
 
   const grupos: Grupo[] = [
@@ -59,6 +61,9 @@ export function AppSidebar({ empresaNombre, stockBajo }: { empresaNombre: string
     },
   ];
 
+  // Empleados no ven la zona de control (Configuración).
+  const visibles = esAdmin ? grupos : grupos.filter((g) => g.titulo !== 'Configuración');
+
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
 
@@ -77,7 +82,7 @@ export function AppSidebar({ empresaNombre, stockBajo }: { empresaNombre: string
 
       {/* Navegación */}
       <nav className="flex-1 space-y-5 overflow-y-auto px-3 pb-4">
-        {grupos.map((g) => (
+        {visibles.map((g) => (
           <div key={g.titulo}>
             <div className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
               {g.titulo}

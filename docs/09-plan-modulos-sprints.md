@@ -62,11 +62,13 @@ trabajadores, sin importar el rol.
 triggers Postgres en datos maestros → tabla `auditoria` con actor + antes/después (imposible
 saltárselo); página admin `/configuracion/auditoria` con diff. Borrado = desactivar (recuperable).
 
-- [ ] **Gating de UI por rol** (admin vs empleado): el sidebar y cada pantalla muestran solo lo
-      permitido. Hoy un empleado ve botones de admin que la RLS rechaza → UX rota. Ocultar:
-      config, usuarios, suscripción, creación/edición de catálogo, compras, etc. para empleados.
-- [ ] **Empleado puede operar lo suyo**: POS, caja, ver reportes — verificado en navegador con
-      un usuario rol `empleado` (no solo admin).
+**1B — Roles ✅ HECHO** (migración `20260613017000`, verificado 9/9 + navegador):
+- [x] **Gating de UI por rol**: sidebar oculta el grupo Configuración a empleados; layout guard
+      en `/configuracion/*` redirige a empleados que entren directo.
+- [x] **Escritura operativa para empleados** (RLS relajada a miembro del tenant): catálogo,
+      inventario, proveedores, gastos, órdenes, facturas. Zonas de control siguen admin-only
+      (métodos de pago, configuración, usuarios, empresa). Todo auditado (1A).
+- [x] **Empleado opera lo suyo** (POS, caja, reportes) — verificado con login rol `empleado`.
 - [ ] **Auditoría de aislamiento tenant** end-to-end: 2 empresas × 2 trabajadores c/u, recorrer
       TODAS las pantallas y RPCs verificando que ninguna filtra datos de la otra.
 - [ ] **Smoke test de empresa nueva**: script que crea empresa + empleados + datos y verifica que

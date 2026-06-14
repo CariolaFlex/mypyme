@@ -6,10 +6,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const supabase = await createClient();
 
   const { data } = await supabase.auth.getClaims();
-  const empresaId = (data?.claims as Record<string, unknown> | undefined)?.empresa_id;
+  const claims = data?.claims as Record<string, unknown> | undefined;
+  const empresaId = claims?.empresa_id;
   if (!empresaId) {
     redirect('/onboarding');
   }
+  const esAdmin = claims?.user_rol === 'admin';
 
   const [{ data: empresa }, { data: productos }, { data: stockRows }] = await Promise.all([
     supabase.from('empresas').select('razon_social').single(),
@@ -27,7 +29,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="flex min-h-screen bg-muted/30">
-      <AppSidebar empresaNombre={empresa?.razon_social ?? 'Tu negocio'} stockBajo={stockBajo} />
+      <AppSidebar empresaNombre={empresa?.razon_social ?? 'Tu negocio'} stockBajo={stockBajo} esAdmin={esAdmin} />
       <main className="flex-1 overflow-x-hidden">
         <div className="mx-auto max-w-6xl animate-in fade-in-50 slide-in-from-bottom-1 p-6 duration-300 sm:p-8">
           {children}
