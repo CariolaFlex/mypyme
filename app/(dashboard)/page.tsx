@@ -63,6 +63,9 @@ export default async function DashboardPage() {
     { label: 'Este mes', r: mesR },
   ];
 
+  // "Primeros pasos": sin productos cargados = recién empieza. Se va solo al cargar el menú.
+  const sinProductos = (productos?.length ?? 0) === 0;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -75,6 +78,39 @@ export default async function DashboardPage() {
           <Badge>{empresa?.estado_suscripcion}</Badge>
         </div>
       </div>
+
+      {/* Primeros pasos (solo cuando aún no hay productos) */}
+      {sinProductos && (
+        <Card className="border-primary/40 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="text-base">👋 Bienvenido. Pongamos tu negocio en marcha</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <Paso n={1} hecho titulo="Crea tu negocio" detalle="Listo: tu empresa ya está configurada." />
+            <Paso
+              n={2}
+              titulo="Carga tu menú"
+              detalle="Pega todos tus productos de una vez (nombre, precio, categoría, stock)."
+              href="/inventario/importar"
+              cta="Importar catálogo →"
+            />
+            <Paso
+              n={3}
+              titulo="Abre la caja y haz tu primera venta"
+              detalle="Abre tu caja con el monto inicial y empieza a cobrar en el POS."
+              href="/caja"
+              cta="Ir a caja →"
+            />
+            <p className="pt-1 text-xs text-muted-foreground">
+              ¿Trabajas con más gente? Puedes{' '}
+              <Link href="/configuracion/usuarios" className="underline underline-offset-2">
+                agregar a tu equipo
+              </Link>{' '}
+              cuando quieras.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* KPIs por período */}
       <div className="grid gap-4 sm:grid-cols-3">
@@ -167,6 +203,33 @@ export default async function DashboardPage() {
           </Table>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function Paso({
+  n, titulo, detalle, href, cta, hecho,
+}: {
+  n: number; titulo: string; detalle: string; href?: string; cta?: string; hecho?: boolean;
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <div
+        className={`flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+          hecho ? 'bg-emerald-600 text-white' : 'bg-primary text-primary-foreground'
+        }`}
+      >
+        {hecho ? '✓' : n}
+      </div>
+      <div className="space-y-0.5">
+        <div className="font-medium">{titulo}</div>
+        <p className="text-muted-foreground">{detalle}</p>
+        {href && cta && (
+          <Link href={href} className="inline-block font-medium text-primary underline-offset-2 hover:underline">
+            {cta}
+          </Link>
+        )}
+      </div>
     </div>
   );
 }

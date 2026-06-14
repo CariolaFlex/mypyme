@@ -155,7 +155,9 @@ Backend: migración `20260613007000_reportes.sql` — 5 RPCs `security invoker`
 ## FASE 7 — Beta Privada y Pulido (Semana 14-16)
 **Objetivo:** lanzamiento con el primer cliente real y feedback loop.
 
-- [ ] Onboarding guiado (wizard de 3 pasos al primer login)
+- [x] Onboarding guiado — tarjeta "Primeros pasos" en el dashboard (3 pasos: crea negocio ✓,
+  carga tu menú, abre caja y vende). Flag-free: aparece cuando la empresa no tiene productos y
+  desaparece sola al cargar el menú. Verificado en navegador con cuenta nueva.
 - [x] Carga inicial de datos (menú, stock, categorías) — herramienta de import masivo
   `/inventario/importar`: pega líneas `Nombre; Precio; Categoría; Stock` (categorías nuevas se
   crean solas, stock opcional, neto derivado del IVA, SKU autogenerado). RPC atómica

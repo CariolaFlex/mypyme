@@ -91,8 +91,9 @@ Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin ta
   (entrada/salida en `/caja`), búsqueda + filtro por categoría en POS.
 - **Fase 6 — Suscripciones Flow.cl** (monetización; ver `docs/04-flow-integracion.md`).
 - **Fase 7 — Beta privada** (parcial): ✅ carga inicial de datos vía import masivo
-  (`/inventario/importar`, RPC `importar_catalogo`, migración `20260613014000`, e2e 14/14 + navegador).
-  Falta: wizard de onboarding guiado al primer login, sesión de uso real, T&C/privacidad, dominio.
+  (`/inventario/importar`, RPC `importar_catalogo`, migración `20260613014000`, e2e 14/14 + navegador);
+  ✅ onboarding guiado = tarjeta "Primeros pasos" en el dashboard (flag-free: visible cuando no hay
+  productos, se va al cargar el menú). Falta: sesión de uso real con el cafetero, T&C/privacidad, dominio.
 - ~~Reporte de ventas por cajero~~ ✅ cerrado: RPC `reporte_ventas_por_cajero`
   (SECURITY DEFINER, filtra por `get_tenant_id()` manual, resuelve email desde `auth.users`) +
   tarjeta "Por cajero" en `/reportes/ventas`. Migración `20260613012000`. Verificado e2e 14/14
