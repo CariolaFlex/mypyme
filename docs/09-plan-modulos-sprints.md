@@ -85,13 +85,16 @@ saltárselo); página admin `/configuracion/auditoria` con diff. Borrado = desac
 ### Sprint 2 — Pulido UI/UX completo  ·  *Claude, 0 manual*
 **Objetivo:** el rediseño índigo en todas las pantallas + experiencia pulida.
 
-- [ ] Pulir: caja, compras (proveedores/órdenes/facturas), gastos, inventario, stock, categorías,
-      métodos de pago, negocio, onboarding (iconos, acentos, hover, consistencia).
-- [ ] **Responsive / móvil-tablet**: sidebar colapsable (hamburguesa), POS usable en tablet.
-- [ ] **Dark mode**: toggle (next-themes ya está) + verificar tokens en todas las pantallas.
-- [ ] **Estados vacíos** con icono + CTA; **skeletons** de carga; **hover de filas** en tablas.
+- [x] Pulir headers: `PageHeader` (icono+título+descripción+acción) en 10 pantallas operativas
+      (caja, productos, inventario, categorías, proveedores, gastos, métodos de pago, negocio,
+      órdenes, cuentas por pagar). Commit a16c581. *(falta: onboarding)*
+- [x] **Responsive / móvil-tablet**: sidebar con hamburguesa + drawer overlay en <lg. Commit a408124.
+- [x] **Dark mode**: toggle next-themes en el sidebar, default claro, índigo preservado. Commit b682e78.
+- [x] **hover de filas** en tablas (ya estaba en el primitivo Table).
+- [ ] **Estados vacíos** con icono + CTA; **skeletons** de carga.
 - [ ] Más feedback con **toasts** (Sonner) en acciones clave.
 - [ ] Mostrar **imágenes de producto** donde aporten (POS, listados).
+- [ ] Pulir formularios/listas internas de cada pantalla (más allá del header).
 
 **Entregable:** app consistente y presentable para mostrarle al cafetero.
 
