@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Download } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -43,11 +44,20 @@ export default async function ReporteIvaPage({
 
   return (
     <div className="max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Reporte de IVA (F29)</h1>
-        <p className="text-sm text-muted-foreground">
-          IVA débito (ventas) menos crédito (gastos) por mes. Insumo para el Formulario 29.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Reporte de IVA (F29)</h1>
+          <p className="text-sm text-muted-foreground">
+            IVA débito (ventas) menos crédito (gastos) por mes. Insumo para el Formulario 29.
+          </p>
+        </div>
+        <a
+          href={`/reportes/iva/export?anio=${anio}`}
+          className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent"
+        >
+          <Download className="size-4" />
+          Exportar CSV
+        </a>
       </div>
 
       <div className="flex flex-wrap gap-2">

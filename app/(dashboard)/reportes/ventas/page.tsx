@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Download } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -6,29 +7,11 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import {
-  clp, fmtFecha, inicioDiaSantiago, inicioHaceDias, inicioMesSantiago,
+  clp, fmtFecha, RANGOS, desdePara, normalizarRango,
 } from '@/lib/reportes';
 import { VentasPorDiaChart, VentasPorMetodoChart } from '@/components/charts/dynamic';
 
 export const dynamic = 'force-dynamic';
-
-const RANGOS = [
-  { key: 'hoy', label: 'Hoy' },
-  { key: '7d', label: 'Últimos 7 días' },
-  { key: 'mes', label: 'Este mes' },
-  { key: '30d', label: 'Últimos 30 días' },
-] as const;
-type RangoKey = (typeof RANGOS)[number]['key'];
-
-function desdePara(rango: RangoKey, ahora: Date): Date {
-  switch (rango) {
-    case 'hoy': return inicioDiaSantiago(ahora);
-    case '7d': return inicioHaceDias(6, ahora);
-    case '30d': return inicioHaceDias(29, ahora);
-    case 'mes':
-    default: return inicioMesSantiago(ahora);
-  }
-}
 
 type Resumen = { num_ventas: number; total: number; neto: number; iva: number; ticket_promedio: number };
 
@@ -38,7 +21,7 @@ export default async function ReporteVentasPage({
   searchParams: Promise<{ rango?: string }>;
 }) {
   const { rango: rangoRaw } = await searchParams;
-  const rango: RangoKey = (RANGOS.some((r) => r.key === rangoRaw) ? rangoRaw : 'mes') as RangoKey;
+  const rango = normalizarRango(rangoRaw);
 
   const supabase = await createClient();
   const ahora = new Date();
@@ -63,9 +46,18 @@ export default async function ReporteVentasPage({
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Reporte de ventas</h1>
-        <p className="text-sm text-muted-foreground">Totales, métodos de pago y productos por período.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Reporte de ventas</h1>
+          <p className="text-sm text-muted-foreground">Totales, métodos de pago y productos por período.</p>
+        </div>
+        <a
+          href={`/reportes/ventas/export?rango=${rango}`}
+          className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent"
+        >
+          <Download className="size-4" />
+          Exportar CSV
+        </a>
       </div>
 
       {/* Selector de rango */}

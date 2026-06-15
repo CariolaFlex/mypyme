@@ -113,7 +113,10 @@ saltárselo); página admin `/configuracion/auditoria` con diff. Borrado = desac
 - [ ] **Onboarding guiado** más completo (hoy es solo la tarjeta "primeros pasos").
 - [ ] **Canal de soporte** mínimo en la app (link email/WhatsApp).
 - [ ] **Analytics** (Plausible o GA) integrado en código, listo para activar con tu key.
-- [ ] **Exportar a CSV/Excel** (con BOM es-CL) en reportes — útil para el dueño.
+- [x] **Exportar a CSV/Excel** (con BOM es-CL) en reportes — útil para el dueño. Botón "Exportar CSV"
+      en `/reportes/ventas` (respeta el rango activo) y `/reportes/iva` (respeta el año). Route handlers
+      `*/export/route.ts` corren los mismos RPCs (RLS aplica). `lib/csv.ts`: BOM UTF-8, delimitador `;`
+      (es-CL), CRLF, montos como enteros crudos. Verificado e2e en navegador (BOM EF BB BF, secciones, totales).
 - [ ] **Recuperación de contraseña** (UI lista; el envío real depende de SMTP del Sprint 5).
 
 **Entregable:** lista para que el cafetero la use de verdad.

@@ -56,3 +56,28 @@ export const MESES = [
   'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
   'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
 ];
+
+// Rangos del reporte de ventas — compartidos por la página y el export CSV.
+export const RANGOS = [
+  { key: 'hoy', label: 'Hoy' },
+  { key: '7d', label: 'Últimos 7 días' },
+  { key: 'mes', label: 'Este mes' },
+  { key: '30d', label: 'Últimos 30 días' },
+] as const;
+export type RangoKey = (typeof RANGOS)[number]['key'];
+
+/** Instante UTC de inicio del rango (corte en hora Santiago). */
+export function desdePara(rango: RangoKey, ahora: Date): Date {
+  switch (rango) {
+    case 'hoy': return inicioDiaSantiago(ahora);
+    case '7d': return inicioHaceDias(6, ahora);
+    case '30d': return inicioHaceDias(29, ahora);
+    case 'mes':
+    default: return inicioMesSantiago(ahora);
+  }
+}
+
+/** Normaliza un valor crudo de querystring a un RangoKey válido (default 'mes'). */
+export function normalizarRango(raw: string | null | undefined): RangoKey {
+  return (RANGOS.some((r) => r.key === raw) ? raw : 'mes') as RangoKey;
+}
