@@ -222,7 +222,11 @@ activa enforcement, despliega, y deja todo verificado.
       `SUPABASE_SERVICE_ROLE_KEY`) en GitHub → Settings → Secrets para activar la suite e2e en CI.
       Nota: CI usa `npm install` (no `npm ci`) porque el lock se genera en Windows y no registra
       las optionals nativas de Linux (`@emnapi/*`).
-- [ ] `npm audit` — 2 vulnerabilidades moderadas (transitivas de recharts/resend).
+- [x] **`npm audit` → 0 vulnerabilidades** (2026-06-15). Eran 2 moderadas = 1 CVE: postcss
+      <8.5.10 (XSS `</style>`, GHSA-qx2v-qp2m-jg93) que `next@16.2.9` pinea en 8.4.31. El
+      `--force` degradaba Next a 9.x (inaceptable) → `overrides: { postcss: "^8.5.15" }` en
+      package.json (bump minor, API estable; tailwind/shadcn ya usaban 8.5.x). Riesgo práctico
+      era ~nulo (postcss procesa nuestro CSS, no input de usuarios). Build OK con el override.
 - [ ] PWA offline real probado a fondo (Serwist app-shell, instalación).
 - [x] **Rate-limit del webhook de Flow** (2026-06-15). `lib/rate-limit.ts` (ventana fija en
       memoria, genérico, sin deps; `clientIp` lee x-forwarded-for/x-real-ip de Vercel). Webhook:
