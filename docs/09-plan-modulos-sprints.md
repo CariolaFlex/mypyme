@@ -121,7 +121,13 @@ saltárselo); página admin `/configuracion/auditoria` con diff. Borrado = desac
       en `/reportes/ventas` (respeta el rango activo) y `/reportes/iva` (respeta el año). Route handlers
       `*/export/route.ts` corren los mismos RPCs (RLS aplica). `lib/csv.ts`: BOM UTF-8, delimitador `;`
       (es-CL), CRLF, montos como enteros crudos. Verificado e2e en navegador (BOM EF BB BF, secciones, totales).
-- [ ] **Recuperación de contraseña** (UI lista; el envío real depende de SMTP del Sprint 5).
+- [x] **Recuperación de contraseña** (UI). `/recuperar` (pide correo → `resetPasswordForEmail`,
+      mensaje genérico), `/auth/callback` (intercambia el `code` PKCE por sesión), `/actualizar-clave`
+      (fija la nueva clave si hay sesión de recuperación; si no, "enlace inválido"). Link en login.
+      Rutas públicas en middleware. Verificado e2e: cambio real de clave (nueva OK / vieja rechazada)
+      + estados UI. **El envío del correo depende de SMTP (Sprint 5); el handshake email→callback se
+      confirma ahí.** Gotcha: `admin.generateLink` usa flujo implícito (hash), no PKCE — no sirve para
+      probar el callback `?code=`; el flujo real del SDK sí es PKCE.
 
 **Entregable:** lista para que el cafetero la use de verdad.
 

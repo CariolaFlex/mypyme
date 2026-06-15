@@ -50,7 +50,15 @@ export default async function LoginPage({
                 <Input id="email" name="email" type="email" required autoComplete="email" placeholder="tu@correo.cl" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Contraseña</Label>
+                  <Link
+                    href="/recuperar"
+                    className="text-xs font-medium text-primary underline-offset-4 hover:underline"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </div>
                 <Input id="password" name="password" type="password" required autoComplete="current-password" />
               </div>
               <Button type="submit" className="w-full" size="lg">Entrar</Button>

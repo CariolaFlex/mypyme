@@ -36,8 +36,13 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const esRutaAuth = pathname.startsWith('/login') || pathname.startsWith('/register');
-  // Las páginas legales son públicas (deben verse sin sesión, p.ej. desde el footer del login).
-  const esRutaPublica = pathname.startsWith('/legal');
+  // Rutas públicas (accesibles sin sesión): legales, recuperación de contraseña
+  // y el callback de auth (el code del correo llega sin sesión todavía).
+  const esRutaPublica =
+    pathname.startsWith('/legal') ||
+    pathname.startsWith('/recuperar') ||
+    pathname.startsWith('/actualizar-clave') ||
+    pathname.startsWith('/auth');
 
   if (!user && !esRutaAuth && !esRutaPublica) {
     const url = request.nextUrl.clone();
