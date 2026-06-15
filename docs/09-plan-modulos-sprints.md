@@ -146,8 +146,13 @@ WhatsApp/email de soporte, cuenta Plausible + dominio, SMTP para el envío de re
 ### Sprint 4 — Monetización lista para activar  ·  *Claude, 0 manual*
 **Objetivo:** dejar la Fase 6 100% lista para encender, sin gatillar cobros.
 
-- [ ] **Enforcement de acceso** cableado al middleware tras `FLOW_ENFORCE` (default off): trial
-      vencido → pantalla de "reactiva tu suscripción". Probado con flag on/off sin cobrar.
+- [x] **Enforcement de acceso** cableado al middleware tras `FLOW_ENFORCE` (default off): sin acceso
+      (trial vencido/morosa/cancelada/suspendida) → redirige a `/suscripcion-requerida` (pantalla
+      standalone fuera del dashboard, con CTA de reactivar para admin / aviso para empleado + logout).
+      La query a la DB SOLO corre con el flag ON (costo cero por defecto). Rutas exentas:
+      auth/públicas/onboarding/suscripcion-requerida/`configuracion/suscripcion` (donde el admin
+      reactiva, incl. `/retorno`). Verificado e2e con `FLOW_ENFORCE=true`: vencido→307 a requerida (200,
+      sin loop), config/suscripcion exenta, estado activa→200 sin bloqueo, requerida con acceso→307 a /.
 - [ ] **Pulir página de suscripción** y el flujo de estados (activa/morosa/cancelada) en la UI.
 - [ ] Revisar el **handshake de enroll** (`retorno/route.ts`) contra la doc de Flow para minimizar
       sorpresas en la prueba real del Sprint 5.

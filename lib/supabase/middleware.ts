@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { enforcementActivo, tieneAcceso } from '@/lib/flow/subscription';
 
 /**
  * Refresca la sesión de Supabase en cada request y protege rutas.
@@ -54,6 +55,32 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = '/';
     return NextResponse.redirect(url);
+  }
+
+  // Enforcement de suscripción (gated por FLOW_ENFORCE). La query a la DB SOLO
+  // corre cuando el flag está activo → costo cero mientras esté apagado (default).
+  if (user && enforcementActivo()) {
+    const esExento =
+      esRutaAuth ||
+      esRutaPublica ||
+      pathname.startsWith('/onboarding') ||
+      pathname.startsWith('/suscripcion-requerida') ||
+      // El admin reactiva aquí (incluye /retorno del enroll de Flow).
+      pathname.startsWith('/configuracion/suscripcion');
+
+    if (!esExento) {
+      const { data: empresa } = await supabase
+        .from('empresas')
+        .select('estado_suscripcion, trial_termina_en')
+        .maybeSingle();
+
+      if (empresa && !tieneAcceso(empresa.estado_suscripcion, empresa.trial_termina_en)) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/suscripcion-requerida';
+        url.search = '';
+        return NextResponse.redirect(url);
+      }
+    }
   }
 
   return supabaseResponse;
