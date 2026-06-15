@@ -1,6 +1,7 @@
 import { Truck } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/page-header';
+import { EmptyState } from '@/components/empty-state';
 import { crearProveedor, toggleProveedor } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -102,9 +103,13 @@ export default async function ProveedoresPage({
               </TableRow>
             ))
           ) : (
-            <TableRow>
-              <TableCell colSpan={5} className="py-6 text-center text-muted-foreground">
-                Aún no hay proveedores.
+            <TableRow className="hover:bg-transparent">
+              <TableCell colSpan={5}>
+                <EmptyState
+                  icon={Truck}
+                  title="Aún no hay proveedores"
+                  description="Agrega quién te abastece con el formulario de arriba."
+                />
               </TableCell>
             </TableRow>
           )}

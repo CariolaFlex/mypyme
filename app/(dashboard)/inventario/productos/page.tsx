@@ -1,6 +1,7 @@
 import { Package } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/page-header';
+import { EmptyState } from '@/components/empty-state';
 import { crearProducto, toggleActivo } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -134,9 +135,13 @@ export default async function ProductosPage({
               );
             })
           ) : (
-            <TableRow>
-              <TableCell colSpan={6} className="py-6 text-center text-muted-foreground">
-                Aún no hay productos.
+            <TableRow className="hover:bg-transparent">
+              <TableCell colSpan={6}>
+                <EmptyState
+                  icon={Package}
+                  title="Aún no hay productos"
+                  description="Crea tu primer producto con el formulario de arriba, o importa tu menú completo de una vez."
+                />
               </TableCell>
             </TableRow>
           )}

@@ -1,14 +1,9 @@
+import { Store } from 'lucide-react';
 import { crearEmpresa } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default async function OnboardingPage({
   searchParams,
@@ -18,13 +13,23 @@ export default async function OnboardingPage({
   const { error } = await searchParams;
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-muted/30 p-6">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Configura tu negocio</CardTitle>
-          <CardDescription>Estos datos identifican a tu empresa en mypyme.</CardDescription>
-        </CardHeader>
-        <CardContent>
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-muted/30 p-6">
+      <div className="pointer-events-none absolute -top-32 left-1/2 size-[28rem] -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-40 -right-20 size-[24rem] rounded-full bg-primary/10 blur-3xl" />
+
+      <div className="relative w-full max-w-md animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
+        <div className="mb-6 flex flex-col items-center gap-3 text-center">
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/25">
+            <Store className="size-6" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold tracking-tight">Configura tu negocio</h1>
+            <p className="text-sm text-muted-foreground">Último paso: estos datos identifican a tu empresa.</p>
+          </div>
+        </div>
+
+        <Card className="shadow-xl shadow-foreground/5">
+          <CardContent className="pt-2">
           {error && (
             <p className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {error}
@@ -67,8 +72,9 @@ export default async function OnboardingPage({
               Crear empresa y continuar
             </Button>
           </form>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </main>
   );
 }
