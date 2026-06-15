@@ -215,7 +215,7 @@ activa enforcement, despliega, y deja todo verificado.
 - [x] **Suite de tests + CI** (2026-06-15). `scripts/test-all.mjs` corre todos los
       `verify-*.mjs` en serie (filtros: `npm run test:e2e roles iva`) con resumen + exit code.
       npm scripts: `typecheck` (`tsc --noEmit`), `test:e2e`. CI `.github/workflows/ci.yml`:
-      job **static** (lint+typecheck+build, cada push/PR, sin secrets, actions@v5/Node 20) +
+      job **static** (lint+typecheck+build, cada push/PR, sin secrets, actions@v5/Node 24) +
       job **e2e** (verify-* contra Supabase cloud, solo `main`+`workflow_dispatch`, `concurrency`
       single-flight). El e2e salta limpio si faltan secrets. **Pendiente Andrés:** agregar los 3
       secrets de repo (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
@@ -224,7 +224,12 @@ activa enforcement, despliega, y deja todo verificado.
       las optionals nativas de Linux (`@emnapi/*`).
 - [ ] `npm audit` — 2 vulnerabilidades moderadas (transitivas de recharts/resend).
 - [ ] PWA offline real probado a fondo (Serwist app-shell, instalación).
-- [ ] Idempotencia/rate-limit explícito del webhook de Flow.
+- [x] **Rate-limit del webhook de Flow** (2026-06-15). `lib/rate-limit.ts` (ventana fija en
+      memoria, genérico, sin deps; `clientIp` lee x-forwarded-for/x-real-ip de Vercel). Webhook:
+      20 req/min por IP → 429 + Retry-After, aplicado tras el no-op `flowConfigurado()` (inerte
+      intacto). Corta la amplificación (cada POST gatilla una llamada saliente a Flow).
+      `scripts/verify-ratelimit.mjs` (8 checks). Alcance honesto: por-instancia, no distribuido.
+      (Idempotencia del webhook ya existía: upsert `onConflict: flow_token`.)
 - [ ] (Futuro) multi-empresa por usuario (hoy 1 usuario = 1 empresa).
 - [ ] Boleta/comprobante imprimible + número de boleta real.
 

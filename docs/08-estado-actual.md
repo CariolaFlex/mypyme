@@ -111,6 +111,9 @@ Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin ta
   *e2e* (la suite) solo en `main`+manual con `concurrency` single-flight. El e2e salta si faltan
   los 3 secrets de Supabase en el repo (pendiente de Andrés agregarlos en GitHub Settings → Secrets).
   CI usa `npm install` (no `npm ci`): el lock de Windows no trae optionals nativas de Linux (`@emnapi/*`).
+  CI corre en **Node 24** (type-stripping nativo: `verify-flow` importa lib `.ts` directo).
+- **Webhook de Flow con rate-limit:** `lib/rate-limit.ts` (ventana fija en memoria), 20 req/min por
+  IP → 429, tras el no-op `flowConfigurado()` (inerte intacto). Test `verify-ratelimit.mjs`.
 - Aplicar migraciones nuevas: `npx supabase db push --db-url "<session pooler URI>"`
   (host `aws-1-sa-east-1.pooler.supabase.com:5432`, pedir DB password a Andrés).
 - Testing e2e de backend: crear usuario confirmado vía admin API (`/auth/v1/admin/users`),
