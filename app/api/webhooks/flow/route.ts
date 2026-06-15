@@ -7,13 +7,28 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { flowConfigurado, getPaymentStatus } from '@/lib/flow/client';
 import { estadoDesdeFlow } from '@/lib/flow/subscription';
 import { enviarBienvenidaSuscripcion } from '@/lib/email/resend';
+import { rateLimit, clientIp } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
+
+// Endpoint público: cada POST con token gatilla una llamada saliente a Flow
+// (getPaymentStatus). El rate-limit corta la amplificación por flood de tokens
+// basura. Generoso para el tráfico legítimo de Flow (pocas notificaciones).
+const LIMITE = 20; // peticiones
+const VENTANA_MS = 60_000; // por minuto, por IP
 
 export async function POST(request: Request) {
   if (!flowConfigurado()) {
     // Aún no configurado: no-op. (Flow reintenta; se procesará al conectar Flow.)
     return new Response('flow no configurado', { status: 200 });
+  }
+
+  const rl = rateLimit(`flow-webhook:${clientIp(request)}`, LIMITE, VENTANA_MS);
+  if (!rl.ok) {
+    return new Response('demasiadas peticiones', {
+      status: 429,
+      headers: { 'Retry-After': String(rl.retryAfter) },
+    });
   }
 
   let token: string | null = null;
