@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  # ── Chequeo estático: corre SIEMPRE, no necesita secrets ni DB ──
+  static:
+    name: Lint · Typecheck · Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - name: Build
+        # placeholders: los clients de Supabase leen estas vars en runtime
+        # (dentro de funciones), no en build — esto solo evita undefined si
+        # algún módulo las tocara durante el prerender.
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: placeholder-service-key
+        run: npm run build
+
+  # ── Suite e2e contra Supabase cloud: solo main + manual, nunca en paralelo ──
+  e2e:
+    name: Suite e2e (verify-*)
+    runs-on: ubuntu-latest
+    needs: static
+    if: ${{ github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main' }}
+    # Un solo run e2e a la vez: pegan a la MISMA DB cloud y usan RUTs fijos;
+    # cancel-in-progress=false para no abortar a mitad de cleanup (deja data huérfana).
+    concurrency:
+      group: e2e-supabase
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Guard — secrets presentes
+        id: guard
+        env:
+          SVC: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -z "$SVC" ]; then
+            echo "⚠️  Sin SUPABASE_SERVICE_ROLE_KEY en secrets → se omite la suite e2e."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Escribir .env.local desde secrets
+        if: steps.guard.outputs.run == 'true'
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          ANON: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SVC: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}"
+            echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${ANON}"
+            echo "SUPABASE_SERVICE_ROLE_KEY=${SVC}"
+          } > .env.local
+      - name: Correr suite e2e
+        if: steps.guard.outputs.run == 'true'
+        run: npm run test:e2e
