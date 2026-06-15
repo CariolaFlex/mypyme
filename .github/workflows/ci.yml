@@ -18,7 +18,9 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
+      # npm install (no npm ci): el lock se genera en Windows y no registra
+      # las optionals nativas de Linux (@emnapi/*) que npm ci exige en Ubuntu.
+      - run: npm install --no-audit --no-fund
       - run: npm run lint
       - run: npm run typecheck
       - name: Build
@@ -48,7 +50,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - name: Guard — secrets presentes
         id: guard
         env:
