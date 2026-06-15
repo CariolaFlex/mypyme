@@ -60,6 +60,13 @@ export default async function RegisterPage({
             </p>
           </CardContent>
         </Card>
+
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          Al registrarte aceptas nuestros{' '}
+          <Link href="/legal/terminos" className="underline-offset-4 hover:underline">Términos</Link>
+          {' y la '}
+          <Link href="/legal/privacidad" className="underline-offset-4 hover:underline">Política de Privacidad</Link>.
+        </p>
       </div>
     </main>
   );

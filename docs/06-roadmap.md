@@ -176,7 +176,8 @@ Backend: migración `20260613007000_reportes.sql` — 5 RPCs `security invoker`
 - [ ] Sesión de uso real con el cliente — observación directa
 - [ ] Lista de bugs y mejoras UX priorizadas
 - [ ] Soporte mínimo: email directo + WhatsApp
-- [ ] Términos y condiciones, política de privacidad (mínimos legales)
+- [x] Términos y condiciones, política de privacidad (mínimos legales) — `/legal/terminos` y
+  `/legal/privacidad` (públicas). Borrador; falta aprobar textos + placeholders (`lib/legal.ts`).
 - [ ] Dominio y branding definitivo
 - [ ] Analytics de uso (Plausible o GA)
 

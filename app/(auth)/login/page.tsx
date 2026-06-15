@@ -64,6 +64,12 @@ export default async function LoginPage({
             </p>
           </CardContent>
         </Card>
+
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          <Link href="/legal/terminos" className="underline-offset-4 hover:underline">Términos</Link>
+          {' · '}
+          <Link href="/legal/privacidad" className="underline-offset-4 hover:underline">Privacidad</Link>
+        </p>
       </div>
     </main>
   );

@@ -108,8 +108,10 @@ saltárselo); página admin `/configuracion/auditoria` con diff. Borrado = desac
 ### Sprint 3 — Beta-ready  ·  *Claude (con inputs menores tuyos)*
 **Objetivo:** lo necesario para una beta privada digna.
 
-- [ ] **Páginas legales** (T&C + privacidad) con plantillas mínimas chilenas — borrador que tú
-      revisas/ajustas (textos los apruebas tú; el armado lo hago yo).
+- [x] **Páginas legales** (T&C + privacidad) con plantillas mínimas chilenas. `/legal/terminos` y
+      `/legal/privacidad` (públicas, fuera del gate de auth), layout propio, links en footer de
+      login/register. Textos en las pages; placeholders (RUT/dominio/email/razón social) en
+      `lib/legal.ts`. **Pendiente tuyo (Sprint 5): aprobar/ajustar textos y completar placeholders.**
 - [ ] **Onboarding guiado** más completo (hoy es solo la tarjeta "primeros pasos").
 - [ ] **Canal de soporte** mínimo en la app (link email/WhatsApp).
 - [ ] **Analytics** (Plausible o GA) integrado en código, listo para activar con tu key.

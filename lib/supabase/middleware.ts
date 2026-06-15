@@ -36,8 +36,10 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const esRutaAuth = pathname.startsWith('/login') || pathname.startsWith('/register');
+  // Las páginas legales son públicas (deben verse sin sesión, p.ej. desde el footer del login).
+  const esRutaPublica = pathname.startsWith('/legal');
 
-  if (!user && !esRutaAuth) {
+  if (!user && !esRutaAuth && !esRutaPublica) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
