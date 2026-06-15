@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { logout } from '@/app/(auth)/actions';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 type Item = { href: string; label: string; icon: LucideIcon; badge?: number };
 type Grupo = { titulo: string; items: Item[] };
@@ -126,7 +127,8 @@ export function AppSidebar({
       </nav>
 
       {/* Sesión */}
-      <div className="border-t p-3">
+      <div className="space-y-1 border-t p-3">
+        <ThemeToggle />
         <form action={logout}>
           <Button type="submit" variant="ghost" className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground">
             <LogOut className="size-4" />
