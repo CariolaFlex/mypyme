@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { db, type ProductoCache } from '@/lib/db';
 import { flushQueue, enviarVenta, contarPendientes } from '@/lib/sync';
+import { imprimirBoleta, type BoletaData, type NegocioBoleta } from '@/lib/boleta';
 
 type Metodo = { id: string; nombre: string; tipo: string | null };
 type Categoria = { id: string; nombre: string };
@@ -24,11 +25,13 @@ export function PosClient({
   metodos,
   categorias,
   sesionCajaId,
+  negocio,
 }: {
   productos: ProductoCache[];
   metodos: Metodo[];
   categorias: Categoria[];
   sesionCajaId: string | null;
+  negocio: NegocioBoleta;
 }) {
   const [productos, setProductos] = useState<ProductoCache[]>(productosIniciales);
   const [cart, setCart] = useState<Record<string, number>>({});
@@ -162,6 +165,26 @@ export function PosClient({
     const totalVenta = total;
     const vueltoVenta = vuelto;
 
+    // Datos del comprobante imprimible (se arma en el cliente → sirve offline).
+    const nombreMetodo = (id: string) => metodos.find((m) => m.id === id)?.nombre ?? 'Pago';
+    const boletaData: BoletaData = {
+      negocio,
+      lineas: items.map(([id, cantidad]) => {
+        const p = productosById.get(id)!;
+        const precioUnit = p.precio_total ?? 0;
+        return { nombre: p.nombre, cantidad, precioUnit, subtotal: precioUnit * cantidad };
+      }),
+      total: totalVenta,
+      pagos: pagosPayload.map((p) => ({ nombre: nombreMetodo(p.metodo_pago_id), monto: p.monto })),
+      vuelto: vueltoVenta,
+      fecha: new Date(),
+      ref: payload.ventaId.slice(0, 8).toUpperCase(),
+    };
+    const accionImprimir = {
+      label: 'Imprimir boleta',
+      onClick: () => imprimirBoleta(boletaData),
+    };
+
     startTransition(async () => {
       const limpiar = () => {
         setCart({});
@@ -175,7 +198,8 @@ export function PosClient({
         toast.success(
           vueltoVenta > 0
             ? `Venta ${clp.format(totalVenta)} · Vuelto ${clp.format(vueltoVenta)}`
-            : `Venta registrada · ${clp.format(totalVenta)}`
+            : `Venta registrada · ${clp.format(totalVenta)}`,
+          { action: accionImprimir, duration: 8000 }
         );
         limpiar();
       } catch (e) {
@@ -188,7 +212,10 @@ export function PosClient({
             creadoEn: Date.now(),
           });
           await refrescarPendientes();
-          toast.success(`Venta guardada sin conexión · se sincronizará (${clp.format(totalVenta)})`);
+          toast.success(`Venta guardada sin conexión · se sincronizará (${clp.format(totalVenta)})`, {
+            action: accionImprimir,
+            duration: 8000,
+          });
           limpiar();
         } else {
           toast.error((e as Error).message || 'No se pudo cobrar');
