@@ -55,15 +55,20 @@ export type FlowPaymentStatus = {
   status: number;          // 1 pendiente, 2 pagado, 3 rechazado, 4 anulado
   commerceOrder: string;
   subscriptionId?: string;
+  amount: number;          // monto del cobro (CLP)
+  paidAt?: string;         // fecha de pago (paymentData.date), si está
 };
 
 /** Estado real de un pago por token (segunda fase del webhook). */
 export async function getPaymentStatus(token: string): Promise<FlowPaymentStatus> {
   const data = await flowRequest('GET', '/payment/getStatus', { token });
+  const paymentData = (data.paymentData ?? {}) as Record<string, unknown>;
   return {
     status: Number(data.status),
     commerceOrder: String(data.commerceOrder ?? ''),
     subscriptionId: data.subscriptionId ? String(data.subscriptionId) : undefined,
+    amount: Number(data.amount ?? 0),
+    paidAt: paymentData.date ? String(paymentData.date) : undefined,
   };
 }
 

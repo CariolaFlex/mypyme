@@ -164,9 +164,17 @@ WhatsApp/email de soporte, cuenta Plausible + dominio, SMTP para el envío de re
       subscription/create (planId+customerId → subscriptionId+status) ✓. Hardening: **idempotencia**
       (no crea doble suscripción si se reentra al /retorno) + muestra la tarjeta inscrita en el
       mensaje de éxito (marca ****last4). Sigue sin probarse contra API real (Sprint 5).
-- [ ] Banner/avisos de cobro próximo, recibos, historial de pagos (UI).
+- [x] Recibos / historial de pagos (UI). Migración `20260613018000_pagos_suscripcion.sql` (tabla
+      escrita solo por el webhook vía service_role, idempotente por `flow_token`; RLS lectura admin).
+      El webhook registra cada cobro (extendí `getPaymentStatus` con monto+fecha). Tarjeta "Historial
+      de pagos" en `/configuracion/suscripcion` (fecha/estado/monto). Verificado e2e (pagos sembrados
+      → la tabla los muestra). *(El aviso de cobro próximo para trial ya vive en el dashboard; para
+      suscripción activa el banner contextual de estado cubre el caso sin inventar fechas.)*
 
 **Entregable:** apretar un switch (y probar 1 cobro) en el Sprint 5 = cobrando de verdad.
+✅ **SPRINT 4 CERRADO** (4/4: enforcement gated, página de suscripción con estados, revisión del
+handshake de enroll, historial de pagos). Pendiente de Andrés (Sprint 5): poner `FLOW_ENFORCE=true`
+y probar 1 cobro real con `FLOW_ENROLL_ENABLED=true`.
 
 ---
 

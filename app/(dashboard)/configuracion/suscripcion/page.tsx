@@ -1,6 +1,9 @@
 import { CheckCircle2, AlertTriangle, Clock, XCircle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { clp, fmtFecha } from '@/lib/reportes';
@@ -42,6 +45,22 @@ function bannerEstado(estado: string, dias: number | null): { tono: Tono; titulo
   }
 }
 
+// Etiqueta del estado de cada pago (Flow: 2=pagado, 3=rechazado, 4=anulado, 1=pendiente).
+const PAGO_LABEL: Record<number, { t: string; c: string }> = {
+  2: { t: 'Pagado', c: 'text-emerald-700 dark:text-emerald-400' },
+  3: { t: 'Rechazado', c: 'text-destructive' },
+  4: { t: 'Anulado', c: 'text-muted-foreground' },
+  1: { t: 'Pendiente', c: 'text-amber-700 dark:text-amber-400' },
+};
+
+// pagado_en/creado_en son timestamptz (instantes) → new Date es seguro acá.
+const fmtFechaHora = (s: string | null) =>
+  s
+    ? new Intl.DateTimeFormat('es-CL', {
+        day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Santiago',
+      }).format(new Date(s))
+    : '—';
+
 const ESTADO_LABEL: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' }> = {
   trial: { label: 'Período de prueba', variant: 'secondary' },
   activa: { label: 'Activa', variant: 'default' },
@@ -57,10 +76,17 @@ export default async function SuscripcionPage({
 }) {
   const { ok, error } = await searchParams;
   const supabase = await createClient();
-  const { data: empresa } = await supabase
-    .from('empresas')
-    .select('razon_social, plan, estado_suscripcion, trial_termina_en')
-    .single();
+  const [{ data: empresa }, { data: pagos }] = await Promise.all([
+    supabase
+      .from('empresas')
+      .select('razon_social, plan, estado_suscripcion, trial_termina_en')
+      .single(),
+    supabase
+      .from('pagos_suscripcion')
+      .select('id, monto, flow_status, pagado_en, creado_en')
+      .order('creado_en', { ascending: false })
+      .limit(24),
+  ]);
 
   const estado = empresa?.estado_suscripcion ?? 'trial';
   const planKey = (empresa?.plan as PlanKey) ?? 'emprende';
@@ -190,6 +216,45 @@ export default async function SuscripcionPage({
           {configurado && enrollOn && estado === 'activa' && (
             <p className="text-emerald-700">Suscripción activa. Los cargos se realizan automáticamente cada mes.</p>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Historial de pagos (recibos) */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Historial de pagos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead className="text-right">Monto</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pagos?.length ? (
+                pagos.map((p: { id: string; monto: number; flow_status: number | null; pagado_en: string | null; creado_en: string }) => {
+                  const lbl = PAGO_LABEL[Number(p.flow_status)] ?? { t: '—', c: 'text-muted-foreground' };
+                  return (
+                    <TableRow key={p.id}>
+                      <TableCell>{fmtFechaHora(p.pagado_en ?? p.creado_en)}</TableCell>
+                      <TableCell className={lbl.c}>{lbl.t}</TableCell>
+                      <TableCell className="text-right">{clp.format(Number(p.monto))}</TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={3} className="py-6 text-center text-muted-foreground">
+                    Aún no hay pagos registrados. Aparecerán aquí automáticamente cada vez que se
+                    procese un cobro.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
 

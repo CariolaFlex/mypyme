@@ -43,6 +43,27 @@ export async function POST(request: Request) {
       .select('id, razon_social')
       .maybeSingle();
 
+    // Registrar el pago en el historial (idempotente por flow_token).
+    if (emp) {
+      try {
+        await admin.from('pagos_suscripcion').upsert(
+          {
+            empresa_id: emp.id,
+            flow_token: token,
+            flow_commerce_order: status.commerceOrder || null,
+            flow_subscription_id: status.subscriptionId ?? null,
+            monto: status.amount,
+            flow_status: status.status,
+            estado: nuevoEstado,
+            pagado_en: status.paidAt ?? null,
+          },
+          { onConflict: 'flow_token' }
+        );
+      } catch (e) {
+        console.error('Registro de pago falló (ignorado):', e);
+      }
+    }
+
     // Email de bienvenida al activarse (best-effort: no afecta la respuesta).
     if (nuevoEstado === 'activa' && emp) {
       try {
