@@ -153,7 +153,10 @@ WhatsApp/email de soporte, cuenta Plausible + dominio, SMTP para el envío de re
       auth/públicas/onboarding/suscripcion-requerida/`configuracion/suscripcion` (donde el admin
       reactiva, incl. `/retorno`). Verificado e2e con `FLOW_ENFORCE=true`: vencido→307 a requerida (200,
       sin loop), config/suscripcion exenta, estado activa→200 sin bloqueo, requerida con acceso→307 a /.
-- [ ] **Pulir página de suscripción** y el flujo de estados (activa/morosa/cancelada) en la UI.
+- [x] **Pulir página de suscripción** y el flujo de estados. Banner contextual por estado
+      (activa=verde / trial=verde o ámbar si quedan ≤3 días o vencido=rojo / morosa·cancelada·suspendida=rojo)
+      con título + detalle accionable; fila "Acceso a la app" que refleja `tieneAcceso` + `enforcementActivo`
+      (Habilitado / Bloqueado / Habilitado sin restricción). Verificado e2e (trial y morosa).
 - [ ] Revisar el **handshake de enroll** (`retorno/route.ts`) contra la doc de Flow para minimizar
       sorpresas en la prueba real del Sprint 5.
 - [ ] Banner/avisos de cobro próximo, recibos, historial de pagos (UI).
