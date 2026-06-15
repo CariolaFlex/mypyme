@@ -91,12 +91,17 @@ saltárselo); página admin `/configuracion/auditoria` con diff. Borrado = desac
 - [x] **Responsive / móvil-tablet**: sidebar con hamburguesa + drawer overlay en <lg. Commit a408124.
 - [x] **Dark mode**: toggle next-themes en el sidebar, default claro, índigo preservado. Commit b682e78.
 - [x] **hover de filas** en tablas (ya estaba en el primitivo Table).
-- [ ] **Estados vacíos** con icono + CTA; **skeletons** de carga.
-- [ ] Más feedback con **toasts** (Sonner) en acciones clave.
-- [ ] Mostrar **imágenes de producto** donde aporten (POS, listados).
-- [ ] Pulir formularios/listas internas de cada pantalla (más allá del header).
+- [x] **Estados vacíos** con icono (`EmptyState`) en productos y proveedores; **skeletons** de carga
+      (`Skeleton` + `app/(dashboard)/loading.tsx` genérico). Commit 584466a.
+- [x] **Onboarding** con tratamiento de marca (logo/blobs/card). Commit 584466a.
 
-**Entregable:** app consistente y presentable para mostrarle al cafetero.
+**Diferido a propósito (menor impacto, queda para Sprint 3 o después):**
+- [ ] Más feedback con **toasts** (Sonner) — hoy se usan banners flash con `?ok/?error`, funcionan bien.
+- [ ] **Imágenes de producto** en POS (la query del POS no trae `imagen_url`; los productos sembrados
+      no tienen imagen → no verificable ahora). El listado de productos sí muestra imagen.
+- [ ] `EmptyState` en el resto de listas (gastos, órdenes, facturas, categorías) y pulir formularios internos.
+
+**Entregable:** app consistente y presentable para mostrarle al cafetero. ✅ (Sprint 2 cerrado en lo esencial)
 
 ---
 
