@@ -112,7 +112,11 @@ saltárselo); página admin `/configuracion/auditoria` con diff. Borrado = desac
       `/legal/privacidad` (públicas, fuera del gate de auth), layout propio, links en footer de
       login/register. Textos en las pages; placeholders (RUT/dominio/email/razón social) en
       `lib/legal.ts`. **Pendiente tuyo (Sprint 5): aprobar/ajustar textos y completar placeholders.**
-- [ ] **Onboarding guiado** más completo (hoy es solo la tarjeta "primeros pasos").
+- [x] **Onboarding guiado** más completo. La tarjeta del dashboard ahora es consciente del progreso
+      real: 3 hitos (negocio ✓ / carga tu menú / primera venta) con barra de progreso, badge
+      "X de 3 listos", checks por paso (tachado al completar) y CTA solo en los pendientes. Persiste
+      hasta cargar el menú Y registrar la primera venta, luego desaparece sola. Verificado e2e
+      (estado 2/3: barra 66%, paso 2 hecho, paso 3 con CTA).
 - [x] **Canal de soporte** mínimo en la app. Página `/soporte` (tarjetas WhatsApp + Correo + horario)
       + link "Soporte" en el footer del sidebar. Contacto centralizado en `lib/legal.ts` (`SOPORTE`,
       `whatsappUrl()`, `mailtoSoporte()`). **Pendiente tuyo (Sprint 5): WhatsApp y email definitivos.**
@@ -132,7 +136,10 @@ saltárselo); página admin `/configuracion/auditoria` con diff. Borrado = desac
       confirma ahí.** Gotcha: `admin.generateLink` usa flujo implícito (hash), no PKCE — no sirve para
       probar el callback `?code=`; el flujo real del SDK sí es PKCE.
 
-**Entregable:** lista para que el cafetero la use de verdad.
+**Entregable:** lista para que el cafetero la use de verdad. ✅ **SPRINT 3 CERRADO** (6/6: export CSV,
+legales, soporte, recuperación de contraseña, analytics gated, onboarding guiado). Pendientes de
+Andrés que quedaron anotados para el Sprint 5: textos legales + placeholders (`lib/legal.ts`),
+WhatsApp/email de soporte, cuenta Plausible + dominio, SMTP para el envío de recuperación.
 
 ---
 

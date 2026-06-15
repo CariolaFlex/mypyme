@@ -41,6 +41,7 @@ export default async function DashboardPage() {
     { data: porDia7 },
     { data: productos },
     { data: stockRows },
+    { count: numVentasTotal },
   ] = await Promise.all([
     supabase.from('empresas').select('razon_social, rut, plan, estado_suscripcion, trial_termina_en').single(),
     supabase.rpc('reporte_ventas_resumen', { p_desde: hoy, p_hasta: hasta }),
@@ -50,6 +51,7 @@ export default async function DashboardPage() {
     supabase.rpc('reporte_ventas_por_dia', { p_desde: semana, p_hasta: hasta }),
     supabase.from('productos').select('id, stock_minimo').eq('activo', true),
     supabase.from('vw_stock_actual').select('producto_id, stock'),
+    supabase.from('ventas').select('id', { count: 'exact', head: true }),
   ]);
 
   const hoyR = (rHoy?.[0] as Resumen | undefined) ?? null;
@@ -71,8 +73,13 @@ export default async function DashboardPage() {
     { label: 'Este mes', r: mesR, icon: CalendarRange },
   ];
 
-  // "Primeros pasos": sin productos cargados = recién empieza. Se va solo al cargar el menú.
-  const sinProductos = (productos?.length ?? 0) === 0;
+  // Onboarding guiado: hitos reales del primer uso. La guía persiste hasta que
+  // el negocio cargó su menú Y registró su primera venta, luego desaparece sola.
+  const tieneProductos = (productos?.length ?? 0) > 0;
+  const tieneVentas = (numVentasTotal ?? 0) > 0;
+  const pasosCompletos = 1 + (tieneProductos ? 1 : 0) + (tieneVentas ? 1 : 0);
+  const totalPasos = 3;
+  const mostrarGuia = pasosCompletos < totalPasos;
 
   // Aviso de trial por vencer (no bloquea; solo informa).
   const estadoSus = (empresa as { estado_suscripcion?: string; trial_termina_en?: string | null } | null)?.estado_suscripcion;
@@ -106,28 +113,52 @@ export default async function DashboardPage() {
         </Link>
       )}
 
-      {/* Primeros pasos (solo cuando aún no hay productos) */}
-      {sinProductos && (
+      {/* Onboarding guiado: persiste hasta cargar el menú y hacer la primera venta */}
+      {mostrarGuia && (
         <Card className="border-primary/40 bg-primary/5">
           <CardHeader>
             <CardTitle className="text-base">👋 Bienvenido. Pongamos tu negocio en marcha</CardTitle>
+            <CardAction>
+              <Badge variant="secondary">{pasosCompletos} de {totalPasos} listos</Badge>
+            </CardAction>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <Paso n={1} hecho titulo="Crea tu negocio" detalle="Listo: tu empresa ya está configurada." />
-            <Paso
-              n={2}
-              titulo="Carga tu menú"
-              detalle="Pega todos tus productos de una vez (nombre, precio, categoría, stock)."
-              href="/inventario/importar"
-              cta="Importar catálogo →"
-            />
-            <Paso
-              n={3}
-              titulo="Abre la caja y haz tu primera venta"
-              detalle="Abre tu caja con el monto inicial y empieza a cobrar en el POS."
-              href="/caja"
-              cta="Ir a caja →"
-            />
+          <CardContent className="space-y-4 text-sm">
+            {/* Barra de progreso */}
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-primary/15">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-500"
+                style={{ width: `${(pasosCompletos / totalPasos) * 100}%` }}
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Paso n={1} hecho titulo="Crea tu negocio" detalle="Listo: tu empresa ya está configurada." />
+              <Paso
+                n={2}
+                hecho={tieneProductos}
+                titulo="Carga tu menú"
+                detalle={
+                  tieneProductos
+                    ? 'Tu catálogo ya tiene productos. Puedes seguir agregando cuando quieras.'
+                    : 'Pega todos tus productos de una vez (nombre, precio, categoría, stock).'
+                }
+                href="/inventario/importar"
+                cta="Importar catálogo →"
+              />
+              <Paso
+                n={3}
+                hecho={tieneVentas}
+                titulo="Abre la caja y haz tu primera venta"
+                detalle={
+                  tieneVentas
+                    ? '¡Ya registraste tu primera venta! Tu negocio está operando.'
+                    : 'Abre tu caja con el monto inicial y empieza a cobrar en el POS.'
+                }
+                href="/caja"
+                cta="Ir a caja →"
+              />
+            </div>
+
             <p className="pt-1 text-xs text-muted-foreground">
               ¿Trabajas con más gente? Puedes{' '}
               <Link href="/configuracion/usuarios" className="underline underline-offset-2">
@@ -283,9 +314,9 @@ function Paso({
         {hecho ? '✓' : n}
       </div>
       <div className="space-y-0.5">
-        <div className="font-medium">{titulo}</div>
+        <div className={`font-medium ${hecho ? 'text-muted-foreground line-through decoration-1' : ''}`}>{titulo}</div>
         <p className="text-muted-foreground">{detalle}</p>
-        {href && cta && (
+        {href && cta && !hecho && (
           <Link href={href} className="inline-block font-medium text-primary underline-offset-2 hover:underline">
             {cta}
           </Link>
