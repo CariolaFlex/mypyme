@@ -1,11 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, ShoppingCart, Wallet, Package, Boxes, Tags, Upload,
   Truck, ClipboardList, ReceiptText, TrendingDown, BarChart3,
-  Building2, CreditCard, Users, Sparkles, LogOut, Store, History,
+  Building2, CreditCard, Users, Sparkles, LogOut, Store, History, Menu, X,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -21,6 +22,7 @@ export function AppSidebar({
   empresaNombre, stockBajo, esAdmin,
 }: { empresaNombre: string; stockBajo: number; esAdmin: boolean }) {
   const pathname = usePathname();
+  const [abierto, setAbierto] = useState(false);
 
   const grupos: Grupo[] = [
     {
@@ -68,8 +70,8 @@ export function AppSidebar({
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
 
-  return (
-    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground">
+  const contenido = (
+    <>
       {/* Marca */}
       <div className="flex items-center gap-3 px-5 py-5">
         <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
@@ -96,6 +98,7 @@ export function AppSidebar({
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={() => setAbierto(false)}
                     className={cn(
                       'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-150',
                       active
@@ -136,6 +139,55 @@ export function AppSidebar({
           </Button>
         </form>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Sidebar de escritorio */}
+      <aside className="hidden h-screen w-64 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground lg:sticky lg:top-0 lg:flex">
+        {contenido}
+      </aside>
+
+      {/* Barra superior móvil */}
+      <div className="sticky top-0 z-30 flex items-center gap-3 border-b bg-sidebar px-4 py-3 text-sidebar-foreground lg:hidden">
+        <button
+          type="button"
+          onClick={() => setAbierto(true)}
+          aria-label="Abrir menú"
+          className="flex size-9 items-center justify-center rounded-lg hover:bg-sidebar-accent"
+        >
+          <Menu className="size-5" />
+        </button>
+        <div className="flex items-center gap-2">
+          <div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <Store className="size-4" />
+          </div>
+          <span className="font-bold tracking-tight">mypyme</span>
+        </div>
+      </div>
+
+      {/* Drawer móvil */}
+      {abierto && (
+        <div className="lg:hidden">
+          <div
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            onClick={() => setAbierto(false)}
+            aria-hidden
+          />
+          <aside className="fixed inset-y-0 left-0 z-50 flex h-full w-72 flex-col border-r bg-sidebar text-sidebar-foreground shadow-xl duration-200 animate-in slide-in-from-left">
+            <button
+              type="button"
+              onClick={() => setAbierto(false)}
+              aria-label="Cerrar menú"
+              className="absolute right-3 top-4 flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+            >
+              <X className="size-5" />
+            </button>
+            {contenido}
+          </aside>
+        </div>
+      )}
+    </>
   );
 }
