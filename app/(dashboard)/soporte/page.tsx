@@ -15,20 +15,22 @@ export default function SoportePage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {/* WhatsApp */}
-        <a href={whatsappUrl()} target="_blank" rel="noopener noreferrer" className="group">
-          <Card className="h-full transition-shadow hover:shadow-md">
-            <CardContent className="flex flex-col items-start gap-3 pt-6">
-              <div className="flex size-11 items-center justify-center rounded-xl bg-green-500/10 text-green-600 dark:text-green-400">
-                <MessageCircle className="size-6" />
-              </div>
-              <div>
-                <div className="font-semibold group-hover:text-primary">WhatsApp</div>
-                <p className="text-sm text-muted-foreground">Respuesta rápida en horario hábil.</p>
-              </div>
-            </CardContent>
-          </Card>
-        </a>
+        {/* WhatsApp — solo si hay número configurado */}
+        {SOPORTE.whatsapp && (
+          <a href={whatsappUrl()} target="_blank" rel="noopener noreferrer" className="group">
+            <Card className="h-full transition-shadow hover:shadow-md">
+              <CardContent className="flex flex-col items-start gap-3 pt-6">
+                <div className="flex size-11 items-center justify-center rounded-xl bg-green-500/10 text-green-600 dark:text-green-400">
+                  <MessageCircle className="size-6" />
+                </div>
+                <div>
+                  <div className="font-semibold group-hover:text-primary">WhatsApp</div>
+                  <p className="text-sm text-muted-foreground">Respuesta rápida en horario hábil.</p>
+                </div>
+              </CardContent>
+            </Card>
+          </a>
+        )}
 
         {/* Email */}
         <a href={mailtoSoporte()} className="group">

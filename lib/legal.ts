@@ -4,19 +4,24 @@
 export const LEGAL = {
   marca: 'mypyme',
   razonSocial: 'Vectium SpA', // titular del servicio
-  rut: '[RUT por definir]',
+  // ⚠️ VERIFICAR ANDRÉS: tomado del registro de la empresa en la app (cuenta
+  // Vectium SpA). Confirmar que es el RUT real antes de uso legal definitivo.
+  rut: '78.312.836-5',
   domicilio: 'La Serena, Región de Coquimbo, Chile',
-  sitio: 'mypyme.cl', // dominio definitivo por definir (Sprint 5)
-  emailContacto: 'contacto@mypyme.cl', // por definir (Sprint 5)
+  // Sin dominio aún: el servicio vive en la URL de Vercel. Cambiar a mypyme.cl
+  // (u otro) cuando se compre el dominio.
+  sitio: 'mypyme-blond.vercel.app',
+  emailContacto: 'vectiumspa@gmail.com', // email real de Vectium (cambiar a contacto@dominio con dominio propio)
   // Fecha de última actualización de los textos legales.
-  actualizado: '14 de junio de 2026',
+  actualizado: '15 de junio de 2026',
 } as const;
 
-// Canal de soporte. BORRADOR: Andrés define el WhatsApp definitivo (Sprint 5).
-// El número va en formato internacional SIN '+' ni espacios para el link wa.me.
+// Canal de soporte. El WhatsApp es opcional: si queda vacío, la tarjeta de
+// WhatsApp NO se muestra en /soporte. Número en formato internacional SIN '+'
+// ni espacios para el link wa.me (ej. '56912345678').
 export const SOPORTE = {
-  email: 'soporte@mypyme.cl', // por definir (Sprint 5)
-  whatsapp: '56900000000', // [número por definir] formato 56 9 XXXX XXXX
+  email: 'vectiumspa@gmail.com', // email real de soporte
+  whatsapp: '', // ⚠️ ANDRÉS: pega tu número '569XXXXXXXX' para activar la tarjeta de WhatsApp
   horario: 'Lun a Vie, 9:00–18:00 hrs',
   // Mensaje pre-cargado al abrir WhatsApp.
   mensajeWhatsapp: 'Hola, necesito ayuda con mypyme.',
