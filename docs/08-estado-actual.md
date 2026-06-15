@@ -104,7 +104,13 @@ Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin ta
 
 ## Cómo correr / probar
 - Local: `npm run dev` (webpack) → http://localhost:3000
-- Build: `npm run build` · Lint: `npm run lint` · Types: `npx tsc --noEmit`
+- Build: `npm run build` · Lint: `npm run lint` · Types: `npm run typecheck`
+- **Suite e2e completa:** `npm run test:e2e` (corre los 13 `verify-*.mjs` en serie contra la DB
+  cloud, self-clean; filtros: `npm run test:e2e roles iva`). Baseline 13/13 verde (2026-06-15).
+- **CI** (`.github/workflows/ci.yml`): job *static* (lint+typecheck+build) en cada push/PR; job
+  *e2e* (la suite) solo en `main`+manual con `concurrency` single-flight. El e2e salta si faltan
+  los 3 secrets de Supabase en el repo (pendiente de Andrés agregarlos en GitHub Settings → Secrets).
+  CI usa `npm install` (no `npm ci`): el lock de Windows no trae optionals nativas de Linux (`@emnapi/*`).
 - Aplicar migraciones nuevas: `npx supabase db push --db-url "<session pooler URI>"`
   (host `aws-1-sa-east-1.pooler.supabase.com:5432`, pedir DB password a Andrés).
 - Testing e2e de backend: crear usuario confirmado vía admin API (`/auth/v1/admin/users`),

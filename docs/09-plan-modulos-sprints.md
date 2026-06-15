@@ -212,7 +212,16 @@ activa enforcement, despliega, y deja todo verificado.
 
 ## Deuda técnica (se intercala donde encaje, no es un sprint propio)
 
-- [ ] Suite de tests + CI que corra los `verify-*.mjs` automáticamente.
+- [x] **Suite de tests + CI** (2026-06-15). `scripts/test-all.mjs` corre todos los
+      `verify-*.mjs` en serie (filtros: `npm run test:e2e roles iva`) con resumen + exit code.
+      npm scripts: `typecheck` (`tsc --noEmit`), `test:e2e`. CI `.github/workflows/ci.yml`:
+      job **static** (lint+typecheck+build, cada push/PR, sin secrets, actions@v5/Node 20) +
+      job **e2e** (verify-* contra Supabase cloud, solo `main`+`workflow_dispatch`, `concurrency`
+      single-flight). El e2e salta limpio si faltan secrets. **Pendiente Andrés:** agregar los 3
+      secrets de repo (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+      `SUPABASE_SERVICE_ROLE_KEY`) en GitHub → Settings → Secrets para activar la suite e2e en CI.
+      Nota: CI usa `npm install` (no `npm ci`) porque el lock se genera en Windows y no registra
+      las optionals nativas de Linux (`@emnapi/*`).
 - [ ] `npm audit` — 2 vulnerabilidades moderadas (transitivas de recharts/resend).
 - [ ] PWA offline real probado a fondo (Serwist app-shell, instalación).
 - [ ] Idempotencia/rate-limit explícito del webhook de Flow.
