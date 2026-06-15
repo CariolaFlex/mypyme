@@ -180,7 +180,8 @@ Backend: migración `20260613007000_reportes.sql` — 5 RPCs `security invoker`
 - [x] Términos y condiciones, política de privacidad (mínimos legales) — `/legal/terminos` y
   `/legal/privacidad` (públicas). Borrador; falta aprobar textos + placeholders (`lib/legal.ts`).
 - [ ] Dominio y branding definitivo
-- [ ] Analytics de uso (Plausible o GA)
+- [x] Analytics de uso (Plausible) — `components/analytics.tsx` gated por `NEXT_PUBLIC_PLAUSIBLE_DOMAIN`.
+  Falta crear cuenta + setear dominio en Vercel (Sprint 5).
 
 **Entregable:** primer cliente real usando el sistema en producción.
 

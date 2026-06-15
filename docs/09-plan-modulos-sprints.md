@@ -116,7 +116,10 @@ saltárselo); página admin `/configuracion/auditoria` con diff. Borrado = desac
 - [x] **Canal de soporte** mínimo en la app. Página `/soporte` (tarjetas WhatsApp + Correo + horario)
       + link "Soporte" en el footer del sidebar. Contacto centralizado en `lib/legal.ts` (`SOPORTE`,
       `whatsappUrl()`, `mailtoSoporte()`). **Pendiente tuyo (Sprint 5): WhatsApp y email definitivos.**
-- [ ] **Analytics** (Plausible o GA) integrado en código, listo para activar con tu key.
+- [x] **Analytics** (Plausible) integrado en código. `components/analytics.tsx` (server, inyecta el
+      script de Plausible vía `next/script`) en el root layout. **GATED** por `NEXT_PUBLIC_PLAUSIBLE_DOMAIN`:
+      sin esa env var no renderiza nada (verificado: 0 ocurrencias). Privacy-first, sin cookies (no
+      requiere banner). **Pendiente tuyo (Sprint 5): crear cuenta Plausible y setear el dominio en Vercel.**
 - [x] **Exportar a CSV/Excel** (con BOM es-CL) en reportes — útil para el dueño. Botón "Exportar CSV"
       en `/reportes/ventas` (respeta el rango activo) y `/reportes/iva` (respeta el año). Route handlers
       `*/export/route.ts` corren los mismos RPCs (RLS aplica). `lib/csv.ts`: BOM UTF-8, delimitador `;`
