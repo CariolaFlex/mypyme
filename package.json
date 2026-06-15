@@ -40,5 +40,9 @@
     "serwist": "^9.5.11",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+    "_comment_overrides": "postcss <8.5.10: XSS GHSA-qx2v-qp2m-jg93. next pinea 8.4.31; tailwind/shadcn ya usan 8.5.x. Bump minor (API estable).",
+  "overrides": {
+    "postcss": "^8.5.15"
   }
 }
