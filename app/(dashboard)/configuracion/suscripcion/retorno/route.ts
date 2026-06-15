@@ -2,9 +2,12 @@
 // Confirma el registro con el token guardado y crea la suscripción al plan.
 // Gated por credenciales; si algo falla, vuelve a /suscripcion con el error.
 //
-// NOTA: este camino aún NO fue probado contra la API real (el enroll está
-// detrás de FLOW_ENROLL_ENABLED). Los nombres de campos de respuesta de Flow
-// (status del registro) se confirmarán al habilitarlo.
+// Campos de respuesta de Flow verificados contra la doc (developers.flow.cl):
+//  - customer/getRegisterStatus → status ("1"=éxito), creditCardType,
+//    last4CardDigits, cardNumber, issuerBank, customerId.
+//  - subscription/create → subscriptionId, status (requiere planId + customerId).
+// Sigue sin probarse contra la API real (enroll detrás de FLOW_ENROLL_ENABLED);
+// el flujo y los nombres están alineados con la documentación.
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
@@ -37,14 +40,26 @@ export async function GET(request: Request) {
     const okReg = reg.status === 1 || reg.status === '1' || !!reg.creditCardType;
     if (!okReg) return volver('error=' + encodeURIComponent('No se pudo inscribir la tarjeta'));
 
+    // Texto de la tarjeta inscrita para confirmar al usuario (sin datos sensibles).
+    const marca = typeof reg.creditCardType === 'string' ? reg.creditCardType : 'Tarjeta';
+    const last4 = typeof reg.last4CardDigits === 'string' ? reg.last4CardDigits : '';
+    const tarjetaTxt = last4 ? ` · ${marca} ****${last4}` : '';
+
     const admin = createAdminClient();
     const { data: emp } = await admin
       .from('empresas')
-      .select('flow_customer_id')
+      .select('flow_customer_id, flow_subscription_id')
       .eq('id', empresaId)
       .single();
     const customerId = emp?.flow_customer_id as string | undefined;
     if (!customerId) return volver('error=' + encodeURIComponent('Cliente Flow no encontrado'));
+
+    // Idempotencia: si ya hay suscripción (p.ej. reentrada al /retorno), no creamos
+    // otra; solo aseguramos el estado activo y confirmamos.
+    if (emp?.flow_subscription_id) {
+      await admin.from('empresas').update({ estado_suscripcion: 'activa' }).eq('id', empresaId);
+      return volver('ok=' + encodeURIComponent(`Suscripción ya activa${tarjetaTxt}`));
+    }
 
     const sub = await crearSubscription({ planId, customerId });
     await admin
@@ -52,7 +67,7 @@ export async function GET(request: Request) {
       .update({ flow_subscription_id: sub.subscriptionId, estado_suscripcion: 'activa' })
       .eq('id', empresaId);
 
-    return volver('ok=' + encodeURIComponent('Suscripción activada'));
+    return volver('ok=' + encodeURIComponent(`Suscripción activada${tarjetaTxt}`));
   } catch (e) {
     return volver('error=' + encodeURIComponent((e as Error).message));
   }

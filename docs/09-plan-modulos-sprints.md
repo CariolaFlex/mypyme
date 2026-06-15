@@ -157,8 +157,13 @@ WhatsApp/email de soporte, cuenta Plausible + dominio, SMTP para el envío de re
       (activa=verde / trial=verde o ámbar si quedan ≤3 días o vencido=rojo / morosa·cancelada·suspendida=rojo)
       con título + detalle accionable; fila "Acceso a la app" que refleja `tieneAcceso` + `enforcementActivo`
       (Habilitado / Bloqueado / Habilitado sin restricción). Verificado e2e (trial y morosa).
-- [ ] Revisar el **handshake de enroll** (`retorno/route.ts`) contra la doc de Flow para minimizar
-      sorpresas en la prueba real del Sprint 5.
+- [x] Revisar el **handshake de enroll** (`retorno/route.ts`) contra la doc de Flow. Verificado
+      contra developers.flow.cl: firma HMAC (orden alfabético + clave+valor + sha256 hex) ✓;
+      customer/register (customerId+url_return → url+token, redirección url?token=) ✓;
+      getRegisterStatus (status "1"=éxito + creditCardType/last4CardDigits/cardNumber/issuerBank) ✓;
+      subscription/create (planId+customerId → subscriptionId+status) ✓. Hardening: **idempotencia**
+      (no crea doble suscripción si se reentra al /retorno) + muestra la tarjeta inscrita en el
+      mensaje de éxito (marca ****last4). Sigue sin probarse contra API real (Sprint 5).
 - [ ] Banner/avisos de cobro próximo, recibos, historial de pagos (UI).
 
 **Entregable:** apretar un switch (y probar 1 cobro) en el Sprint 5 = cobrando de verdad.
