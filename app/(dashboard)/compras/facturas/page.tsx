@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { ReceiptText } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
+import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -36,17 +38,15 @@ export default async function FacturasPage() {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Cuentas por pagar</h1>
-          <p className="text-sm text-muted-foreground">
-            Facturas de proveedores. Por pagar: <span className="font-semibold text-foreground">{clp.format(totalPorPagar)}</span>
-          </p>
-        </div>
+      <PageHeader
+        icon={ReceiptText}
+        title="Cuentas por pagar"
+        description={<>Facturas de proveedores. Por pagar: <span className="font-semibold text-foreground">{clp.format(totalPorPagar)}</span></>}
+      >
         <Link href="/compras/facturas/nueva">
           <Button>Nueva factura</Button>
         </Link>
-      </div>
+      </PageHeader>
 
       <Table>
         <TableHeader>

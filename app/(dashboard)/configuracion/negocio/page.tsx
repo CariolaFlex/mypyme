@@ -1,4 +1,6 @@
+import { Building2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
+import { PageHeader } from '@/components/page-header';
 import { guardarNegocio } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,10 +27,7 @@ export default async function NegocioPage({
 
   return (
     <div className="max-w-lg space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Negocio</h1>
-        <p className="text-sm text-muted-foreground">Datos de tu empresa y configuración de IVA.</p>
-      </div>
+      <PageHeader icon={Building2} title="Negocio" description="Datos de tu empresa y configuración de IVA." />
 
       {ok && (
         <p className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm">

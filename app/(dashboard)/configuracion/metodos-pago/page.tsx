@@ -1,4 +1,6 @@
+import { CreditCard } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
+import { PageHeader } from '@/components/page-header';
 import { crearMetodo, toggleMetodo } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,10 +28,7 @@ export default async function MetodosPagoPage({
 
   return (
     <div className="max-w-lg space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Métodos de pago</h1>
-        <p className="text-sm text-muted-foreground">Los que aceptas al cobrar en el POS.</p>
-      </div>
+      <PageHeader icon={CreditCard} title="Métodos de pago" description="Los que aceptas al cobrar en el POS." />
 
       {error && (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">

@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import { ClipboardList } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
+import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -30,15 +32,11 @@ export default async function OrdenesPage() {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Órdenes de compra</h1>
-          <p className="text-sm text-muted-foreground">Pedidos a proveedores y su recepción.</p>
-        </div>
+      <PageHeader icon={ClipboardList} title="Órdenes de compra" description="Pedidos a proveedores y su recepción.">
         <Link href="/compras/ordenes/nueva">
           <Button>Nueva orden</Button>
         </Link>
-      </div>
+      </PageHeader>
 
       <Table>
         <TableHeader>

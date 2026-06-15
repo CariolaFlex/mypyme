@@ -1,4 +1,6 @@
+import { Truck } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
+import { PageHeader } from '@/components/page-header';
 import { crearProveedor, toggleProveedor } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,10 +27,7 @@ export default async function ProveedoresPage({
 
   return (
     <div className="max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Proveedores</h1>
-        <p className="text-sm text-muted-foreground">Quiénes te abastecen.</p>
-      </div>
+      <PageHeader icon={Truck} title="Proveedores" description="Quiénes te abastecen." />
 
       {error && (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">

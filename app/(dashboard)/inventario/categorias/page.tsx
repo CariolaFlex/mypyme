@@ -1,4 +1,6 @@
+import { Tags } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
+import { PageHeader } from '@/components/page-header';
 import { crearCategoria, eliminarCategoria } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,10 +21,7 @@ export default async function CategoriasPage({
 
   return (
     <div className="max-w-lg space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Categorías</h1>
-        <p className="text-sm text-muted-foreground">Organiza tus productos por categoría.</p>
-      </div>
+      <PageHeader icon={Tags} title="Categorías" description="Organiza tus productos por categoría." />
 
       {error && (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
