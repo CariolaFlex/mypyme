@@ -175,7 +175,8 @@ Backend: migración `20260613007000_reportes.sql` — 5 RPCs `security invoker`
   `importar_catalogo`. Migración `20260613014000`. Verificado e2e 14/14 + navegador.
 - [ ] Sesión de uso real con el cliente — observación directa
 - [ ] Lista de bugs y mejoras UX priorizadas
-- [ ] Soporte mínimo: email directo + WhatsApp
+- [x] Soporte mínimo: email directo + WhatsApp — página `/soporte` + link en sidebar. Falta
+  WhatsApp/email definitivos (placeholders en `lib/legal.ts`).
 - [x] Términos y condiciones, política de privacidad (mínimos legales) — `/legal/terminos` y
   `/legal/privacidad` (públicas). Borrador; falta aprobar textos + placeholders (`lib/legal.ts`).
 - [ ] Dominio y branding definitivo

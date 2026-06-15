@@ -7,6 +7,7 @@ import {
   LayoutDashboard, ShoppingCart, Wallet, Package, Boxes, Tags, Upload,
   Truck, ClipboardList, ReceiptText, TrendingDown, BarChart3,
   Building2, CreditCard, Users, Sparkles, LogOut, Store, History, Menu, X,
+  LifeBuoy,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -131,6 +132,19 @@ export function AppSidebar({
 
       {/* Sesión */}
       <div className="space-y-1 border-t p-3">
+        <Link
+          href="/soporte"
+          onClick={() => setAbierto(false)}
+          className={cn(
+            'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+            isActive('/soporte')
+              ? 'bg-primary font-medium text-primary-foreground'
+              : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
+          )}
+        >
+          <LifeBuoy className="size-4" />
+          Soporte
+        </Link>
         <ThemeToggle />
         <form action={logout}>
           <Button type="submit" variant="ghost" className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground">

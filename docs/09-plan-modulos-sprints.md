@@ -113,7 +113,9 @@ saltárselo); página admin `/configuracion/auditoria` con diff. Borrado = desac
       login/register. Textos en las pages; placeholders (RUT/dominio/email/razón social) en
       `lib/legal.ts`. **Pendiente tuyo (Sprint 5): aprobar/ajustar textos y completar placeholders.**
 - [ ] **Onboarding guiado** más completo (hoy es solo la tarjeta "primeros pasos").
-- [ ] **Canal de soporte** mínimo en la app (link email/WhatsApp).
+- [x] **Canal de soporte** mínimo en la app. Página `/soporte` (tarjetas WhatsApp + Correo + horario)
+      + link "Soporte" en el footer del sidebar. Contacto centralizado en `lib/legal.ts` (`SOPORTE`,
+      `whatsappUrl()`, `mailtoSoporte()`). **Pendiente tuyo (Sprint 5): WhatsApp y email definitivos.**
 - [ ] **Analytics** (Plausible o GA) integrado en código, listo para activar con tu key.
 - [x] **Exportar a CSV/Excel** (con BOM es-CL) en reportes — útil para el dueño. Botón "Exportar CSV"
       en `/reportes/ventas` (respeta el rango activo) y `/reportes/iva` (respeta el año). Route handlers
