@@ -231,7 +231,12 @@ activa enforcement, despliega, y deja todo verificado.
       `scripts/verify-ratelimit.mjs` (8 checks). Alcance honesto: por-instancia, no distribuido.
       (Idempotencia del webhook ya existía: upsert `onConflict: flow_token`.)
 - [ ] (Futuro) multi-empresa por usuario (hoy 1 usuario = 1 empresa).
-- [ ] Boleta/comprobante imprimible + número de boleta real.
+- [x] **Comprobante imprimible** (2026-06-15). `lib/boleta.ts`: comprobante térmico 80mm
+      (`boletaHtml`) + impresión vía iframe oculto (sin popups). Desglose neto/IVA derivado;
+      escapa HTML; marcado "no válido como documento tributario". Se arma en cliente → funciona
+      offline. POS ofrece "Imprimir boleta" como acción del toast (online y offline).
+      `scripts/verify-boleta.mjs` (16 checks). **Pendiente: folio/número correlativo real** (hoy
+      usa ref corta del UUID) → va junto con la boleta DTE/SII en Fase 9 / Sprint 7.
 
 ---
 

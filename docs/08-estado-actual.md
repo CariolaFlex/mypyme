@@ -114,6 +114,9 @@ Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin ta
   CI corre en **Node 24** (type-stripping nativo: `verify-flow` importa lib `.ts` directo).
 - **Webhook de Flow con rate-limit:** `lib/rate-limit.ts` (ventana fija en memoria), 20 req/min por
   IP → 429, tras el no-op `flowConfigurado()` (inerte intacto). Test `verify-ratelimit.mjs`.
+- **Comprobante imprimible (POS):** `lib/boleta.ts` (térmico 80mm, iframe oculto). Acción "Imprimir
+  boleta" en el toast tras cobrar (online y offline). NO es DTE/SII (Fase 9); sin folio real aún
+  (ref del UUID). Test `verify-boleta.mjs`.
 - Aplicar migraciones nuevas: `npx supabase db push --db-url "<session pooler URI>"`
   (host `aws-1-sa-east-1.pooler.supabase.com:5432`, pedir DB password a Andrés).
 - Testing e2e de backend: crear usuario confirmado vía admin API (`/auth/v1/admin/users`),
