@@ -117,6 +117,17 @@ Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin ta
 - **Comprobante imprimible (POS):** `lib/boleta.ts` (térmico 80mm, iframe oculto). Acción "Imprimir
   boleta" en el toast tras cobrar (online y offline). NO es DTE/SII (Fase 9); sin folio real aún
   (ref del UUID). Test `verify-boleta.mjs`.
+
+## Sprint 5 (go-live) — EN CURSO, bloqueado por Flow
+Sin dominio (se usa `mypyme-blond.vercel.app`). Email/Plausible diferidos hasta tener dominio.
+- ✅ Env vars Flow en Vercel + `NEXT_PUBLIC_SITE_URL` + `FLOW_ENROLL_ENABLED=true` (verificado: webhook
+  ya no inerte). ✅ `urlCallback` de los planes → webhook (`scripts/flow-set-callback.mjs`).
+- ⛔ **BLOQUEO:** inscribir tarjeta devuelve Flow `7001 "Commerce has not automatic charge contract"`.
+  La cuenta Flow de Vectium necesita activar el **contrato de Cargo Automático** (trámite con Flow,
+  no es código). El código quedó validado (customer creado, firma OK). El 500 se cambió por mensaje claro.
+- ⚠️ **NO encender `FLOW_ENFORCE`** hasta que Flow active el contrato y haya 1 cobro probado (si no,
+  bloquea a todos sin poder suscribirse).
+- Herramientas Flow: `scripts/flow-plan-inspect.mjs`, `flow-set-callback.mjs`, `flow-diag-enroll.mjs`.
 - Aplicar migraciones nuevas: `npx supabase db push --db-url "<session pooler URI>"`
   (host `aws-1-sa-east-1.pooler.supabase.com:5432`, pedir DB password a Andrés).
 - Testing e2e de backend: crear usuario confirmado vía admin API (`/auth/v1/admin/users`),
