@@ -1,10 +1,31 @@
 # Estado Actual — Punto de Continuación
 
-**Fecha:** 2026-06-13 · **Rama:** `main` (todo pusheado a `CariolaFlex/mypyme`)
+**Fecha:** 2026-06-15 · **Rama:** `main` (todo pusheado a `CariolaFlex/mypyme`)
 
 > Documento de handoff. Resume qué está hecho, cómo funciona y qué sigue.
-> Verificado: build OK, ESLint 0 errores, TypeScript OK, e2e backend (POS 16/16, reportes 15/15),
-> Fase 5 verificada en navegador con datos reales, deploy Vercel sano.
+> Verificado: build OK, ESLint 0 errores, TypeScript OK, deploy Vercel sano.
+
+## ⭐ Punto de continuación (2026-06-15): Sprints 1–4 COMPLETOS
+
+Todo el desarrollo puro autónomo (Claude, 0 manual) está hecho y en prod. **28 migraciones** aplicadas en cloud.
+Lo único que falta es el **Sprint 5 — sesión manual de Andrés** (dominio, Resend/SMTP, env vars en Vercel,
+aprobar textos legales, cuenta Plausible, prueba de 1 cobro real). Detalle por sprint en `docs/09-plan-modulos-sprints.md`.
+
+- **Sprint 1 — Robustez multi-tenant & roles** ✅ (bitácora/auditoría + roles admin/empleado con RLS).
+- **Sprint 2 — Pulido UI** ✅ (marca índigo, sidebar responsive, dark mode, gráficos Recharts, headers, skeletons, empty states).
+- **Sprint 3 — Beta-ready** ✅ (6/6): export CSV/Excel en reportes (BOM es-CL), páginas legales `/legal/*`,
+  canal de soporte `/soporte`, recuperación de contraseña (UI: `/recuperar` + `/auth/callback` + `/actualizar-clave`),
+  analytics Plausible gated (`NEXT_PUBLIC_PLAUSIBLE_DOMAIN`), onboarding guiado consciente del progreso.
+- **Sprint 4 — Monetización lista para activar** ✅ (4/4): enforcement de acceso en middleware gated por
+  `FLOW_ENFORCE` (→ `/suscripcion-requerida`), página de suscripción con estados contextuales, revisión del
+  handshake de enroll de Flow + hardening (idempotencia), historial de pagos (tabla `pagos_suscripcion`
+  escrita por el webhook; tarjeta en `/configuracion/suscripcion`).
+
+**Pendiente de Andrés (Sprint 5), todo dejado construido/gated e inerte:** textos legales + placeholders en
+`lib/legal.ts` (razón social/RUT/dominio/email + WhatsApp/email de soporte); cuenta Plausible + dominio;
+SMTP en Supabase (para que salga el correo de recuperación + reactivar Confirm email); cuenta Resend; env vars
+en Vercel (`FLOW_API_KEY`/`FLOW_SECRET_KEY`/`FLOW_API_URL`/`RESEND_API_KEY`/`RESEND_FROM`/`NEXT_PUBLIC_SITE_URL`/
+`NEXT_PUBLIC_PLAUSIBLE_DOMAIN`); encender `FLOW_ENFORCE=true` y `FLOW_ENROLL_ENABLED=true`; probar 1 cobro real.
 
 ---
 
