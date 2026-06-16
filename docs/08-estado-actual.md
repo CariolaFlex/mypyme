@@ -27,6 +27,12 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   TODAS las pantallas operativas (vía PageHeader/EmptyState) + auth + POS al nuevo estándar.
 - **Fix de sesión** ✅ — el middleware perdía cookies refrescadas en los redirects ("la sesión se
   cerraba sola"); corregido (helper `redirigir()` que copia las cookies).
+- **Fix onboarding "se queda en el registro"** ✅ — tras crear la empresa, el token refrescado podía
+  no propagar a `/inicio` (carrera de rotación del refresh-token) → rebotaba a `/onboarding` y el RPC
+  decía "ya tiene empresa"; recargar lo arreglaba. Fix: **autocuración del claim en el middleware**
+  (si hay sesión sin `empresa_id` en ruta del dashboard → un `refreshSession()` y propaga cookies →
+  `/inicio` a la primera, determinista). Verificado e2e real en navegador. + **revalidación cruzada**
+  en guardar/editar (recibir orden→stock+dashboard; efectivo→caja; importar→stock+dashboard; caja→pos).
 - **Ayuda contextual** ✅ — componente `HelpTip` (botón "?" con globo) enchufado al `PageHeader`
   (props `help`/`helpTitle`) en 10 pantallas; **Centro de ayuda `/ayuda`** (guía por módulo + FAQ
   acordeón `<details>`); link en sidebar. Lenguaje simple para dueños no técnicos.
