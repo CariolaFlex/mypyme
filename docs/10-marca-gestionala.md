@@ -26,18 +26,22 @@
 
 ## 2. Logo e isologo
 
-Assets en `public/brand/` (originales del usuario):
+**Assets servidos** en `public/brand/` (los que la app realmente usa). Los SVG
+fuente (raster embebido, ~1.4MB c/u) y la paleta de referencia **NO se servían**
+y se movieron a `brand-source/` (fuera de `public/`, no se deploya) — la app
+nunca los referenció; usa los PNG de abajo.
 
 | Archivo | Qué es | Uso en la app |
 |---|---|---|
-| `logo.svg` | isologo horizontal (símbolo + "Gestionala") vector | sidebar, login, headers |
-| `logo-mark.svg` | isotipo solo (la "G" hexagonal) vector | compacto, badges, favicon source |
 | `og_isologo+texto.png` | horizontal PNG | emails (no soportan SVG) |
 | `og_isologo_v1.png` / `og_isologo_v2.png` | isotipo PNG | imagen OG / fallback |
-| `icon-512.png` (512×512) | icono | `app/icon.png` (favicon + PWA) |
-| `icon-192.png` (192×192) | icono | PWA manifest |
+| `icon-512.png` (512×512) | icono | `app/icon.png` (favicon + PWA), login |
+| `icon-192.png` (192×192) | icono | PWA manifest, sidebar, landing |
 | `icon-maskable-512.png` (512×512, zona segura 80%) | icono | PWA Android (recorte circular) |
 | `apple-icon.png` (180×180) | icono | iOS home screen |
+
+**Fuente (no servida)** en `brand-source/`: `logo.svg`, `logo-mark.svg`
+(isologo/isotipo vector con raster embebido), `paleta_gestionala.png` (referencia).
 
 El isotipo es una **"G" hexagonal** con cinta 3D en degradado navy→acero. "Gestion"
 va en navy (#0D1B2A/#1E293B) y "ala" en gris acero (#475569/#64748B).

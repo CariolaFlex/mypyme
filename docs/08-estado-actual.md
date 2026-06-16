@@ -27,6 +27,11 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   TODAS las pantallas operativas (vía PageHeader/EmptyState) + auth + POS al nuevo estándar.
 - **Fix de sesión** ✅ — el middleware perdía cookies refrescadas en los redirects ("la sesión se
   cerraba sola"); corregido (helper `redirigir()` que copia las cookies).
+- **Sprint 6 — Landing pública + SEO** ✅ — landing de marketing en `/` (estática, sistema navy:
+  hero/features/planes/CTA/footer). **El dashboard se movió de `/` a `/inicio`** (la home `/` ahora
+  es pública). `app/sitemap.ts` + `app/robots.ts` (indexa landing+legales, bloquea el app),
+  `metadataBase`+`title.template` en root layout, OG/keywords. PWA `start_url=/inicio`. ⚠️ El matcher
+  del middleware excluye `robots.txt`/`sitemap.xml` (si no, los botaba a `/login`).
 
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. **Confirmar RUT legal** de Vectium SpA (en `lib/legal.ts` está 78.312.836-5, tomado de la cuenta — verificar).
