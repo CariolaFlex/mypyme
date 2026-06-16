@@ -27,6 +27,9 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   TODAS las pantallas operativas (vía PageHeader/EmptyState) + auth + POS al nuevo estándar.
 - **Fix de sesión** ✅ — el middleware perdía cookies refrescadas en los redirects ("la sesión se
   cerraba sola"); corregido (helper `redirigir()` que copia las cookies).
+- **Ayuda contextual** ✅ — componente `HelpTip` (botón "?" con globo) enchufado al `PageHeader`
+  (props `help`/`helpTitle`) en 10 pantallas; **Centro de ayuda `/ayuda`** (guía por módulo + FAQ
+  acordeón `<details>`); link en sidebar. Lenguaje simple para dueños no técnicos.
 - **Sprint 6 — Landing pública + SEO** ✅ — landing de marketing en `/` (estática, sistema navy:
   hero/features/planes/CTA/footer). **El dashboard se movió de `/` a `/inicio`** (la home `/` ahora
   es pública). `app/sitemap.ts` + `app/robots.ts` (indexa landing+legales, bloquea el app),
@@ -36,7 +39,7 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
    Domicilio fijado a El Trovador 4280 Of 307, RM (jurisdicción Santiago).
-2. **WhatsApp de soporte** (`lib/legal.ts` SOPORTE.whatsapp vacío → la tarjeta no se muestra; pegar `569…` para activarla).
+2. ~~WhatsApp de soporte~~ ✅ activado: +56 9 4033 7486 (`lib/legal.ts` SOPORTE.whatsapp='56940337486').
 3. ~~Aprobar textos legales~~ ✅ T&C (15 secciones) + privacidad (13) reescritos para el producto real
    (B2B POS), datos reales de Vectium, contacto `vectiumspa@gmail.com`. Sin banner borrador. Recomendado:
    revisión por abogado antes de escalar más allá de la beta. Correo de soporte dedicado vendrá con el dominio.
