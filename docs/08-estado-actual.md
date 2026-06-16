@@ -1,37 +1,52 @@
 # Estado Actual — Punto de Continuación
 
-**Fecha:** 2026-06-15 · **Rama:** `main` (todo pusheado a `CariolaFlex/mypyme`)
+**Fecha:** 2026-06-16 · **Rama:** `main` (todo pusheado a `CariolaFlex/mypyme`)
 
 > Documento de handoff. Resume qué está hecho, cómo funciona y qué sigue.
-> Verificado: build OK, ESLint 0 errores, TypeScript OK, deploy Vercel sano.
+> Verificado: build OK, ESLint 0 errores, TypeScript OK, deploy Vercel sano, npm audit 0 vulns.
 
-## ⭐ Punto de continuación (2026-06-15): Sprints 1–4 COMPLETOS
+## ⭐ Punto de continuación (2026-06-16)
 
-Todo el desarrollo puro autónomo (Claude, 0 manual) está hecho y en prod. **28 migraciones** aplicadas en cloud.
-Lo único que falta es el **Sprint 5 — sesión manual de Andrés** (dominio, Resend/SMTP, env vars en Vercel,
-aprobar textos legales, cuenta Plausible, prueba de 1 cobro real). Detalle por sprint en `docs/09-plan-modulos-sprints.md`.
+**El producto ahora se llama "Gestionala"** (antes "mypyme"; ver `docs/10-marca-gestionala.md`).
+"mypyme" persiste SOLO como identificador técnico (repo, proyecto Vercel `mypyme-blond`, Supabase,
+Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
 
-- **Sprint 1 — Robustez multi-tenant & roles** ✅ (bitácora/auditoría + roles admin/empleado con RLS).
-- **Sprint 2 — Pulido UI** ✅ (marca índigo, sidebar responsive, dark mode, gráficos Recharts, headers, skeletons, empty states).
-- **Sprint 3 — Beta-ready** ✅ (6/6): export CSV/Excel en reportes (BOM es-CL), páginas legales `/legal/*`,
-  canal de soporte `/soporte`, recuperación de contraseña (UI: `/recuperar` + `/auth/callback` + `/actualizar-clave`),
-  analytics Plausible gated (`NEXT_PUBLIC_PLAUSIBLE_DOMAIN`), onboarding guiado consciente del progreso.
-- **Sprint 4 — Monetización lista para activar** ✅ (4/4): enforcement de acceso en middleware gated por
-  `FLOW_ENFORCE` (→ `/suscripcion-requerida`), página de suscripción con estados contextuales, revisión del
-  handshake de enroll de Flow + hardening (idempotencia), historial de pagos (tabla `pagos_suscripcion`
-  escrita por el webhook; tarjeta en `/configuracion/suscripcion`).
+**Estado: app completa, cobrando de verdad, rediseñada, en prod.**
 
-**Pendiente de Andrés (Sprint 5), todo dejado construido/gated e inerte:** textos legales + placeholders en
-`lib/legal.ts` (razón social/RUT/dominio/email + WhatsApp/email de soporte); cuenta Plausible + dominio;
-SMTP en Supabase (para que salga el correo de recuperación + reactivar Confirm email); cuenta Resend; env vars
-en Vercel (`FLOW_API_KEY`/`FLOW_SECRET_KEY`/`FLOW_API_URL`/`RESEND_API_KEY`/`RESEND_FROM`/`NEXT_PUBLIC_SITE_URL`/
-`NEXT_PUBLIC_PLAUSIBLE_DOMAIN`); encender `FLOW_ENFORCE=true` y `FLOW_ENROLL_ENABLED=true`; probar 1 cobro real.
+- **Desarrollo (Sprints 1–4)** ✅ — multi-tenant+roles+auditoría, POS+offline, caja, inventario, compras,
+  gastos, reportes+F29, suscripciones Flow. 28 migraciones en cloud.
+- **Deuda técnica** ✅ — tests+CI (GitHub Actions: job static siempre + job e2e gated por secrets),
+  rate-limit del webhook Flow, comprobante imprimible del POS, `npm audit` en 0 vulns.
+- **Flow / monetización** ✅ **PROBADO END-TO-END** — Cargo Automático activado en la cuenta Vectium;
+  enroll real probado (tarjeta RedCompra ****5160); suscripción `sus_s19353175e` activa con trial 12d,
+  **primer cobro real agendado 2026-06-27** ($0 cobrado ahora). El webhook registra los cobros. Fix:
+  la suscripción arranca con los días de trial restantes (no cobra durante el trial).
+- **Rebrand + rediseño** ✅ — nombre→Gestionala en toda la UI/legal/email; paleta navy/azul/slate
+  (`app/globals.css`); logos (favicon/PWA/OG + isotipo G en sidebar/auth); sistema visual glass/mesh/
+  blobs/glow/degradados (Framer Motion 12); login + dashboard (stat cards con contador animado) +
+  TODAS las pantallas operativas (vía PageHeader/EmptyState) + auth + POS al nuevo estándar.
+- **Fix de sesión** ✅ — el middleware perdía cookies refrescadas en los redirects ("la sesión se
+  cerraba sola"); corregido (helper `redirigir()` que copia las cookies).
+
+### Pendiente (manual de Andrés, NO bloquea el uso)
+1. **Confirmar RUT legal** de Vectium SpA (en `lib/legal.ts` está 78.312.836-5, tomado de la cuenta — verificar).
+2. **WhatsApp de soporte** (`lib/legal.ts` SOPORTE.whatsapp vacío → la tarjeta no se muestra; pegar `569…` para activarla).
+3. **Aprobar textos legales** (T&C + privacidad, borrador en `app/legal/*` + `lib/legal.ts`).
+4. **`FLOW_ENFORCE=true`** en Vercel cuando se quiera bloquear acceso sin suscripción (ahora apagado → todos
+   usan libre durante su trial; con suscripción que pase el gate ya se puede encender).
+5. **Dominio definitivo** → habilita Fase D: Resend (email bienvenida/recuperación) + reactivar "Confirm email"
+   en Supabase + Plausible. Hasta entonces se usa la URL de Vercel y el email queda inerte.
+6. **Secrets de Supabase en GitHub** (opcional) para que corra la suite e2e en CI.
+
+> Env vars YA puestas en Vercel: `FLOW_API_KEY`/`FLOW_SECRET_KEY`/`FLOW_API_URL`/`NEXT_PUBLIC_SITE_URL`/
+> `FLOW_ENROLL_ENABLED`. Faltan (Fase D): `RESEND_*`/`NEXT_PUBLIC_PLAUSIBLE_DOMAIN`/`FLOW_ENFORCE`.
 
 ---
 
 ## Qué es
-SaaS POS para micro-PyMEs gastronómicas chilenas. POS táctil con **offline**, caja con
-cuadratura, inventario, multi-tenant. Cliente confirmado: mini almacén de una amiga (beta).
+**Gestionala** — SaaS POS genérico para micro-comercios chilenos (almacenes, minimarkets, kioscos).
+POS táctil con **offline**, caja con cuadratura, inventario, compras, gastos, reportes, multi-tenant.
+Cliente confirmado: mini almacén de una amiga (vende galletas, dulces, bebidas, jugos, café; beta).
 
 ## Stack (excepción consciente a la regla Firebase global → este repo usa Supabase)
 - Next.js 16 (App Router) + React 19 + TypeScript strict + Tailwind v4
@@ -39,12 +54,13 @@ cuadratura, inventario, multi-tenant. Cliente confirmado: mini almacén de una a
 - Supabase: Postgres + Auth + RLS + Storage (proyecto `igpplasotoshtuwbdzmf`, São Paulo)
 - Dexie (IndexedDB) + Serwist (PWA) para offline
 - Deploy: Vercel `https://mypyme-blond.vercel.app` (auto-deploy desde `main`)
-- **UI:** color de marca **índigo** (tokens en `app/globals.css`, oklch hue 277). Sidebar
-  rediseñado (`components/app-sidebar.tsx`, client: iconos Lucide, secciones, estado activo por
-  `usePathname`). Dashboard con KPI cards (icono+acento+hover), POS con chips de precio, login/registro
-  con logo+blobs. **Gráficos (Recharts 3.x, dynamic import `ssr:false` en `components/charts/`):**
-  barras de ventas por día + dona por método en `/reportes/ventas`; tendencia 7 días en el dashboard.
-  Animaciones vía CSS/tw-animate-css (fade-in, hover lift); **sin framer-motion** (reduce scope).
+- **UI / marca:** identidad **Gestionala** — paleta **navy/azul real/slate** (tokens hex en
+  `app/globals.css`; ver `docs/10-marca-gestionala.md`). Sistema visual: `.glass`/`.mesh-bg`/`.blob`/
+  `.glow-brand`/`.grad-brand`/`.grad-brand-vivid`/`.text-grad-brand`/`.shine-card` + **Framer Motion 12**
+  (animaciones de entrada/contadores). Sidebar con logo G + item activo en degradado; PageHeader/EmptyState
+  con icono en degradado; dashboard con stat cards (glass+orbe+contador animado); login + auth con hero
+  mesh/blobs/glass. **Gráficos** (Recharts 3.x, dynamic `ssr:false` en `components/charts/`) en paleta navy.
+  Logos en `public/brand/` (favicon=`app/icon.png`, OG, PWA manifest).
 
 ## Recursos
 - Repo: https://github.com/CariolaFlex/mypyme
@@ -118,8 +134,8 @@ Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin ta
   boleta" en el toast tras cobrar (online y offline). NO es DTE/SII (Fase 9); sin folio real aún
   (ref del UUID). Test `verify-boleta.mjs`.
 
-## Sprint 5 (go-live) — EN CURSO, bloqueado por Flow
-Sin dominio (se usa `mypyme-blond.vercel.app`). Email/Plausible diferidos hasta tener dominio.
+## Sprint 5 (go-live) — Flow COBRANDO ✅
+Sin dominio aún (se usa `mypyme-blond.vercel.app`). Email/Plausible diferidos hasta tener dominio (Fase D).
 - ✅ Env vars Flow en Vercel + `NEXT_PUBLIC_SITE_URL` + `FLOW_ENROLL_ENABLED=true` (verificado: webhook
   ya no inerte). ✅ `urlCallback` de los planes → webhook (`scripts/flow-set-callback.mjs`).
 - ✅ **COBRO PROBADO END-TO-END** (15-jun noche). Cargo Automático activado (Flow → Medios de pago →
@@ -129,9 +145,9 @@ Sin dominio (se usa `mypyme-blond.vercel.app`). Email/Plausible diferidos hasta 
 - **Fix cobro-en-trial:** `crearSubscription` pasa `trial_period_days` = días restantes → no cobra en trial.
 - **Fix sesión que se cae:** middleware copiaba mal las cookies refrescadas en los redirects → corregido
   (helper `redirigir()`). Era lo que rompía el `/retorno` (se perdía la sesión en el viaje a Flow).
-- Herramientas Flow: `flow-plan-inspect`, `flow-set-callback`, `flow-diag-enroll`, `flow-verify-sub`,
-  `flow-create-sub`.
-- **Falta para go-live:** encender `FLOW_ENFORCE=true` (Fase B) + verificar enforcement.
+- Herramientas Flow reutilizables: `scripts/flow-setup.mjs` (crea planes), `flow-plan-inspect.mjs`
+  (lee planes), `flow-set-callback.mjs` (setea urlCallback). Ninguna cobra.
+- **Opcional:** encender `FLOW_ENFORCE=true` para bloquear acceso sin suscripción (hoy off → libre en trial).
 - Aplicar migraciones nuevas: `npx supabase db push --db-url "<session pooler URI>"`
   (host `aws-1-sa-east-1.pooler.supabase.com:5432`, pedir DB password a Andrés).
 - Testing e2e de backend: crear usuario confirmado vía admin API (`/auth/v1/admin/users`),
