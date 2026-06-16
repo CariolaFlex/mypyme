@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import type { LucideIcon } from 'lucide-react';
 import { clp } from '@/lib/reportes';
 
 type Accent = 'brand' | 'slate' | 'amber' | 'emerald';
@@ -42,7 +41,7 @@ export function StatCard({
   value,
   format = 'int',
   sub,
-  icon: Icon,
+  icon,
   index = 0,
   accent = 'brand',
 }: {
@@ -50,7 +49,7 @@ export function StatCard({
   value: number;
   format?: 'clp' | 'int';
   sub?: React.ReactNode;
-  icon: LucideIcon;
+  icon: React.ReactNode;
   index?: number;
   accent?: Accent;
 }) {
@@ -70,8 +69,8 @@ export function StatCard({
         style={{ background: ORB[accent] }}
       />
       <div className="relative">
-        <div className={`mb-3 inline-flex rounded-xl bg-gradient-to-br p-2.5 text-white shadow-lg ${ICON_GRAD[accent]}`}>
-          <Icon className="size-[18px]" />
+        <div className={`mb-3 inline-flex rounded-xl bg-gradient-to-br p-2.5 text-white shadow-lg [&_svg]:size-[18px] ${ICON_GRAD[accent]}`}>
+          {icon}
         </div>
         <div className="text-[1.7rem] font-black leading-none tracking-tight tabular-nums">{shown}</div>
         <div className="mt-1.5 text-sm font-semibold">{label}</div>

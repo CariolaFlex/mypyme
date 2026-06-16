@@ -179,7 +179,7 @@ export default async function DashboardPage() {
             label={label}
             value={Number(r?.total ?? 0)}
             format="clp"
-            icon={Icon}
+            icon={<Icon />}
             index={i}
             sub={
               <>
@@ -197,7 +197,7 @@ export default async function DashboardPage() {
           label="IVA débito del mes"
           value={Number(mesR?.iva ?? 0)}
           format="clp"
-          icon={Receipt}
+          icon={<Receipt />}
           index={3}
           accent="slate"
           sub={<>Neto {clp.format(Number(mesR?.neto ?? 0))}</>}
@@ -206,7 +206,7 @@ export default async function DashboardPage() {
           label="Stock bajo"
           value={stockBajo}
           format="int"
-          icon={AlertTriangle}
+          icon={<AlertTriangle />}
           index={4}
           accent={stockBajo > 0 ? 'amber' : 'emerald'}
           sub={
