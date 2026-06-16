@@ -425,7 +425,7 @@ export function PosClient({
             <Button
               type="button"
               size="lg"
-              className="w-full"
+              className="grad-brand-vivid w-full border-0 text-white shadow-lg shadow-primary/30 transition-transform hover:scale-[1.01] disabled:opacity-50"
               disabled={!items.length || pending || !sesionCajaId || !pagosValidos}
               onClick={onCobrar}
             >
