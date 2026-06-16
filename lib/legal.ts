@@ -1,19 +1,22 @@
 // Datos del titular del servicio para las páginas legales.
-// BORRADOR: Andrés define/aprueba estos valores en el Sprint 5 (dominio, razón
-// social y contacto definitivos). Centralizados acá para editarlos en un solo lugar.
+// Centralizados acá para editarlos en un solo lugar.
 export const LEGAL = {
   marca: 'Gestionala',
   razonSocial: 'Vectium SpA', // titular del servicio
-  // ⚠️ VERIFICAR ANDRÉS: tomado del registro de la empresa en la app (cuenta
-  // Vectium SpA). Confirmar que es el RUT real antes de uso legal definitivo.
+  // RUT confirmado: mismo titular que aparece públicamente en los documentos
+  // legales de Farmateca (vectium.cl/farmateca/terms).
   rut: '78.312.836-5',
-  domicilio: 'La Serena, Región de Coquimbo, Chile',
-  // Sin dominio aún: el servicio vive en la URL de Vercel. Cambiar a mypyme.cl
-  // (u otro) cuando se compre el dominio.
+  // Domicilio social de Vectium SpA (alineado con los documentos legales de Farmateca).
+  domicilio: 'El Trovador 4280, Oficina 307, Región Metropolitana, Chile',
+  jurisdiccion: 'Santiago', // tribunales competentes (sigue al domicilio social)
+  // Sin dominio propio aún: el servicio vive en la URL de Vercel. Cambiar a
+  // gestionala.cl (u otro) cuando se compre el dominio (~10 clientes → compra automática).
   sitio: 'mypyme-blond.vercel.app',
-  emailContacto: 'vectiumspa@gmail.com', // email real de Vectium (cambiar a contacto@dominio con dominio propio)
+  // Email de contacto/soporte real de Vectium. Cambiar a uno dedicado
+  // (ej. soporte@gestionala.cl) cuando se cree, junto con el dominio.
+  emailContacto: 'vectiumspa@gmail.com',
   // Fecha de última actualización de los textos legales.
-  actualizado: '15 de junio de 2026',
+  actualizado: '16 de junio de 2026',
 } as const;
 
 // Canal de soporte. El WhatsApp es opcional: si queda vacío, la tarjeta de
