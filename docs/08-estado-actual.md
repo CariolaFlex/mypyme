@@ -34,9 +34,12 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   del middleware excluye `robots.txt`/`sitemap.xml` (si no, los botaba a `/login`).
 
 ### Pendiente (manual de Andrés, NO bloquea el uso)
-1. **Confirmar RUT legal** de Vectium SpA (en `lib/legal.ts` está 78.312.836-5, tomado de la cuenta — verificar).
+1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
+   Domicilio fijado a El Trovador 4280 Of 307, RM (jurisdicción Santiago).
 2. **WhatsApp de soporte** (`lib/legal.ts` SOPORTE.whatsapp vacío → la tarjeta no se muestra; pegar `569…` para activarla).
-3. **Aprobar textos legales** (T&C + privacidad, borrador en `app/legal/*` + `lib/legal.ts`).
+3. ~~Aprobar textos legales~~ ✅ T&C (15 secciones) + privacidad (13) reescritos para el producto real
+   (B2B POS), datos reales de Vectium, contacto `vectiumspa@gmail.com`. Sin banner borrador. Recomendado:
+   revisión por abogado antes de escalar más allá de la beta. Correo de soporte dedicado vendrá con el dominio.
 4. **`FLOW_ENFORCE=true`** en Vercel cuando se quiera bloquear acceso sin suscripción (ahora apagado → todos
    usan libre durante su trial; con suscripción que pase el gate ya se puede encender).
 5. **Dominio definitivo** → habilita Fase D: Resend (email bienvenida/recuperación) + reactivar "Confirm email"
