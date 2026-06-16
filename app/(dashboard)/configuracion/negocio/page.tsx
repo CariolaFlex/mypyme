@@ -27,7 +27,17 @@ export default async function NegocioPage({
 
   return (
     <div className="max-w-lg space-y-6">
-      <PageHeader icon={Building2} title="Negocio" description="Datos de tu empresa y configuración de IVA." />
+      <PageHeader
+        icon={Building2}
+        title="Negocio"
+        description="Datos de tu empresa y configuración de IVA."
+        help={
+          <>
+            <p>Los datos de tu empresa (razón social, RUT) y la configuración de <strong>IVA</strong>.</p>
+            <p>Con IVA activado, tus precios se desglosan en neto + IVA en los comprobantes y en el reporte F29.</p>
+          </>
+        }
+      />
 
       {ok && (
         <p className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm">

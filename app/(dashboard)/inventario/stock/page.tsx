@@ -42,7 +42,18 @@ export default async function StockPage({
 
   return (
     <div className="max-w-3xl space-y-6">
-      <PageHeader icon={Boxes} title="Inventario" description="Stock actual (calculado desde los movimientos)." />
+      <PageHeader
+        icon={Boxes}
+        title="Inventario"
+        description="Stock actual (calculado desde los movimientos)."
+        help={
+          <>
+            <p>Muestra cuántas unidades tienes de cada producto.</p>
+            <p>El stock se calcula solo: las <strong>ventas</strong> lo bajan, las <strong>compras</strong> y entradas lo suben. Acá puedes registrar entradas, mermas o ajustes manuales.</p>
+            <p>El badge ámbar avisa qué productos están por agotarse (bajo su stock mínimo).</p>
+          </>
+        }
+      />
 
       {error && (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">

@@ -42,7 +42,17 @@ export default async function ProductosPage({
 
   return (
     <div className="max-w-3xl space-y-6">
-      <PageHeader icon={Package} title="Productos" description="El precio se ingresa con IVA incluido." />
+      <PageHeader
+        icon={Package}
+        title="Productos"
+        description="El precio se ingresa con IVA incluido."
+        help={
+          <>
+            <p>Tu <strong>catálogo</strong>: todo lo que vendes.</p>
+            <p>El precio se ingresa con <strong>IVA incluido</strong> (el sistema calcula el neto). ¿Tienes muchos? Cárgalos de una vez con «Importar catálogo».</p>
+          </>
+        }
+      />
 
       {error && (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">

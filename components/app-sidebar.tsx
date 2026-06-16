@@ -7,7 +7,7 @@ import {
   LayoutDashboard, ShoppingCart, Wallet, Package, Boxes, Tags, Upload,
   Truck, ClipboardList, ReceiptText, TrendingDown, BarChart3,
   Building2, CreditCard, Users, Sparkles, LogOut, History, Menu, X,
-  LifeBuoy,
+  LifeBuoy, BookOpen,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -131,6 +131,19 @@ export function AppSidebar({
 
       {/* Sesión */}
       <div className="space-y-1 border-t p-3">
+        <Link
+          href="/ayuda"
+          onClick={() => setAbierto(false)}
+          className={cn(
+            'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+            isActive('/ayuda')
+              ? 'grad-brand-vivid font-medium text-white shadow-md shadow-primary/30'
+              : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
+          )}
+        >
+          <BookOpen className="size-4" />
+          Centro de ayuda
+        </Link>
         <Link
           href="/soporte"
           onClick={() => setAbierto(false)}

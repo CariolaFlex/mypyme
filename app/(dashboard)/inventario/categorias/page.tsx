@@ -21,7 +21,17 @@ export default async function CategoriasPage({
 
   return (
     <div className="max-w-lg space-y-6">
-      <PageHeader icon={Tags} title="Categorías" description="Organiza tus productos por categoría." />
+      <PageHeader
+        icon={Tags}
+        title="Categorías"
+        description="Organiza tus productos por categoría."
+        help={
+          <>
+            <p>Agrupa tus productos (ej. <strong>Bebidas</strong>, <strong>Dulces</strong>, <strong>Abarrotes</strong>).</p>
+            <p>Sirve para encontrarlos rápido en el Punto de venta y ver tus reportes por categoría.</p>
+          </>
+        }
+      />
 
       {error && (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">

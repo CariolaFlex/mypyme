@@ -28,7 +28,17 @@ export default async function ProveedoresPage({
 
   return (
     <div className="max-w-3xl space-y-6">
-      <PageHeader icon={Truck} title="Proveedores" description="Quiénes te abastecen." />
+      <PageHeader
+        icon={Truck}
+        title="Proveedores"
+        description="Quiénes te abastecen."
+        help={
+          <>
+            <p>Tus proveedores son las empresas o personas a las que les <strong>compras mercadería</strong>.</p>
+            <p>Los registras una vez acá para después asociarlos a tus órdenes de compra, facturas y gastos.</p>
+          </>
+        }
+      />
 
       {error && (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">

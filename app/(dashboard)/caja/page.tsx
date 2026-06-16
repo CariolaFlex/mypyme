@@ -71,7 +71,18 @@ export default async function CajaPage({
 
   return (
     <div className="max-w-3xl space-y-6">
-      <PageHeader icon={Wallet} title="Caja" description="Apertura, cierre y cuadratura." />
+      <PageHeader
+        icon={Wallet}
+        title="Caja"
+        description="Apertura, cierre y cuadratura."
+        help={
+          <>
+            <p>La caja controla el efectivo del día. Al <strong>abrirla</strong> declaras con cuánto dinero partes.</p>
+            <p>Al <strong>cerrarla</strong>, el sistema compara lo que debería haber (ventas en efectivo + movimientos) con lo que cuentas físicamente, y te muestra la diferencia.</p>
+            <p>Necesitas una caja abierta para poder cobrar en el Punto de venta.</p>
+          </>
+        }
+      />
 
       {error && (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">

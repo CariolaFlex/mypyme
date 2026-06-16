@@ -32,7 +32,17 @@ export default async function OrdenesPage() {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <PageHeader icon={ClipboardList} title="Órdenes de compra" description="Pedidos a proveedores y su recepción.">
+      <PageHeader
+        icon={ClipboardList}
+        title="Órdenes de compra"
+        description="Pedidos a proveedores y su recepción."
+        help={
+          <>
+            <p>Un <strong>pedido formal</strong> a un proveedor: lo creas, lo apruebas y, cuando llega la mercadería, registras la recepción.</p>
+            <p>Al recibir (total o parcial), el stock se <strong>suma solo</strong> al inventario con su costo.</p>
+          </>
+        }
+      >
         <Link href="/compras/ordenes/nueva">
           <Button>Nueva orden</Button>
         </Link>

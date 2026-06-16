@@ -55,7 +55,18 @@ export default async function GastosPage({
 
   return (
     <div className="max-w-4xl space-y-6">
-      <PageHeader icon={TrendingDown} title="Gastos" description="Registra egresos. El IVA suma al crédito fiscal del F29." />
+      <PageHeader
+        icon={TrendingDown}
+        title="Gastos"
+        description="Registra egresos. El IVA suma al crédito fiscal del F29."
+        help={
+          <>
+            <p>Anota cada <strong>egreso del negocio</strong>: arriendo, luz, agua, sueldos, insumos, etc.</p>
+            <p>Si marcas «pagar en efectivo» con la caja abierta, el monto se descuenta de la caja.</p>
+            <p>El IVA de tus gastos suma a tu <strong>crédito fiscal</strong> en el reporte de IVA (F29).</p>
+          </>
+        }
+      />
 
       {error && (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">

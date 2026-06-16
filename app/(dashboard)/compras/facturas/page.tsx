@@ -42,6 +42,12 @@ export default async function FacturasPage() {
         icon={ReceiptText}
         title="Cuentas por pagar"
         description={<>Facturas de proveedores. Por pagar: <span className="font-semibold text-foreground">{clp.format(totalPorPagar)}</span></>}
+        help={
+          <>
+            <p>Las <strong>facturas que te emiten tus proveedores</strong> y que aún debes pagar.</p>
+            <p>Registras la factura y luego sus pagos (totales o parciales). Si pagas en efectivo con caja abierta, se descuenta de la caja.</p>
+          </>
+        }
       >
         <Link href="/compras/facturas/nueva">
           <Button>Nueva factura</Button>

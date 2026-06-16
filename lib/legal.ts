@@ -24,7 +24,7 @@ export const LEGAL = {
 // ni espacios para el link wa.me (ej. '56912345678').
 export const SOPORTE = {
   email: 'vectiumspa@gmail.com', // email real de soporte
-  whatsapp: '', // ⚠️ ANDRÉS: pega tu número '569XXXXXXXX' para activar la tarjeta de WhatsApp
+  whatsapp: '56940337486', // WhatsApp de Vectium (+56 9 4033 7486), sin '+' ni espacios para wa.me
   horario: 'Lun a Vie, 9:00–18:00 hrs',
   // Mensaje pre-cargado al abrir WhatsApp.
   mensajeWhatsapp: 'Hola, necesito ayuda con Gestionala.',

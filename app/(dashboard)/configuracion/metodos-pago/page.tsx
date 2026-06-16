@@ -28,7 +28,17 @@ export default async function MetodosPagoPage({
 
   return (
     <div className="max-w-lg space-y-6">
-      <PageHeader icon={CreditCard} title="Métodos de pago" description="Los que aceptas al cobrar en el POS." />
+      <PageHeader
+        icon={CreditCard}
+        title="Métodos de pago"
+        description="Los que aceptas al cobrar en el POS."
+        help={
+          <>
+            <p>Las formas de pago que aceptas al cobrar: efectivo, débito, crédito, transferencia, etc.</p>
+            <p>Solo el <strong>efectivo</strong> afecta la caja; los demás quedan registrados para tus reportes.</p>
+          </>
+        }
+      />
 
       {error && (
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
