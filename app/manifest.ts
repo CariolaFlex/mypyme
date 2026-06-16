@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Gestionala — POS y gestión",
     short_name: "Gestionala",
     description: "POS, caja e inventario para PyMEs chilenas",
-    start_url: "/",
+    start_url: "/inicio",
     display: "standalone",
     background_color: "#0b1220",
     theme_color: "#0d1b2a",

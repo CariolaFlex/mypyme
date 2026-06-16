@@ -11,8 +11,8 @@ export const config = {
      * Todas las rutas excepto:
      * - api/webhooks (callbacks externos, p.ej. Flow — sin sesión)
      * - _next/static, _next/image (assets de Next)
-     * - favicon, sw.js, manifest, iconos, imágenes
+     * - favicon, sw.js, manifest, robots, sitemap, iconos, imágenes
      */
-    '/((?!api/webhooks|_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api/webhooks|_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

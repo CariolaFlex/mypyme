@@ -8,6 +8,6 @@ export default async function ConfiguracionLayout({ children }: { children: Reac
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const rol = (data?.claims as Record<string, unknown> | undefined)?.user_rol;
-  if (rol !== 'admin') redirect('/');
+  if (rol !== 'admin') redirect('/inicio');
   return <>{children}</>;
 }

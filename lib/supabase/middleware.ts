@@ -49,9 +49,12 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const esRutaAuth = pathname.startsWith('/login') || pathname.startsWith('/register');
-  // Rutas públicas (accesibles sin sesión): legales, recuperación de contraseña
-  // y el callback de auth (el code del correo llega sin sesión todavía).
+  // La home `/` es la landing pública de marketing (accesible sin sesión).
+  const esHome = pathname === '/';
+  // Rutas públicas (accesibles sin sesión): landing, legales, recuperación de
+  // contraseña y el callback de auth (el code del correo llega sin sesión todavía).
   const esRutaPublica =
+    esHome ||
     pathname.startsWith('/legal') ||
     pathname.startsWith('/recuperar') ||
     pathname.startsWith('/actualizar-clave') ||
@@ -61,8 +64,9 @@ export async function updateSession(request: NextRequest) {
     return redirigir('/login');
   }
 
-  if (user && esRutaAuth) {
-    return redirigir('/');
+  // Usuario logueado: lo sacamos de la landing y de las pantallas de auth → al app.
+  if (user && (esRutaAuth || esHome)) {
+    return redirigir('/inicio');
   }
 
   // Enforcement de suscripción (gated por FLOW_ENFORCE). La query a la DB SOLO

@@ -15,9 +15,17 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://mypyme-blond.vercel.app").replace(/\/$/, "");
+
 export const metadata: Metadata = {
-  title: "Gestionala — POS y gestión para PyMEs",
-  description: "POS, caja e inventario para micro-PyMEs chilenas.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Gestionala — POS, caja e inventario para tu negocio",
+    template: "%s · Gestionala",
+  },
+  description:
+    "POS táctil con offline, caja con cuadratura, inventario y reportes con IVA (F29) para almacenes, minimarkets y kioscos de Chile.",
+  applicationName: "Gestionala",
 };
 
 export default function RootLayout({

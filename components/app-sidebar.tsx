@@ -29,7 +29,7 @@ export function AppSidebar({
     {
       titulo: 'Operación',
       items: [
-        { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/inicio', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/pos', label: 'Punto de venta', icon: ShoppingCart },
         { href: '/caja', label: 'Caja', icon: Wallet },
         { href: '/reportes/ventas', label: 'Reportes', icon: BarChart3 },
@@ -69,7 +69,7 @@ export function AppSidebar({
   const visibles = esAdmin ? grupos : grupos.filter((g) => g.titulo !== 'Configuración');
 
   const isActive = (href: string) =>
-    href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
+    href === '/inicio' ? pathname === '/inicio' : pathname === href || pathname.startsWith(href + '/');
 
   const contenido = (
     <>

@@ -36,7 +36,7 @@ export default async function SuscripcionRequeridaPage() {
   const trial = empresa?.trial_termina_en ?? null;
 
   // Si recupera el acceso (o el enforcement se apagó), no tiene nada que hacer acá.
-  if (!enforcementActivo() || tieneAcceso(estado, trial)) redirect('/');
+  if (!enforcementActivo() || tieneAcceso(estado, trial)) redirect('/inicio');
 
   const planKey = (empresa?.plan as PlanKey) ?? 'emprende';
   const plan = PLANES[planKey] ?? PLANES.emprende;
