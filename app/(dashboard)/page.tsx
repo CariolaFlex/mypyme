@@ -74,7 +74,7 @@ export default async function DashboardPage() {
   ];
 
   // Onboarding guiado: hitos reales del primer uso. La guía persiste hasta que
-  // el negocio cargó su menú Y registró su primera venta, luego desaparece sola.
+  // el negocio cargó su catálogo Y registró su primera venta, luego desaparece sola.
   const tieneProductos = (productos?.length ?? 0) > 0;
   const tieneVentas = (numVentasTotal ?? 0) > 0;
   const pasosCompletos = 1 + (tieneProductos ? 1 : 0) + (tieneVentas ? 1 : 0);
@@ -113,7 +113,7 @@ export default async function DashboardPage() {
         </Link>
       )}
 
-      {/* Onboarding guiado: persiste hasta cargar el menú y hacer la primera venta */}
+      {/* Onboarding guiado: persiste hasta cargar el catálogo y hacer la primera venta */}
       {mostrarGuia && (
         <Card className="border-primary/40 bg-primary/5">
           <CardHeader>
@@ -136,7 +136,7 @@ export default async function DashboardPage() {
               <Paso
                 n={2}
                 hecho={tieneProductos}
-                titulo="Carga tu menú"
+                titulo="Carga tu catálogo"
                 detalle={
                   tieneProductos
                     ? 'Tu catálogo ya tiene productos. Puedes seguir agregando cuando quieras.'

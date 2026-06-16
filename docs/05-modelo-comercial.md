@@ -8,7 +8,7 @@
 
 | Plan | Precio | Target | Límites |
 |------|--------|--------|---------|
-| **Emprende** | $7.900 CLP/mes | Cafetería / microempresa, 1 caja | 1 admin + 2 empleados, 1 caja, hasta 500 productos |
+| **Emprende** | $7.900 CLP/mes | Almacén / microempresa, 1 caja | 1 admin + 2 empleados, 1 caja, hasta 500 productos |
 | **Pyme** | $15.900 CLP/mes | Local con equipo y volumen mayor | Usuarios ilimitados, múltiples cajas, productos ilimitados, reportes avanzados |
 
 - **Trial:** 14 días gratis, sin tarjeta de crédito.

@@ -31,7 +31,7 @@ en Vercel (`FLOW_API_KEY`/`FLOW_SECRET_KEY`/`FLOW_API_URL`/`RESEND_API_KEY`/`RES
 
 ## Qué es
 SaaS POS para micro-PyMEs gastronómicas chilenas. POS táctil con **offline**, caja con
-cuadratura, inventario, multi-tenant. Cliente confirmado: cafetería de un amigo (beta).
+cuadratura, inventario, multi-tenant. Cliente confirmado: mini almacén de una amiga (beta).
 
 ## Stack (excepción consciente a la regla Firebase global → este repo usa Supabase)
 - Next.js 16 (App Router) + React 19 + TypeScript strict + Tailwind v4
@@ -163,7 +163,7 @@ Sin dominio (se usa `mypyme-blond.vercel.app`). Email/Plausible diferidos hasta 
 - **Fase 7 — Beta privada** (parcial): ✅ carga inicial de datos vía import masivo
   (`/inventario/importar`, RPC `importar_catalogo`, migración `20260613014000`, e2e 14/14 + navegador);
   ✅ onboarding guiado = tarjeta "Primeros pasos" en el dashboard (flag-free: visible cuando no hay
-  productos, se va al cargar el menú). Falta: sesión de uso real con el cafetero, T&C/privacidad, dominio.
+  productos, se va al cargar el catálogo). Falta: sesión de uso real con la clienta, T&C/privacidad, dominio.
 - ~~Reporte de ventas por cajero~~ ✅ cerrado: RPC `reporte_ventas_por_cajero`
   (SECURITY DEFINER, filtra por `get_tenant_id()` manual, resuelve email desde `auth.users`) +
   tarjeta "Por cajero" en `/reportes/ventas`. Migración `20260613012000`. Verificado e2e 14/14
@@ -174,7 +174,7 @@ Sin dominio (se usa `mypyme-blond.vercel.app`). Email/Plausible diferidos hasta 
   RPCs `listar_usuarios_empresa` (DEFINER, email desde auth.users), `cambiar_rol_usuario_empresa`,
   `quitar_usuario_empresa` (INVOKER + guardas de último admin/auto-quita). Alta vía server action con
   service_role (crea o vincula cuenta existente). Migración `20260613013000`. La invitación por email
-  (link) queda para cuando haya SMTP — opcional, el alta directa cubre el caso de la cafetería.
+  (link) queda para cuando haya SMTP — opcional, el alta directa cubre el caso del negocio.
 - Setear `NEXT_PUBLIC_SITE_URL` / reactivar Confirm email para producción.
 
 > Roadmap detallado con checkboxes: `docs/06-roadmap.md`.

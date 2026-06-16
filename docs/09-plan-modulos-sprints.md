@@ -101,7 +101,7 @@ saltárselo); página admin `/configuracion/auditoria` con diff. Borrado = desac
       no tienen imagen → no verificable ahora). El listado de productos sí muestra imagen.
 - [ ] `EmptyState` en el resto de listas (gastos, órdenes, facturas, categorías) y pulir formularios internos.
 
-**Entregable:** app consistente y presentable para mostrarle al cafetero. ✅ (Sprint 2 cerrado en lo esencial)
+**Entregable:** app consistente y presentable para mostrarle al cliente. ✅ (Sprint 2 cerrado en lo esencial)
 
 ---
 
@@ -136,7 +136,7 @@ saltárselo); página admin `/configuracion/auditoria` con diff. Borrado = desac
       confirma ahí.** Gotcha: `admin.generateLink` usa flujo implícito (hash), no PKCE — no sirve para
       probar el callback `?code=`; el flujo real del SDK sí es PKCE.
 
-**Entregable:** lista para que el cafetero la use de verdad. ✅ **SPRINT 3 CERRADO** (6/6: export CSV,
+**Entregable:** lista para que el cliente la use de verdad. ✅ **SPRINT 3 CERRADO** (6/6: export CSV,
 legales, soporte, recuperación de contraseña, analytics gated, onboarding guiado). Pendientes de
 Andrés que quedaron anotados para el Sprint 5: textos legales + placeholders (`lib/legal.ts`),
 WhatsApp/email de soporte, cuenta Plausible + dominio, SMTP para el envío de recuperación.
@@ -202,7 +202,7 @@ activa enforcement, despliega, y deja todo verificado.
 
 ### Sprint 6 — Lanzamiento público (Fase 8)  ·  *Claude + tú*
 - [ ] Landing de conversión · [ ] SEO básico · [ ] Onboarding autoservicio 100% ·
-      [ ] Caso de estudio del cafetero · [ ] Referidos · [ ] Difusión (tú).
+      [ ] Caso de estudio del primer cliente · [ ] Referidos · [ ] Difusión (tú).
 
 ### Sprint 7 — SII / DTE (Fase 9, v2)  ·  *diferido hasta MRR estable*
 - [ ] Boleta electrónica tipo 39 (OpenFactura) · [ ] RUT cliente · [ ] Transmisión SII ·

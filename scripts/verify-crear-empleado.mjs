@@ -55,7 +55,7 @@ try {
   owner = ou.user.id;
   const sb = createClient(URL_, ANON, { auth: { persistSession: false } });
   const { data: s } = await sb.auth.signInWithPassword({ email: OWNER, password: PASS });
-  const { data: eid, error: oe } = await sb.rpc('crear_empresa_y_membresia', { p_rut: '60000000-4', p_razon_social: 'Cafetería Alta', p_usa_iva: true });
+  const { data: eid, error: oe } = await sb.rpc('crear_empresa_y_membresia', { p_rut: '60000000-4', p_razon_social: 'Negocio Alta', p_usa_iva: true });
   if (oe) throw oe;
   empresa = eid;
   await sb.auth.refreshSession({ refresh_token: s.session.refresh_token });

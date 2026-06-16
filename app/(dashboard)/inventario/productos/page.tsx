@@ -140,7 +140,7 @@ export default async function ProductosPage({
                 <EmptyState
                   icon={Package}
                   title="Aún no hay productos"
-                  description="Crea tu primer producto con el formulario de arriba, o importa tu menú completo de una vez."
+                  description="Crea tu primer producto con el formulario de arriba, o importa tu catálogo completo de una vez."
                 />
               </TableCell>
             </TableRow>

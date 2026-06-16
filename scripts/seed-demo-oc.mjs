@@ -18,7 +18,7 @@ const { data: u } = await admin.auth.admin.createUser({ email: EMAIL, password: 
 const userId = u.user.id;
 const sb = createClient(URL_, ANON, { auth: { autoRefreshToken: false, persistSession: false } });
 const { data: s1 } = await sb.auth.signInWithPassword({ email: EMAIL, password: PASS });
-const { data: empresaId } = await sb.rpc('crear_empresa_y_membresia', { p_rut: '76192083-9', p_razon_social: 'Cafetería Demo (compras)', p_usa_iva: true });
+const { data: empresaId } = await sb.rpc('crear_empresa_y_membresia', { p_rut: '76192083-9', p_razon_social: 'Negocio Demo (compras)', p_usa_iva: true });
 await sb.auth.refreshSession({ refresh_token: s1.session.refresh_token });
 
 await sb.from('proveedores').insert({ empresa_id: empresaId, nombre: 'Distribuidora Sur', rut: '77123456-7' });

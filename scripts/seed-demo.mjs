@@ -29,7 +29,7 @@ const userId = u.user.id;
 const sb = createClient(URL_, ANON, { auth: { autoRefreshToken: false, persistSession: false } });
 const { data: s1 } = await sb.auth.signInWithPassword({ email: EMAIL, password: PASS });
 const { data: empresaId } = await sb.rpc('crear_empresa_y_membresia', {
-  p_rut: '76192083-9', p_razon_social: 'Cafetería Demo (reportes)', p_usa_iva: true,
+  p_rut: '76192083-9', p_razon_social: 'Negocio Demo (reportes)', p_usa_iva: true,
 });
 await sb.auth.refreshSession({ refresh_token: s1.session.refresh_token });
 

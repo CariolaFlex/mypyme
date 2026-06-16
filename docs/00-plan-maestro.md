@@ -35,10 +35,11 @@ tributario básico** orientado a micro-gastronómicos.
 | Toteat | $40.000 CLP + comisión | El "barato con features reales" |
 | Haulmer / TUU | Bajo | Sin gestión real |
 
-Segmento "cafetería/restorán micro que recién parte": **desatendido**.
+Segmento "micro-comercio / almacén que recién parte": **desatendido**.
 
-**Primer cliente confirmado:** cafetería de un amigo — acceso gratuito a cambio de ser
-beta tester y caso de estudio. Elimina el riesgo de "producto sin usuario real" en v1.
+**Primer cliente confirmado:** mini almacén de una amiga (vende galletas, dulces, bebidas,
+jugos, etc.) — acceso gratuito a cambio de ser beta tester y caso de estudio. Elimina el
+riesgo de "producto sin usuario real" en v1.
 
 ---
 
@@ -51,6 +52,6 @@ beta tester y caso de estudio. Elimina el riesgo de "producto sin usuario real" 
   a SII DTE. El más barato con features reales es Toteat a $40K+.
 - **Cómo se monetiza:** suscripciones recurrentes automáticas vía Flow.cl. Onboarding
   autoservicio, sin venta activa.
-- **Riesgo principal mitigado:** el amigo cafetero es usuario real desde el día 1.
+- **Riesgo principal mitigado:** la amiga (dueña de un mini almacén) es usuaria real desde el día 1.
 - **Timeline a lanzamiento público:** ~17 semanas full-time (≈6 meses a tiempo parcial).
 - **Próximo paso inmediato:** ejecutar Fase 0 (ver `06-roadmap.md`).

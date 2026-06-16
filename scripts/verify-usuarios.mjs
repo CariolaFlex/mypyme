@@ -49,7 +49,7 @@ try {
   user1 = await nuevoUsuario(E1);
   const sbA = cliente();
   const rtA = await loginRefresh(sbA, E1);
-  const { data: eidA, error: oeA } = await sbA.rpc('crear_empresa_y_membresia', { p_rut: RUT_A, p_razon_social: 'Cafetería A', p_usa_iva: true });
+  const { data: eidA, error: oeA } = await sbA.rpc('crear_empresa_y_membresia', { p_rut: RUT_A, p_razon_social: 'Negocio A', p_usa_iva: true });
   if (oeA) throw oeA;
   empresaA = eidA;
   await sbA.auth.refreshSession({ refresh_token: rtA });
@@ -63,7 +63,7 @@ try {
   user3 = await nuevoUsuario(E3);
   const sbB = cliente();
   const rtB = await loginRefresh(sbB, E3);
-  const { data: eidB, error: oeB } = await sbB.rpc('crear_empresa_y_membresia', { p_rut: RUT_B, p_razon_social: 'Cafetería B', p_usa_iva: true });
+  const { data: eidB, error: oeB } = await sbB.rpc('crear_empresa_y_membresia', { p_rut: RUT_B, p_razon_social: 'Negocio B', p_usa_iva: true });
   if (oeB) throw oeB;
   empresaB = eidB;
   await sbB.auth.refreshSession({ refresh_token: rtB });

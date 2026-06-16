@@ -36,7 +36,7 @@ try {
   // Empresa A + admin
   u1 = await nuevo(E1);
   const a = await loginRefresh(E1);
-  const { data: eidA, error: oeA } = await a.sb.rpc('crear_empresa_y_membresia', { p_rut: '99999999-9', p_razon_social: 'Cafetería Audit', p_usa_iva: true });
+  const { data: eidA, error: oeA } = await a.sb.rpc('crear_empresa_y_membresia', { p_rut: '99999999-9', p_razon_social: 'Negocio Audit', p_usa_iva: true });
   if (oeA) throw oeA;
   empA = eidA;
   await a.sb.auth.refreshSession({ refresh_token: a.rt });
@@ -79,7 +79,7 @@ try {
   // Empresa B no ve la bitácora de A
   u3 = await nuevo(E3);
   const b = await loginRefresh(E3);
-  const { data: eidB } = await b.sb.rpc('crear_empresa_y_membresia', { p_rut: '60000000-4', p_razon_social: 'Cafetería B', p_usa_iva: true });
+  const { data: eidB } = await b.sb.rpc('crear_empresa_y_membresia', { p_rut: '60000000-4', p_razon_social: 'Negocio B', p_usa_iva: true });
   empB = eidB;
   await b.sb.auth.refreshSession({ refresh_token: b.rt });
   const { data: logsB } = await b.sb.from('auditoria').select('id').eq('tabla', 'productos').eq('registro_id', prod.id);

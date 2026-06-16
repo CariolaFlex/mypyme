@@ -7,7 +7,7 @@
 --
 -- Convención de rangos: [p_desde, p_hasta)  (incluye desde, excluye hasta).
 -- Los cortes por día/mes/año se hacen en zona horaria America/Santiago para
--- que "hoy" y los totales del F29 coincidan con la realidad del cafetero.
+-- que "hoy" y los totales del F29 coincidan con la realidad del negocio.
 -- ============================================================
 
 -- ------------------------------------------------------------

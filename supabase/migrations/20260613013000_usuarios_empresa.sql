@@ -4,7 +4,7 @@
 --
 -- El ALTA de empleados NO usa invitación por email (sin SMTP en dev): se hace
 -- desde una server action con el service_role (admin.createUser), pensado para
--- una cafetería donde el dueño crea la cuenta y entrega la clave en persona.
+-- un negocio pequeño donde el dueño crea la cuenta y entrega la clave en persona.
 --
 -- listar_usuarios_empresa: SECURITY DEFINER (necesita leer auth.users para el
 --   email; `authenticated` no tiene SELECT ahí). Aislamiento manual por

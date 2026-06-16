@@ -65,7 +65,7 @@ try {
   const sbA = clienteLogueado();
   const sA = await login(sbA, EMAIL1);
   const { data: eidA, error: oeA } = await sbA.rpc('crear_empresa_y_membresia', {
-    p_rut: RUT_A, p_razon_social: 'Cafetería A', p_usa_iva: true,
+    p_rut: RUT_A, p_razon_social: 'Negocio A', p_usa_iva: true,
   });
   if (oeA) throw oeA;
   empresaA = eidA;
@@ -83,7 +83,7 @@ try {
   const sbB = clienteLogueado();
   const sB = await login(sbB, EMAIL3);
   const { data: eidB, error: oeB } = await sbB.rpc('crear_empresa_y_membresia', {
-    p_rut: RUT_B, p_razon_social: 'Cafetería B', p_usa_iva: true,
+    p_rut: RUT_B, p_razon_social: 'Negocio B', p_usa_iva: true,
   });
   if (oeB) throw oeB;
   empresaB = eidB;

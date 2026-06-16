@@ -53,7 +53,7 @@ try {
 
   // 3. onboarding (aún sin empresa_id en el JWT)
   const { data: eid, error: oe } = await sb.rpc('crear_empresa_y_membresia', {
-    p_rut: RUT, p_razon_social: 'Cafetería Test Reportes', p_usa_iva: true,
+    p_rut: RUT, p_razon_social: 'Negocio Test Reportes', p_usa_iva: true,
   });
   if (oe) throw oe;
   empresaId = eid;

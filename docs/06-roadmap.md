@@ -93,7 +93,7 @@
 - [x] Indicador de estado offline + contador de pendientes en POS
 - [x] Verificado: venta offline → cola → reconexión → sync automático → persiste
 
-**Entregable:** el cafetero puede cobrar, incluso si se cae el internet.
+**Entregable:** el negocio puede cobrar, incluso si se cae el internet.
 
 ---
 
@@ -192,7 +192,7 @@ Backend: migración `20260613007000_reportes.sql` — 5 RPCs `security invoker`
 **Objetivo:** primeros 10 clientes pagando.
 
 - [ ] Landing page de conversión (Next.js, mismo repo)
-- [ ] SEO básico: "software caja registradora cafetería Chile", "POS restaurante barato Chile"
+- [ ] SEO básico: "software caja registradora almacén Chile", "POS minimarket barato Chile"
 - [ ] Publicación en grupos de Facebook de emprendedores gastronómicos
 - [ ] Caso de estudio con el amigo (con permiso): resultados reales, testimonio
 - [ ] Referidos: 1 mes gratis por cada cliente que traiga

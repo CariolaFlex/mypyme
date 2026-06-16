@@ -22,7 +22,7 @@ export default async function ImportarPage({
       <div>
         <h1 className="text-2xl font-bold">Importar catálogo</h1>
         <p className="text-sm text-muted-foreground">
-          Carga tu menú completo de una vez. Pega una línea por producto. Ideal para el primer día.
+          Carga tu catálogo completo de una vez. Pega una línea por producto. Ideal para el primer día.
         </p>
       </div>
 

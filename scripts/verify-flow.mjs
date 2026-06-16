@@ -55,7 +55,7 @@ try {
   userId = u.user.id;
   const sb = createClient(URL_, ANON, { auth: { persistSession: false } });
   await sb.auth.signInWithPassword({ email, password: PASS });
-  const { data: eid, error: oe } = await sb.rpc('crear_empresa_y_membresia', { p_rut: '99999999-9', p_razon_social: 'Cafetería Flow', p_usa_iva: true });
+  const { data: eid, error: oe } = await sb.rpc('crear_empresa_y_membresia', { p_rut: '99999999-9', p_razon_social: 'Negocio Flow', p_usa_iva: true });
   if (oe) throw oe;
   empresaId = eid;
 

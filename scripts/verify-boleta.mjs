@@ -10,7 +10,7 @@ const data = {
   negocio: {
     razonSocial: 'Café <Test> & Co',
     rut: '76192083-9',
-    giro: 'Cafetería',
+    giro: 'Negocio',
     direccion: 'Calle 1',
     telefono: null,
     usaIva: true,
@@ -32,7 +32,7 @@ const html = boletaHtml(data);
 check('incluye razón social escapada', html.includes('Café &lt;Test&gt; &amp; Co'), 'sin escape');
 check('NO contiene < sin escapar del nombre', !html.includes('<Test>'), 'fuga de HTML');
 check('incluye RUT', html.includes('76192083-9'));
-check('incluye giro y dirección', html.includes('Cafetería') && html.includes('Calle 1'));
+check('incluye giro y dirección', html.includes('Negocio') && html.includes('Calle 1'));
 check('NO incluye teléfono (null)', !/null/.test(html), 'filtró un null');
 check('incluye líneas (Café, Té)', html.includes('Café') && html.includes('Té'));
 check('muestra cantidad × precio', /2 ×/.test(html));

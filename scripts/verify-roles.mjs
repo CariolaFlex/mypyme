@@ -29,7 +29,7 @@ try {
   uAdm = await nuevo(ADM);
   const sbA = createClient(URL_, ANON, { auth: { persistSession: false } });
   const { data: sa } = await sbA.auth.signInWithPassword({ email: ADM, password: PASS });
-  const { data: eid, error: oe } = await sbA.rpc('crear_empresa_y_membresia', { p_rut: '99999999-9', p_razon_social: 'Cafetería Roles', p_usa_iva: true });
+  const { data: eid, error: oe } = await sbA.rpc('crear_empresa_y_membresia', { p_rut: '99999999-9', p_razon_social: 'Negocio Roles', p_usa_iva: true });
   if (oe) throw oe;
   empresa = eid;
   await sbA.auth.refreshSession({ refresh_token: sa.session.refresh_token });
