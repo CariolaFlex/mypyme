@@ -13,6 +13,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { flowConfigurado, getRegistroTarjeta, crearSubscription } from '@/lib/flow/client';
+import { diasRestantesTrial } from '@/lib/flow/subscription';
 
 export const runtime = 'nodejs';
 
@@ -48,7 +49,7 @@ export async function GET(request: Request) {
     const admin = createAdminClient();
     const { data: emp } = await admin
       .from('empresas')
-      .select('flow_customer_id, flow_subscription_id')
+      .select('flow_customer_id, flow_subscription_id, trial_termina_en')
       .eq('id', empresaId)
       .single();
     const customerId = emp?.flow_customer_id as string | undefined;
@@ -61,7 +62,12 @@ export async function GET(request: Request) {
       return volver('ok=' + encodeURIComponent(`Suscripción ya activa${tarjetaTxt}`));
     }
 
-    const sub = await crearSubscription({ planId, customerId });
+    // Si la empresa aún está en su período de prueba, arrancamos la suscripción
+    // de Flow con esos días de trial → el primer cobro ocurre al terminar el
+    // trial, no ahora (no se cobra dos veces el período ya regalado).
+    const diasTrial = diasRestantesTrial(emp?.trial_termina_en as string | null);
+    const trialPeriodDays = diasTrial && diasTrial > 0 ? diasTrial : undefined;
+    const sub = await crearSubscription({ planId, customerId, trialPeriodDays });
     await admin
       .from('empresas')
       .update({ flow_subscription_id: sub.subscriptionId, estado_suscripcion: 'activa' })

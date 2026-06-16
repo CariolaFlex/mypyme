@@ -119,13 +119,22 @@ export async function getRegistroTarjeta(token: string): Promise<Record<string, 
   return flowRequest('GET', '/customer/getRegisterStatus', { token });
 }
 
-/** Crea la suscripción de un cliente (ya con tarjeta inscrita) a un plan. */
+/**
+ * Crea la suscripción de un cliente (ya con tarjeta inscrita) a un plan.
+ * `trialPeriodDays` difiere el primer cobro esa cantidad de días (Flow no cobra
+ * hasta que termina el trial). Se usa para no cobrar a quien aún está en su
+ * período de prueba de la app.
+ */
 export async function crearSubscription(p: {
-  planId: string; customerId: string;
+  planId: string; customerId: string; trialPeriodDays?: number;
 }): Promise<{ subscriptionId: string }> {
-  const data = await flowRequest('POST', '/subscription/create', {
+  const params: Record<string, string | number> = {
     planId: p.planId, customerId: p.customerId,
-  });
+  };
+  if (p.trialPeriodDays && p.trialPeriodDays > 0) {
+    params.trial_period_days = Math.ceil(p.trialPeriodDays);
+  }
+  const data = await flowRequest('POST', '/subscription/create', params);
   return { subscriptionId: String(data.subscriptionId) };
 }
 
