@@ -36,12 +36,12 @@ function bannerEstado(estado: string, dias: number | null): { tono: Tono; titulo
     case 'trial':
     default:
       if (dias !== null && dias < 0) {
-        return { tono: 'bad', titulo: 'Período de prueba vencido', detalle: `Terminó hace ${-dias} día(s). Suscríbete para seguir usando mypyme.` };
+        return { tono: 'bad', titulo: 'Período de prueba vencido', detalle: `Terminó hace ${-dias} día(s). Suscríbete para seguir usando Gestionala.` };
       }
       if (dias !== null && dias <= 3) {
         return { tono: 'warn', titulo: 'Tu prueba termina pronto', detalle: `Quedan ${dias} día(s). Suscríbete para no interrumpir el servicio.` };
       }
-      return { tono: 'ok', titulo: 'Período de prueba', detalle: dias !== null ? `Disfruta mypyme. Quedan ${dias} día(s) de prueba.` : 'Disfruta tu período de prueba.' };
+      return { tono: 'ok', titulo: 'Período de prueba', detalle: dias !== null ? `Disfruta Gestionala. Quedan ${dias} día(s) de prueba.` : 'Disfruta tu período de prueba.' };
   }
 }
 

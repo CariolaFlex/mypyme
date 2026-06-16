@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { LEGAL } from '@/lib/legal';
 
 export const metadata: Metadata = {
-  title: 'Términos y Condiciones — mypyme',
-  description: 'Términos y condiciones de uso del servicio mypyme.',
+  title: 'Términos y Condiciones — Gestionala',
+  description: 'Términos y condiciones de uso del servicio Gestionala.',
 };
 
 export default function TerminosPage() {

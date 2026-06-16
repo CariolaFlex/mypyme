@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "mypyme — POS y gestión para PyMEs",
+  title: "Gestionala — POS y gestión para PyMEs",
   description: "POS, caja e inventario para micro-PyMEs chilenas.",
 };
 

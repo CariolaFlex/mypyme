@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, ShoppingCart, Wallet, Package, Boxes, Tags, Upload,
   Truck, ClipboardList, ReceiptText, TrendingDown, BarChart3,
-  Building2, CreditCard, Users, Sparkles, LogOut, Store, History, Menu, X,
+  Building2, CreditCard, Users, Sparkles, LogOut, History, Menu, X,
   LifeBuoy,
   type LucideIcon,
 } from 'lucide-react';
@@ -75,11 +75,10 @@ export function AppSidebar({
     <>
       {/* Marca */}
       <div className="flex items-center gap-3 px-5 py-5">
-        <div className="flex size-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-          <Store className="size-5" />
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/brand/icon-192.png" alt="Gestionala" className="size-9 rounded-xl shadow-sm" />
         <div className="min-w-0">
-          <div className="text-base font-bold leading-none tracking-tight">mypyme</div>
+          <div className="text-base font-bold leading-none tracking-tight">Gestionala</div>
           <div className="mt-1 truncate text-xs text-muted-foreground">{empresaNombre}</div>
         </div>
       </div>
@@ -174,10 +173,9 @@ export function AppSidebar({
           <Menu className="size-5" />
         </button>
         <div className="flex items-center gap-2">
-          <div className="flex size-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Store className="size-4" />
-          </div>
-          <span className="font-bold tracking-tight">mypyme</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/icon-192.png" alt="Gestionala" className="size-7 rounded-lg" />
+          <span className="font-bold tracking-tight">Gestionala</span>
         </div>
       </div>
 

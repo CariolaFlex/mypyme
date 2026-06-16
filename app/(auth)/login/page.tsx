@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { Store } from 'lucide-react';
 import { login } from '../actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,11 +20,10 @@ export default async function LoginPage({
 
       <div className="relative w-full max-w-sm animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/25">
-            <Store className="size-6" />
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/icon-512.png" alt="Gestionala" className="size-14 rounded-2xl shadow-lg shadow-primary/25" />
           <div>
-            <h1 className="text-xl font-bold tracking-tight">mypyme</h1>
+            <h1 className="text-xl font-bold tracking-tight">Gestionala</h1>
             <p className="text-sm text-muted-foreground">Tu caja, inventario y reportes en un solo lugar</p>
           </div>
         </div>

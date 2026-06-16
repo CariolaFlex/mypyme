@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { LEGAL } from '@/lib/legal';
 
 export const metadata: Metadata = {
-  title: 'Política de Privacidad — mypyme',
-  description: 'Política de privacidad y tratamiento de datos personales de mypyme.',
+  title: 'Política de Privacidad — Gestionala',
+  description: 'Política de privacidad y tratamiento de datos personales de Gestionala.',
 };
 
 export default function PrivacidadPage() {

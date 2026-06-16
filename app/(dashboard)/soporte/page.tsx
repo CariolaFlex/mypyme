@@ -3,7 +3,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { SOPORTE, whatsappUrl, mailtoSoporte } from '@/lib/legal';
 
-export const metadata = { title: 'Soporte — mypyme' };
+export const metadata = { title: 'Soporte — Gestionala' };
 
 export default function SoportePage() {
   return (
