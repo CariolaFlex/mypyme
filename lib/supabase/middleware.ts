@@ -35,6 +35,18 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Redirige preservando las cookies que getUser() pudo refrescar. Si no se
+  // copian, el navegador se queda con el token rotado/viejo → la próxima
+  // request falla la auth y bota a /login (bug de "sesión que se cierra sola").
+  const redirigir = (pathname: string, limpiarQuery = false) => {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname;
+    if (limpiarQuery) url.search = '';
+    const res = NextResponse.redirect(url);
+    for (const c of supabaseResponse.cookies.getAll()) res.cookies.set(c.name, c.value, c);
+    return res;
+  };
+
   const { pathname } = request.nextUrl;
   const esRutaAuth = pathname.startsWith('/login') || pathname.startsWith('/register');
   // Rutas públicas (accesibles sin sesión): legales, recuperación de contraseña
@@ -46,15 +58,11 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith('/auth');
 
   if (!user && !esRutaAuth && !esRutaPublica) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    return NextResponse.redirect(url);
+    return redirigir('/login');
   }
 
   if (user && esRutaAuth) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/';
-    return NextResponse.redirect(url);
+    return redirigir('/');
   }
 
   // Enforcement de suscripción (gated por FLOW_ENFORCE). La query a la DB SOLO
@@ -75,10 +83,7 @@ export async function updateSession(request: NextRequest) {
         .maybeSingle();
 
       if (empresa && !tieneAcceso(empresa.estado_suscripcion, empresa.trial_termina_en)) {
-        const url = request.nextUrl.clone();
-        url.pathname = '/suscripcion-requerida';
-        url.search = '';
-        return NextResponse.redirect(url);
+        return redirigir('/suscripcion-requerida', true);
       }
     }
   }
