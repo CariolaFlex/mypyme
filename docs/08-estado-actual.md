@@ -122,12 +122,16 @@ Reportes: las RPCs agregan sobre `ventas`/`ventas_lineas`/`ventas_pagos` (sin ta
 Sin dominio (se usa `mypyme-blond.vercel.app`). Email/Plausible diferidos hasta tener dominio.
 - ✅ Env vars Flow en Vercel + `NEXT_PUBLIC_SITE_URL` + `FLOW_ENROLL_ENABLED=true` (verificado: webhook
   ya no inerte). ✅ `urlCallback` de los planes → webhook (`scripts/flow-set-callback.mjs`).
-- ⛔ **BLOQUEO:** inscribir tarjeta devuelve Flow `7001 "Commerce has not automatic charge contract"`.
-  La cuenta Flow de Vectium necesita activar el **contrato de Cargo Automático** (trámite con Flow,
-  no es código). El código quedó validado (customer creado, firma OK). El 500 se cambió por mensaje claro.
-- ⚠️ **NO encender `FLOW_ENFORCE`** hasta que Flow active el contrato y haya 1 cobro probado (si no,
-  bloquea a todos sin poder suscribirse).
-- Herramientas Flow: `scripts/flow-plan-inspect.mjs`, `flow-set-callback.mjs`, `flow-diag-enroll.mjs`.
+- ✅ **COBRO PROBADO END-TO-END** (15-jun noche). Cargo Automático activado (Flow → Medios de pago →
+  Editar datos → fila Cargo automático → Guardar → código por correo). Enroll real: tarjeta RedCompra
+  ****5160 registrada. Suscripción `sus_s19353175e` (plan Emprende, trial 12d, 1er cobro **27-jun**,
+  $0 ahora). Empresa `estado=activa`. El webhook registrará el cobro real el 27-jun.
+- **Fix cobro-en-trial:** `crearSubscription` pasa `trial_period_days` = días restantes → no cobra en trial.
+- **Fix sesión que se cae:** middleware copiaba mal las cookies refrescadas en los redirects → corregido
+  (helper `redirigir()`). Era lo que rompía el `/retorno` (se perdía la sesión en el viaje a Flow).
+- Herramientas Flow: `flow-plan-inspect`, `flow-set-callback`, `flow-diag-enroll`, `flow-verify-sub`,
+  `flow-create-sub`.
+- **Falta para go-live:** encender `FLOW_ENFORCE=true` (Fase B) + verificar enforcement.
 - Aplicar migraciones nuevas: `npx supabase db push --db-url "<session pooler URI>"`
   (host `aws-1-sa-east-1.pooler.supabase.com:5432`, pedir DB password a Andrés).
 - Testing e2e de backend: crear usuario confirmado vía admin API (`/auth/v1/admin/users`),
