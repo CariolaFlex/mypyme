@@ -69,6 +69,23 @@ export async function updateSession(request: NextRequest) {
     return redirigir('/inicio');
   }
 
+  // Autocuración del claim `empresa_id`: el Auth Hook lo inyecta al emitir un
+  // token nuevo. Justo después del onboarding, el token refrescado por la server
+  // action puede no haber propagado a ESTA request (carrera con la rotación del
+  // refresh-token de Supabase) → el layout del dashboard no ve el claim y rebota
+  // a /onboarding (bug "se queda en el registro / hay que recargar"). Acá, si el
+  // usuario está en una ruta del dashboard SIN el claim, forzamos UN refresh: como
+  // la membresía ya existe, el token nuevo trae el claim y el middleware propaga
+  // las cookies a request+response → /inicio carga a la primera. Acotado: solo
+  // dispara mientras falta el claim (luego ya viene en el token, no se repite).
+  if (user && !esRutaAuth && !esRutaPublica && !pathname.startsWith('/onboarding')) {
+    const { data: claimsData } = await supabase.auth.getClaims();
+    const tieneEmpresa = (claimsData?.claims as Record<string, unknown> | undefined)?.empresa_id;
+    if (!tieneEmpresa) {
+      await supabase.auth.refreshSession();
+    }
+  }
+
   // Enforcement de suscripción (gated por FLOW_ENFORCE). La query a la DB SOLO
   // corre cuando el flag está activo → costo cero mientras esté apagado (default).
   if (user && enforcementActivo()) {

@@ -37,5 +37,7 @@ export async function registrarMovimiento(formData: FormData) {
     redirect(`/inventario/stock?error=${encodeURIComponent(error.message)}`);
   }
   revalidatePath('/inventario/stock');
+  // El stock cambió → refrescar el dashboard (KPIs y alerta de stock bajo).
+  revalidatePath('/inicio');
   redirect('/inventario/stock?ok=1');
 }

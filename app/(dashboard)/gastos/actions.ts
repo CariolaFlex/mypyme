@@ -49,5 +49,8 @@ export async function registrarGasto(formData: FormData) {
 
   if (error) redirect(`/gastos?error=${encodeURIComponent(error.message)}`);
   revalidatePath('/gastos');
+  // El gasto en efectivo descuenta la caja; su IVA suma al crédito del F29.
+  if (pagarEfectivo) revalidatePath('/caja');
+  revalidatePath('/reportes/iva');
   redirect('/gastos?ok=1');
 }

@@ -73,5 +73,9 @@ export async function importarCatalogo(formData: FormData) {
 
   const creados = (res as { creados?: number } | null)?.creados ?? 0;
   revalidatePath('/inventario/productos');
+  // La importación puede traer stock inicial y crea productos → refrescar
+  // inventario y dashboard (la guía de primeros pasos depende de "hay productos").
+  revalidatePath('/inventario/stock');
+  revalidatePath('/inicio');
   back('ok=' + encodeURIComponent(`${creados} producto(s) importado(s)`));
 }

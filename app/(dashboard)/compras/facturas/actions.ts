@@ -71,5 +71,8 @@ export async function registrarPagoProveedor(formData: FormData) {
   if (error) redirect(`/compras/facturas/${facturaId}?error=${encodeURIComponent(error.message)}`);
 
   revalidatePath(`/compras/facturas/${facturaId}`);
+  // Cambia el total "por pagar" del listado; si fue en efectivo, toca la caja.
+  revalidatePath('/compras/facturas');
+  if (pagarEfectivo) revalidatePath('/caja');
   redirect(`/compras/facturas/${facturaId}?ok=pago`);
 }

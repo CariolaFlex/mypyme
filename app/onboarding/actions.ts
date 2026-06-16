@@ -36,6 +36,8 @@ export async function crearEmpresa(formData: FormData) {
 
   // El empresa_id se inyecta en el JWT vía el Auth Hook al emitir un token nuevo.
   // refreshSession fuerza esa reemisión para que el RLS ya filtre por empresa.
+  // Si el refresh falla acá (carrera de rotación del refresh-token), no importa:
+  // el middleware autocura el claim en la primera request a /inicio.
   await supabase.auth.refreshSession();
   redirect('/inicio');
 }

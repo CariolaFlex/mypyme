@@ -11,6 +11,8 @@ export async function abrirCaja(formData: FormData) {
   });
   if (error) redirect(`/caja?error=${encodeURIComponent(error.message)}`);
   revalidatePath('/caja');
+  // El POS se habilita/bloquea según haya caja abierta.
+  revalidatePath('/pos');
   redirect('/caja?ok=abierta');
 }
 
@@ -22,6 +24,8 @@ export async function cerrarCaja(formData: FormData) {
   });
   if (error) redirect(`/caja?error=${encodeURIComponent(error.message)}`);
   revalidatePath('/caja');
+  // El POS se habilita/bloquea según haya caja abierta.
+  revalidatePath('/pos');
   redirect('/caja?ok=cerrada');
 }
 

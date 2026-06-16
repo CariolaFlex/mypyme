@@ -75,6 +75,10 @@ export async function recibirOrden(formData: FormData) {
     p_recepciones: recepciones,
   });
   if (error) redirect(`/compras/ordenes/${id}?error=${encodeURIComponent(error.message)}`);
+  // Recibir mercadería alimenta el inventario → refrescar stock y dashboard.
   revalidatePath(`/compras/ordenes/${id}`);
+  revalidatePath('/compras/ordenes');
+  revalidatePath('/inventario/stock');
+  revalidatePath('/inicio');
   redirect(`/compras/ordenes/${id}?ok=recibida`);
 }
