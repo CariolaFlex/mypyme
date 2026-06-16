@@ -102,7 +102,7 @@ export function AppSidebar({
                     className={cn(
                       'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all duration-150',
                       active
-                        ? 'bg-primary font-medium text-primary-foreground shadow-sm'
+                        ? 'grad-brand-vivid font-medium text-white shadow-md shadow-primary/30'
                         : 'text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                     )}
                   >
@@ -137,7 +137,7 @@ export function AppSidebar({
           className={cn(
             'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
             isActive('/soporte')
-              ? 'bg-primary font-medium text-primary-foreground'
+              ? 'grad-brand-vivid font-medium text-white shadow-md shadow-primary/30'
               : 'text-muted-foreground hover:bg-sidebar-accent hover:text-foreground'
           )}
         >

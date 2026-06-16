@@ -28,7 +28,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   ).length;
 
   return (
-    <div className="min-h-screen bg-muted/30 lg:flex">
+    <div className="mesh-bg min-h-screen lg:flex">
       <AppSidebar empresaNombre={empresa?.razon_social ?? 'Tu negocio'} stockBajo={stockBajo} esAdmin={esAdmin} />
       <main className="flex-1 overflow-x-hidden">
         <div className="mx-auto max-w-6xl animate-in fade-in-50 slide-in-from-bottom-1 p-6 duration-300 sm:p-8">

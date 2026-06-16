@@ -15,8 +15,8 @@ export function PageHeader({
 }) {
   return (
     <div className="flex flex-wrap items-start justify-between gap-4">
-      <div className="flex items-start gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <div className="flex items-start gap-3.5">
+        <div className="grad-brand-vivid flex size-11 shrink-0 items-center justify-center rounded-2xl text-white shadow-lg shadow-primary/25">
           <Icon className="size-5" />
         </div>
         <div>

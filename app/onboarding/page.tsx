@@ -2,7 +2,6 @@ import { crearEmpresa } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
 
 export default async function OnboardingPage({
   searchParams,
@@ -12,24 +11,23 @@ export default async function OnboardingPage({
   const { error } = await searchParams;
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-muted/30 p-6">
-      <div className="pointer-events-none absolute -top-32 left-1/2 size-[28rem] -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 -right-20 size-[24rem] rounded-full bg-primary/10 blur-3xl" />
+    <main className="mesh-bg grid-pattern relative flex min-h-screen items-center justify-center overflow-hidden p-6">
+      <div className="blob left-[10%] top-[-6rem] size-[26rem]" style={{ background: '#2563eb' }} />
+      <div className="blob bottom-[-8rem] right-[-4rem] size-[22rem]" style={{ background: '#0d1b2a', animationDelay: '-7s' }} />
 
-      <div className="relative w-full max-w-md animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
-        <div className="mb-6 flex flex-col items-center gap-3 text-center">
+      <div className="relative w-full max-w-md animate-in fade-in-50 slide-in-from-bottom-3 duration-700">
+        <div className="mb-7 flex flex-col items-center gap-4 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/icon-512.png" alt="Gestionala" className="size-14 rounded-2xl shadow-lg shadow-primary/25" />
+          <img src="/brand/icon-512.png" alt="Gestionala" className="size-16 rounded-2xl shadow-xl glow-brand" />
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Configura tu negocio</h1>
-            <p className="text-sm text-muted-foreground">Último paso: estos datos identifican a tu empresa.</p>
+            <h1 className="text-2xl font-black tracking-tight">Configura tu negocio</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Último paso: estos datos identifican a tu empresa.</p>
           </div>
         </div>
 
-        <Card className="shadow-xl shadow-foreground/5">
-          <CardContent className="pt-2">
+        <div className="glass-strong rounded-3xl p-6 shadow-2xl shadow-[#0d1b2a]/10">
           {error && (
-            <p className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <p className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {error}
             </p>
           )}
@@ -66,12 +64,11 @@ export default async function OnboardingPage({
               <input type="checkbox" name="usa_iva" defaultChecked className="size-4 accent-primary" />
               Mi negocio emite con IVA (19%)
             </label>
-            <Button type="submit" className="w-full" size="lg">
+            <Button type="submit" className="grad-brand-vivid w-full border-0 text-white shadow-lg shadow-primary/30 transition-transform hover:scale-[1.02]" size="lg">
               Crear empresa y continuar
             </Button>
           </form>
-          </CardContent>
-        </Card>
+        </div>
       </div>
     </main>
   );

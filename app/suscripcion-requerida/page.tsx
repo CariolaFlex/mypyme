@@ -3,7 +3,6 @@ import { redirect } from 'next/navigation';
 import { AlertTriangle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { logout } from '@/app/(auth)/actions';
 import { clp } from '@/lib/reportes';
 import {
@@ -45,19 +44,18 @@ export default async function SuscripcionRequeridaPage() {
   const motivo = ESTADO_TXT[estado] ?? 'tu suscripción no está activa';
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-muted/30 p-6">
-      <div className="pointer-events-none absolute -top-32 left-1/2 size-[28rem] -translate-x-1/2 rounded-full bg-primary/15 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 -right-20 size-[24rem] rounded-full bg-primary/10 blur-3xl" />
+    <main className="mesh-bg grid-pattern relative flex min-h-screen items-center justify-center overflow-hidden p-6">
+      <div className="blob left-[10%] top-[-6rem] size-[26rem]" style={{ background: '#2563eb' }} />
+      <div className="blob bottom-[-8rem] right-[-4rem] size-[22rem]" style={{ background: '#0d1b2a', animationDelay: '-7s' }} />
 
-      <div className="relative w-full max-w-md animate-in fade-in-50 slide-in-from-bottom-2 duration-500">
-        <div className="mb-6 flex flex-col items-center gap-3 text-center">
+      <div className="relative w-full max-w-md animate-in fade-in-50 slide-in-from-bottom-3 duration-700">
+        <div className="mb-7 flex flex-col items-center gap-4 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/icon-512.png" alt="Gestionala" className="size-14 rounded-2xl shadow-lg shadow-primary/25" />
-          <h1 className="text-xl font-bold tracking-tight">Gestionala</h1>
+          <img src="/brand/icon-512.png" alt="Gestionala" className="size-16 rounded-2xl shadow-xl glow-brand" />
+          <h1 className="text-3xl font-black tracking-tight text-grad-brand animate-gradient-x">Gestionala</h1>
         </div>
 
-        <Card className="shadow-xl shadow-foreground/5">
-          <CardContent className="space-y-4 pt-6 text-sm">
+        <div className="glass-strong space-y-4 rounded-3xl p-6 text-sm shadow-2xl shadow-[#0d1b2a]/10">
             <div className="flex items-start gap-3 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-amber-700 dark:text-amber-300">
               <AlertTriangle className="mt-0.5 size-5 shrink-0" />
               <div>
@@ -84,7 +82,7 @@ export default async function SuscripcionRequeridaPage() {
             {esAdmin ? (
               <Link
                 href="/configuracion/suscripcion"
-                className="inline-flex h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+                className="grad-brand-vivid inline-flex h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-transform hover:scale-[1.02]"
               >
                 Reactivar mi suscripción
               </Link>
@@ -99,8 +97,7 @@ export default async function SuscripcionRequeridaPage() {
                 Cerrar sesión
               </Button>
             </form>
-          </CardContent>
-        </Card>
+        </div>
       </div>
     </main>
   );
