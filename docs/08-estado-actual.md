@@ -5,7 +5,7 @@
 > Documento de handoff. Resume qué está hecho, cómo funciona y qué sigue.
 > Verificado: build OK, ESLint 0 errores, TypeScript OK, deploy Vercel sano, npm audit 0 vulns.
 
-## ⭐ Punto de continuación (2026-06-16)
+## ⭐ Punto de continuación (2026-06-18)
 
 **El producto ahora se llama "Gestionala"** (antes "mypyme"; ver `docs/10-marca-gestionala.md`).
 "mypyme" persiste SOLO como identificador técnico (repo, proyecto Vercel `mypyme-blond`, Supabase,
@@ -33,6 +33,7 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   (si hay sesión sin `empresa_id` en ruta del dashboard → un `refreshSession()` y propaga cookies →
   `/inicio` a la primera, determinista). Verificado e2e real en navegador. + **revalidación cruzada**
   en guardar/editar (recibir orden→stock+dashboard; efectivo→caja; importar→stock+dashboard; caja→pos).
+- **Fix navegación auth/onboarding** ✅ — link «← Volver al inicio» (→ `/`) en `/login` y `/register`; botón «Cancelar y volver al inicio» en `/onboarding` que elimina el usuario recién creado vía admin API (service_role) para no dejar cuentas huérfanas sin empresa. Commit `8435091`.
 - **Ayuda contextual** ✅ — componente `HelpTip` (botón "?" con globo) enchufado al `PageHeader`
   (props `help`/`helpTitle`) en 10 pantallas; **Centro de ayuda `/ayuda`** (guía por módulo + FAQ
   acordeón `<details>`); link en sidebar. Lenguaje simple para dueños no técnicos.
