@@ -18,6 +18,17 @@ export default async function RegisterPage({
       <div className="blob right-[15%] top-[55%] size-[18rem]" style={{ background: '#647da6', animationDelay: '-13s' }} />
 
       <div className="relative w-full max-w-sm animate-in fade-in-50 slide-in-from-bottom-3 duration-700">
+        {/* Volver a la landing */}
+        <div className="mb-5 flex justify-center">
+          <Link
+            href="/"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            Volver al inicio
+          </Link>
+        </div>
+
         <div className="mb-7 flex flex-col items-center gap-4 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/icon-512.png" alt="Gestionala" className="size-16 rounded-2xl shadow-xl glow-brand" />

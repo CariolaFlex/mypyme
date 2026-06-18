@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 function mensajeError(code: string | undefined, raw: string): string {
   switch (code) {
@@ -16,6 +17,23 @@ function mensajeError(code: string | undefined, raw: string): string {
     default:
       return raw || 'No se pudo crear la empresa.';
   }
+}
+
+/**
+ * El usuario creó cuenta pero decide no continuar → eliminar el usuario de
+ * Supabase Auth (con service_role), cerrar sesión y volver a la landing.
+ */
+export async function cancelarRegistro() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (user) {
+    const admin = createAdminClient();
+    await admin.auth.admin.deleteUser(user.id);
+  }
+
+  await supabase.auth.signOut();
+  redirect('/');
 }
 
 export async function crearEmpresa(formData: FormData) {

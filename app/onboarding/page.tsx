@@ -1,4 +1,4 @@
-import { crearEmpresa } from './actions';
+import { crearEmpresa, cancelarRegistro } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -67,6 +67,16 @@ export default async function OnboardingPage({
             <Button type="submit" className="grad-brand-vivid w-full border-0 text-white shadow-lg shadow-primary/30 transition-transform hover:scale-[1.02]" size="lg">
               Crear empresa y continuar
             </Button>
+          </form>
+
+          {/* Cancelar: elimina la cuenta recién creada y vuelve a la landing */}
+          <form action={cancelarRegistro} className="mt-3">
+            <button
+              type="submit"
+              className="w-full rounded-xl py-2 text-sm text-muted-foreground transition-colors hover:text-foreground hover:bg-muted/40"
+            >
+              Cancelar y volver al inicio
+            </button>
           </form>
         </div>
       </div>
