@@ -66,8 +66,11 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     sección «Glosario» con buscador en `/ayuda`; tooltips cableados en Reporte IVA (F29) y Caja.
   - **Auditoría UX/UI: A·B·B2b·C·D cerrados.** NO se hará (over-scope beta 1 cliente): Cmd+K
     global, gamificación, tour Driver.js, WCAG XL, unificar Productos+Inventario en tabs.
-    **Pendiente:** verificación e2e en navegador de todo el CRUD (B/B2b/C) + más tooltips
-    `<Termino>` en otras pantallas (productos/inventario/gastos) si se quiere ampliar cobertura.
+    **Verificación e2e:** `scripts/verify-audit-crud.mjs` (17/17 ✅, token de tenant real,
+    RLS aplicada, self-clean, ya en la suite `test:e2e`) — editar/eliminar en las 6 entidades,
+    borrado bloqueado por historial (FK 23503), categorías SET NULL, contacto B2b, tipo_documento
+    y F29 crédito solo facturas. Falta (opcional): click-through en navegador de los modales +
+    ampliar tooltips `<Termino>` a más pantallas.
 - **Ayuda contextual** ✅ — componente `HelpTip` (botón "?" con globo) enchufado al `PageHeader`
   (props `help`/`helpTitle`) en 10 pantallas; **Centro de ayuda `/ayuda`** (guía por módulo + FAQ
   acordeón `<details>`); link en sidebar. Lenguaje simple para dueños no técnicos.
