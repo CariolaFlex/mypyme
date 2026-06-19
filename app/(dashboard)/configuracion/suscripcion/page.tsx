@@ -11,7 +11,9 @@ import {
   PLANES, diasRestantesTrial, enrollHabilitado, enforcementActivo, tieneAcceso, cortesiaVigente, type PlanKey,
 } from '@/lib/flow/subscription';
 import { flowConfigurado } from '@/lib/flow/client';
-import { iniciarSuscripcion } from './actions';
+import { ConfirmSubmit } from '@/components/confirm-submit';
+import { iniciarSuscripcion, cancelarSuscripcion } from './actions';
+import { EliminarCuenta } from './eliminar-cuenta';
 
 export const dynamic = 'force-dynamic';
 
@@ -79,7 +81,7 @@ export default async function SuscripcionPage({
   const [{ data: empresa }, { data: pagos }] = await Promise.all([
     supabase
       .from('empresas')
-      .select('razon_social, plan, estado_suscripcion, trial_termina_en, acceso_cortesia_hasta')
+      .select('razon_social, plan, estado_suscripcion, trial_termina_en, acceso_cortesia_hasta, flow_subscription_id')
       .single(),
     supabase
       .from('pagos_suscripcion')
@@ -286,6 +288,45 @@ export default async function SuscripcionPage({
           );
         })}
       </div>
+
+      {/* Zona de peligro */}
+      <Card className="border-destructive/30">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base text-destructive">Zona de peligro</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm">
+          {empresa?.flow_subscription_id && (
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4">
+              <div className="text-muted-foreground">
+                <div className="font-medium text-foreground">Cancelar suscripción</div>
+                Dejas de pagar; no se harán más cobros. Conservas tus datos.
+              </div>
+              <form action={cancelarSuscripcion}>
+                <ConfirmSubmit
+                  title="¿Cancelar suscripción?"
+                  confirmLabel="Sí, cancelar"
+                  variant="outline"
+                  message={
+                    <>
+                      No se realizarán más cobros y tu cuenta quedará sin suscripción. Podrás volver a
+                      suscribirte cuando quieras. Tus datos se conservan.
+                    </>
+                  }
+                >
+                  Cancelar suscripción
+                </ConfirmSubmit>
+              </form>
+            </div>
+          )}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-muted-foreground">
+              <div className="font-medium text-foreground">Eliminar cuenta</div>
+              Borra la empresa y todos sus datos de forma permanente.
+            </div>
+            <EliminarCuenta razonSocial={empresa?.razon_social ?? 'tu empresa'} />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

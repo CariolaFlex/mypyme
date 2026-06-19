@@ -141,3 +141,18 @@ export async function crearSubscription(p: {
 export async function getSubscription(subscriptionId: string): Promise<Record<string, unknown>> {
   return flowRequest('GET', '/subscription/get', { subscriptionId });
 }
+
+/**
+ * Cancela una suscripción en Flow. `atPeriodEnd=true` (por defecto) deja de cobrar
+ * pero mantiene la suscripción hasta el final del período ya pagado; false la corta
+ * de inmediato. No realiza reembolsos.
+ */
+export async function cancelarSubscription(
+  subscriptionId: string,
+  atPeriodEnd = true
+): Promise<Record<string, unknown>> {
+  return flowRequest('POST', '/subscription/cancel', {
+    subscriptionId,
+    at_period_end: atPeriodEnd ? 1 : 0,
+  });
+}
