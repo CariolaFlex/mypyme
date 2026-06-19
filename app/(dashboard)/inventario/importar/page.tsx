@@ -10,6 +10,11 @@ Croissant; 1900; Pastelería; 30
 Jugo natural; 2200; Bebidas; 24
 Agua mineral; 1200; Bebidas; 48`;
 
+const PLACEHOLDER = `Pega aquí tus productos, uno por línea.
+Ejemplo:
+Cappuccino; 2500; Cafés;
+Agua mineral; 1200; Bebidas; 48`;
+
 export default async function ImportarPage({
   searchParams,
 }: {
@@ -48,6 +53,12 @@ export default async function ImportarPage({
           <strong>stock</strong> son opcionales: si dejas el stock vacío, el producto no controla
           inventario (útil para preparados). Las categorías nuevas se crean solas. Puedes pegar desde Excel.
         </p>
+        <div className="mt-3">
+          <div className="text-xs font-medium text-muted-foreground">Ejemplo (cópialo y adáptalo):</div>
+          <pre className="mt-1 overflow-x-auto rounded bg-background/60 p-2 font-mono text-xs text-muted-foreground">
+            {EJEMPLO}
+          </pre>
+        </div>
       </div>
 
       <form action={importarCatalogo} className="space-y-3">
@@ -55,7 +66,7 @@ export default async function ImportarPage({
           name="datos"
           required
           rows={12}
-          defaultValue={EJEMPLO}
+          placeholder={PLACEHOLDER}
           spellCheck={false}
           className="w-full rounded-md border border-input bg-transparent p-3 font-mono text-sm shadow-xs focus:outline-none focus:ring-2 focus:ring-ring"
         />

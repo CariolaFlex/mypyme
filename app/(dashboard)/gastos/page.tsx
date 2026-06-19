@@ -58,7 +58,7 @@ export default async function GastosPage({
       <PageHeader
         icon={TrendingDown}
         title="Gastos"
-        description="Registra egresos. El IVA suma al crédito fiscal del F29."
+        description="Registra los gastos de tu negocio. El IVA suma al crédito fiscal del F29."
         help={
           <>
             <p>Anota cada <strong>egreso del negocio</strong>: arriendo, luz, agua, sueldos, insumos, etc.</p>

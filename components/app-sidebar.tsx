@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, ShoppingCart, Wallet, Package, Boxes, Tags, Upload,
-  Truck, ClipboardList, ReceiptText, TrendingDown, BarChart3,
+  Truck, ClipboardList, ReceiptText, TrendingDown, BarChart3, FileText,
   Building2, CreditCard, Users, Sparkles, LogOut, History, Menu, X,
   LifeBuoy, BookOpen,
   type LucideIcon,
@@ -32,7 +32,8 @@ export function AppSidebar({
         { href: '/inicio', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/pos', label: 'Punto de venta', icon: ShoppingCart },
         { href: '/caja', label: 'Caja', icon: Wallet },
-        { href: '/reportes/ventas', label: 'Reportes', icon: BarChart3 },
+        { href: '/reportes/ventas', label: 'Reportes de ventas', icon: BarChart3 },
+        { href: '/reportes/iva', label: 'Reporte IVA (F29)', icon: FileText },
       ],
     },
     {

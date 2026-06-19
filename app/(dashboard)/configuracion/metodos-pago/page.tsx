@@ -68,8 +68,10 @@ export default async function MetodosPagoPage({
               className={`flex items-center justify-between px-3 py-2 text-sm ${m.activo ? '' : 'opacity-50'}`}
             >
               <span>
-                {m.nombre}{' '}
-                <span className="text-muted-foreground">· {TIPOS[m.tipo ?? 'other'] ?? m.tipo}</span>
+                {m.nombre}
+                {(TIPOS[m.tipo ?? 'other'] ?? m.tipo) !== m.nombre && (
+                  <span className="text-muted-foreground"> · {TIPOS[m.tipo ?? 'other'] ?? m.tipo}</span>
+                )}
               </span>
               <form action={toggleMetodo}>
                 <input type="hidden" name="id" value={m.id} />
