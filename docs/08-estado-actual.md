@@ -34,6 +34,28 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   `/inicio` a la primera, determinista). Verificado e2e real en navegador. + **revalidación cruzada**
   en guardar/editar (recibir orden→stock+dashboard; efectivo→caja; importar→stock+dashboard; caja→pos).
 - **Fix navegación auth/onboarding** ✅ — link «← Volver al inicio» (→ `/`) en `/login` y `/register`; botón «Cancelar y volver al inicio» en `/onboarding` que elimina el usuario recién creado vía admin API (service_role) para no dejar cuentas huérfanas sin empresa. Commit `8435091`.
+- **Auditoría UX/UI (capturas + Z.ai) — Bloques A y B** ✅ (2026-06-18). Andrés mandó un
+  docx con 127 hallazgos sobre 18 pantallas. **Verifiqué contra código: varios eran falsos
+  positivos** (capturas estáticas): el botón Cobrar SÍ está disabled sin caja; Inventario SÍ
+  tiene Entrada/Merma/Ajuste±; «1 sola categoría de gasto» era el select colapsado (hay 5).
+  - **Bloque A** (`7313809`): footgun de **Importar** (el textarea precargaba el ejemplo con
+    `defaultValue` + `required` → un clic registraba 5 productos basura; ahora vacío con
+    `placeholder`, ejemplo movido al callout); **«Reporte IVA (F29)» agregado al sidebar**
+    (antes solo desde el dashboard); terminología (Gastos «egresos»→«gastos», métodos sin
+    sufijo redundante «· tipo»).
+  - **Bloque B — CRUD real** (`7ad9076`, `4b6c25a`, `638e336`): nuevas primitivas
+    `components/ui/modal.tsx` + `components/confirm-submit.tsx` (modal inline SIN portal para
+    que el submit siga dentro del `<form>` de la server action). **Editar/Eliminar por fila**
+    en productos, proveedores, categorías (rename), métodos de pago y gastos + **CRUD de
+    categorías de gasto** (gestor en `/gastos`). **Política de borrado:** editar siempre;
+    eliminar real solo si la entidad NO tiene historial (ventas/órdenes/facturas/movimientos,
+    FK RESTRICT) — si lo tiene, se archiva (desactiva) con mensaje claro y confirmación modal.
+    Gastos pagados de caja: monto NO editable y NO eliminable (descuadraría la caja).
+  - **Pendiente del audit:** Bloque B2b (campo vendedor/contacto en proveedores → necesita
+    migración, pushear con password), Bloque C (selector Boleta/Factura/Exento en gastos +
+    cuentas por pagar → necesita migración), Bloque D (glosario en `/ayuda` + tooltips de
+    términos — el texto ya viene en el docx). NO se hará (over-scope beta 1 cliente): Cmd+K
+    global, gamificación, tour Driver.js, WCAG XL, unificar Productos+Inventario en tabs.
 - **Ayuda contextual** ✅ — componente `HelpTip` (botón "?" con globo) enchufado al `PageHeader`
   (props `help`/`helpTitle`) en 10 pantallas; **Centro de ayuda `/ayuda`** (guía por módulo + FAQ
   acordeón `<details>`); link en sidebar. Lenguaje simple para dueños no técnicos.
