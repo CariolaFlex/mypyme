@@ -14,6 +14,9 @@ type Proveedor = {
   rut: string | null;
   email: string | null;
   telefono: string | null;
+  contacto_nombre: string | null;
+  contacto_telefono: string | null;
+  contacto_email: string | null;
   activo: boolean;
 };
 
@@ -70,6 +73,40 @@ export function ProveedorRowActions({ proveedor }: { proveedor: Proveedor }) {
             <Label htmlFor={`tel-${proveedor.id}`}>Teléfono</Label>
             <Input id={`tel-${proveedor.id}`} name="telefono" defaultValue={proveedor.telefono ?? ''} />
           </div>
+
+          <details className="sm:col-span-2" open={!!proveedor.contacto_nombre}>
+            <summary className="cursor-pointer text-sm text-muted-foreground">
+              Vendedor / contacto (opcional)
+            </summary>
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <div className="space-y-1.5">
+                <Label htmlFor={`cn-${proveedor.id}`}>Nombre del vendedor</Label>
+                <Input
+                  id={`cn-${proveedor.id}`}
+                  name="contacto_nombre"
+                  defaultValue={proveedor.contacto_nombre ?? ''}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor={`ct-${proveedor.id}`}>Teléfono</Label>
+                <Input
+                  id={`ct-${proveedor.id}`}
+                  name="contacto_telefono"
+                  defaultValue={proveedor.contacto_telefono ?? ''}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor={`ce-${proveedor.id}`}>Email</Label>
+                <Input
+                  id={`ce-${proveedor.id}`}
+                  name="contacto_email"
+                  type="email"
+                  defaultValue={proveedor.contacto_email ?? ''}
+                />
+              </div>
+            </div>
+          </details>
+
           <div className="flex justify-end gap-2 sm:col-span-2">
             <Button type="button" variant="outline" size="sm" onClick={() => setEditar(false)}>
               Cancelar

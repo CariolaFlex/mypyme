@@ -26,6 +26,9 @@ export async function crearProveedor(formData: FormData) {
     rut: String(formData.get('rut') ?? '').trim() || null,
     email: String(formData.get('email') ?? '').trim() || null,
     telefono: String(formData.get('telefono') ?? '').trim() || null,
+    contacto_nombre: String(formData.get('contacto_nombre') ?? '').trim() || null,
+    contacto_telefono: String(formData.get('contacto_telefono') ?? '').trim() || null,
+    contacto_email: String(formData.get('contacto_email') ?? '').trim() || null,
   });
 
   if (error) {
@@ -51,6 +54,9 @@ export async function editarProveedor(formData: FormData) {
       rut: String(formData.get('rut') ?? '').trim() || null,
       email: String(formData.get('email') ?? '').trim() || null,
       telefono: String(formData.get('telefono') ?? '').trim() || null,
+      contacto_nombre: String(formData.get('contacto_nombre') ?? '').trim() || null,
+      contacto_telefono: String(formData.get('contacto_telefono') ?? '').trim() || null,
+      contacto_email: String(formData.get('contacto_email') ?? '').trim() || null,
     })
     .eq('id', id);
 

@@ -24,7 +24,7 @@ export default async function ProveedoresPage({
   const supabase = await createClient();
   const { data: proveedores } = await supabase
     .from('proveedores')
-    .select('id, nombre, rut, email, telefono, activo')
+    .select('id, nombre, rut, email, telefono, contacto_nombre, contacto_telefono, contacto_email, activo')
     .order('nombre');
 
   return (
@@ -69,6 +69,25 @@ export default async function ProveedoresPage({
               <Label htmlFor="telefono">Teléfono</Label>
               <Input id="telefono" name="telefono" placeholder="+56 9 1234 5678" />
             </div>
+            <details className="sm:col-span-2">
+              <summary className="cursor-pointer text-sm text-muted-foreground">
+                Vendedor / contacto (opcional)
+              </summary>
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="contacto_nombre">Nombre del vendedor</Label>
+                  <Input id="contacto_nombre" name="contacto_nombre" placeholder="Juan Pérez" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="contacto_telefono">Teléfono</Label>
+                  <Input id="contacto_telefono" name="contacto_telefono" placeholder="+56 9 ..." />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="contacto_email">Email</Label>
+                  <Input id="contacto_email" name="contacto_email" type="email" placeholder="vendedor@..." />
+                </div>
+              </div>
+            </details>
             <div className="sm:col-span-2">
               <Button type="submit">Agregar proveedor</Button>
             </div>
@@ -91,7 +110,14 @@ export default async function ProveedoresPage({
           {proveedores?.length ? (
             proveedores.map((p) => (
               <TableRow key={p.id} className={p.activo ? undefined : 'opacity-50'}>
-                <TableCell className="font-medium">{p.nombre}</TableCell>
+                <TableCell className="font-medium">
+                  {p.nombre}
+                  {p.contacto_nombre && (
+                    <span className="block text-xs font-normal text-muted-foreground">
+                      Vendedor: {p.contacto_nombre}
+                    </span>
+                  )}
+                </TableCell>
                 <TableCell>{p.rut ?? '—'}</TableCell>
                 <TableCell className="text-muted-foreground">{p.email ?? '—'}</TableCell>
                 <TableCell className="text-muted-foreground">{p.telefono ?? '—'}</TableCell>
