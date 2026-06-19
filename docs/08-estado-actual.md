@@ -54,10 +54,16 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   - **Bloque B2b** ✅ (`98112e6`, migración `20260613019000` aplicada en cloud) — vendedor/
     contacto opcional en proveedores (columnas `contacto_nombre/telefono/email`); sección
     colapsable en alta y edición; vendedor mostrado bajo el nombre en la tabla.
-  - **Pendiente del audit:** Bloque C (selector Boleta/Factura/Exento en gastos +
-    cuentas por pagar → necesita migración), Bloque D (glosario en `/ayuda` + tooltips de
-    términos — el texto ya viene en el docx). NO se hará (over-scope beta 1 cliente): Cmd+K
-    global, gamificación, tour Driver.js, WCAG XL, unificar Productos+Inventario en tabs.
+  - **Bloque C** ✅ (`63c4458`, migración `20260613020000` aplicada en cloud) — selector
+    **tipo de documento** (factura/boleta/factura_exenta/boleta_exenta/sin_documento) en
+    alta+edición de gastos y alta de facturas de proveedor (componente reutilizable
+    `components/doc-tributario.tsx`; exenta/sin-doc fuerzan IVA 0). **F29: el crédito fiscal
+    ahora cuenta SOLO facturas** (`reporte_iva_credito_mensual` filtra `tipo_documento='factura'`);
+    las filas históricas quedan default 'factura' → el F29 no cambia retroactivamente.
+  - **Pendiente del audit:** Bloque D (glosario en `/ayuda` + tooltips de términos — el texto
+    ya viene en el docx §9). NO se hará (over-scope beta 1 cliente): Cmd+K global, gamificación,
+    tour Driver.js, WCAG XL, unificar Productos+Inventario en tabs. Pendiente verificación e2e
+    en navegador de todo el CRUD (Bloques B/B2b/C).
 - **Ayuda contextual** ✅ — componente `HelpTip` (botón "?" con globo) enchufado al `PageHeader`
   (props `help`/`helpTitle`) en 10 pantallas; **Centro de ayuda `/ayuda`** (guía por módulo + FAQ
   acordeón `<details>`); link en sidebar. Lenguaje simple para dueños no técnicos.
