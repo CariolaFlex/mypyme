@@ -2,7 +2,8 @@ import { Truck } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/page-header';
 import { EmptyState } from '@/components/empty-state';
-import { crearProveedor, toggleProveedor } from './actions';
+import { crearProveedor } from './actions';
+import { ProveedorRowActions } from './row-actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -80,7 +81,8 @@ export default async function ProveedoresPage({
           <TableRow>
             <TableHead>Nombre</TableHead>
             <TableHead>RUT</TableHead>
-            <TableHead>Contacto</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Teléfono</TableHead>
             <TableHead></TableHead>
             <TableHead className="text-right"></TableHead>
           </TableRow>
@@ -91,9 +93,8 @@ export default async function ProveedoresPage({
               <TableRow key={p.id} className={p.activo ? undefined : 'opacity-50'}>
                 <TableCell className="font-medium">{p.nombre}</TableCell>
                 <TableCell>{p.rut ?? '—'}</TableCell>
-                <TableCell className="text-muted-foreground">
-                  {p.email ?? p.telefono ?? '—'}
-                </TableCell>
+                <TableCell className="text-muted-foreground">{p.email ?? '—'}</TableCell>
+                <TableCell className="text-muted-foreground">{p.telefono ?? '—'}</TableCell>
                 <TableCell>
                   {p.activo ? (
                     <Badge variant="secondary">Activo</Badge>
@@ -102,19 +103,13 @@ export default async function ProveedoresPage({
                   )}
                 </TableCell>
                 <TableCell className="text-right">
-                  <form action={toggleProveedor}>
-                    <input type="hidden" name="id" value={p.id} />
-                    <input type="hidden" name="activo" value={String(p.activo)} />
-                    <Button type="submit" variant="ghost" size="sm">
-                      {p.activo ? 'Desactivar' : 'Activar'}
-                    </Button>
-                  </form>
+                  <ProveedorRowActions proveedor={p} />
                 </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={5}>
+              <TableCell colSpan={6}>
                 <EmptyState
                   icon={Truck}
                   title="Aún no hay proveedores"

@@ -32,6 +32,23 @@ export async function crearCategoria(formData: FormData) {
   redirect('/inventario/categorias?ok=1');
 }
 
+export async function editarCategoria(formData: FormData) {
+  const { supabase, empresaId } = await getEmpresaId();
+  if (!empresaId) redirect('/onboarding');
+
+  const id = String(formData.get('id') ?? '');
+  const nombre = String(formData.get('nombre') ?? '').trim();
+  if (!nombre) redirect('/inventario/categorias?error=Nombre requerido');
+
+  const { error } = await supabase.from('categorias_producto').update({ nombre }).eq('id', id);
+  if (error) {
+    const msg = error.code === '23505' ? 'Ya existe una categoría con ese nombre' : error.message;
+    redirect(`/inventario/categorias?error=${encodeURIComponent(msg)}`);
+  }
+  revalidatePath('/inventario/categorias');
+  redirect('/inventario/categorias?ok=1');
+}
+
 export async function eliminarCategoria(formData: FormData) {
   const { supabase, empresaId } = await getEmpresaId();
   if (!empresaId) redirect('/onboarding');

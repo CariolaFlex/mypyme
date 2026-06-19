@@ -1,7 +1,8 @@
 import { Tags } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/page-header';
-import { crearCategoria, eliminarCategoria } from './actions';
+import { crearCategoria } from './actions';
+import { CategoriaRowActions } from './row-actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -14,10 +15,15 @@ export default async function CategoriasPage({
 }) {
   const { error } = await searchParams;
   const supabase = await createClient();
-  const { data: categorias } = await supabase
-    .from('categorias_producto')
-    .select('id, nombre')
-    .order('nombre');
+  const [{ data: categorias }, { data: prodCats }] = await Promise.all([
+    supabase.from('categorias_producto').select('id, nombre').order('nombre'),
+    supabase.from('productos').select('categoria_id'),
+  ]);
+
+  const conteo = new Map<string, number>();
+  for (const p of prodCats ?? []) {
+    if (p.categoria_id) conteo.set(p.categoria_id, (conteo.get(p.categoria_id) ?? 0) + 1);
+  }
 
   return (
     <div className="max-w-lg space-y-6">
@@ -49,12 +55,7 @@ export default async function CategoriasPage({
           categorias.map((c) => (
             <div key={c.id} className="flex items-center justify-between px-3 py-2 text-sm">
               <span>{c.nombre}</span>
-              <form action={eliminarCategoria}>
-                <input type="hidden" name="id" value={c.id} />
-                <Button type="submit" variant="ghost" size="sm" className="text-destructive">
-                  Eliminar
-                </Button>
-              </form>
+              <CategoriaRowActions categoria={c} productos={conteo.get(c.id) ?? 0} />
             </div>
           ))
         ) : (
