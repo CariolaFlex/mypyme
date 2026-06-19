@@ -4,6 +4,9 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 
+const esExento = (t: string) =>
+  t === 'factura_exenta' || t === 'boleta_exenta' || t === 'sin_documento';
+
 export async function registrarGasto(formData: FormData) {
   const supabase = await createClient();
   const { data: claims } = await supabase.auth.getClaims();
@@ -13,7 +16,9 @@ export async function registrarGasto(formData: FormData) {
   const categoriaId = String(formData.get('categoria_gasto_id') ?? '');
   const descripcion = String(formData.get('descripcion') ?? '').trim();
   const montoTotal = Number(formData.get('monto_total') ?? 0);
-  const tasaIva = Number(formData.get('tasa_iva') ?? 0);
+  const tipoDoc = String(formData.get('tipo_documento') ?? 'factura');
+  // Exenta / sin documento → IVA 0 (no se confía en el valor del cliente).
+  const tasaIva = esExento(tipoDoc) ? 0 : Number(formData.get('tasa_iva') ?? 0);
   const proveedorId = String(formData.get('proveedor_id') ?? '') || null;
   const fecha = String(formData.get('fecha') ?? '') || null;
   const pagarEfectivo = String(formData.get('pagar_efectivo') ?? '') === 'on';
@@ -36,7 +41,7 @@ export async function registrarGasto(formData: FormData) {
     sesionId = sesion!.id;
   }
 
-  const { error } = await supabase.rpc('registrar_gasto', {
+  const { data: gastoId, error } = await supabase.rpc('registrar_gasto', {
     p_categoria_gasto_id: categoriaId,
     p_descripcion: descripcion,
     p_monto_total: montoTotal,
@@ -48,6 +53,11 @@ export async function registrarGasto(formData: FormData) {
   });
 
   if (error) redirect(`/gastos?error=${encodeURIComponent(error.message)}`);
+
+  // El RPC no recibe el tipo de documento (firma estable); se setea aparte.
+  if (gastoId && tipoDoc !== 'factura') {
+    await supabase.from('gastos').update({ tipo_documento: tipoDoc }).eq('id', gastoId);
+  }
   revalidatePath('/gastos');
   // El gasto en efectivo descuenta la caja; su IVA suma al crédito del F29.
   if (pagarEfectivo) revalidatePath('/caja');
@@ -86,14 +96,18 @@ export async function editarGasto(formData: FormData) {
   const fecha = String(formData.get('fecha') ?? '');
   if (fecha) updates.fecha = fecha;
 
+  const tipoDoc = formData.get('tipo_documento');
+  if (tipoDoc) updates.tipo_documento = String(tipoDoc);
+
   if (!cajaLinked) {
     const montoTotal = Number(formData.get('monto_total') ?? 0);
-    const tasaIva = Number(formData.get('tasa_iva') ?? 0);
+    const tasaIva = tipoDoc && esExento(String(tipoDoc)) ? 0 : Number(formData.get('tasa_iva') ?? 0);
     if (montoTotal <= 0) redirect('/gastos?error=El monto debe ser mayor a 0');
     const neto = tasaIva > 0 ? Math.round((montoTotal / (1 + tasaIva / 100)) * 100) / 100 : montoTotal;
     updates.monto_total = montoTotal;
     updates.monto_neto = neto;
     updates.monto_iva = Math.round((montoTotal - neto) * 100) / 100;
+    updates.tasa_iva = tasaIva;
   }
 
   const { error } = await supabase.from('gastos').update(updates).eq('id', id);

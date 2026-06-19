@@ -10,7 +10,9 @@ export async function crearFactura(formData: FormData) {
   const proveedorId = String(formData.get('proveedor_id') ?? '');
   const numero = String(formData.get('numero_factura') ?? '').trim();
   const montoTotal = Number(formData.get('monto_total') ?? 0);
-  const tasaIva = Number(formData.get('tasa_iva') ?? 0);
+  const tipoDoc = String(formData.get('tipo_documento') ?? 'factura');
+  const exento = tipoDoc === 'factura_exenta' || tipoDoc === 'boleta_exenta' || tipoDoc === 'sin_documento';
+  const tasaIva = exento ? 0 : Number(formData.get('tasa_iva') ?? 0);
   const ocId = String(formData.get('orden_compra_id') ?? '') || null;
   const fecha = String(formData.get('fecha') ?? '') || null;
   const vencimiento = String(formData.get('vencimiento') ?? '') || null;
@@ -31,6 +33,11 @@ export async function crearFactura(formData: FormData) {
   if (error) {
     const msg = error.code === '23505' ? 'Ya existe esa factura para el proveedor' : error.message;
     redirect(`/compras/facturas/nueva?error=${encodeURIComponent(msg)}`);
+  }
+
+  // El RPC no recibe el tipo de documento (firma estable); se setea aparte.
+  if (facId && tipoDoc !== 'factura') {
+    await supabase.from('facturas_proveedor').update({ tipo_documento: tipoDoc }).eq('id', facId);
   }
 
   revalidatePath('/compras/facturas');

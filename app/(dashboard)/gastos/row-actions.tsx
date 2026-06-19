@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/modal';
 import { ConfirmSubmit } from '@/components/confirm-submit';
+import { DocTributario } from '@/components/doc-tributario';
 import { editarGasto, eliminarGasto } from './actions';
 
 type Gasto = {
@@ -15,7 +16,9 @@ type Gasto = {
   descripcion: string;
   fecha: string;
   monto_total: number;
+  tasa_iva: number;
   sesion_caja_id: string | null;
+  tipo_documento: string;
 };
 type Opcion = { id: string; nombre: string };
 
@@ -25,12 +28,10 @@ export function GastoRowActions({
   gasto,
   categorias,
   proveedores,
-  ivaDefault,
 }: {
   gasto: Gasto;
   categorias: Opcion[];
   proveedores: Opcion[];
-  ivaDefault: number;
 }) {
   const [editar, setEditar] = useState(false);
   const cajaLinked = !!gasto.sesion_caja_id;
@@ -115,17 +116,11 @@ export function GastoRowActions({
                   defaultValue={gasto.monto_total}
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor={`iva-${gasto.id}`}>Tasa IVA %</Label>
-                <Input
-                  id={`iva-${gasto.id}`}
-                  name="tasa_iva"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  defaultValue={ivaDefault}
-                />
-              </div>
+              <DocTributario
+                idPrefix={`ge-${gasto.id}-`}
+                defaultTipo={gasto.tipo_documento}
+                defaultTasa={gasto.tasa_iva}
+              />
             </>
           ) : (
             <p className="sm:col-span-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-muted-foreground">

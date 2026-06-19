@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/page-header';
 import { registrarGasto } from './actions';
 import { CategoriasGastoManager } from './categorias-gasto-manager';
 import { GastoRowActions } from './row-actions';
+import { DocTributario } from '@/components/doc-tributario';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,11 +23,20 @@ type GastoRow = {
   monto_neto: number;
   monto_iva: number;
   monto_total: number;
+  tasa_iva: number;
   sesion_caja_id: string | null;
   categoria_gasto_id: string | null;
   proveedor_id: string | null;
+  tipo_documento: string;
   categorias_gasto: { nombre: string } | null;
   proveedores: { nombre: string } | null;
+};
+
+const DOC_TAG: Record<string, string> = {
+  boleta: 'boleta',
+  factura_exenta: 'factura exenta',
+  boleta_exenta: 'boleta exenta',
+  sin_documento: 'sin documento',
 };
 
 export default async function GastosPage({
@@ -46,7 +56,7 @@ export default async function GastosPage({
       supabase
         .from('gastos')
         .select(
-          'id, fecha, descripcion, monto_neto, monto_iva, monto_total, sesion_caja_id, categoria_gasto_id, proveedor_id, categorias_gasto(nombre), proveedores(nombre)'
+          'id, fecha, descripcion, monto_neto, monto_iva, monto_total, tasa_iva, sesion_caja_id, categoria_gasto_id, proveedor_id, tipo_documento, categorias_gasto(nombre), proveedores(nombre)'
         )
         .order('fecha', { ascending: false })
         .limit(50),
@@ -123,13 +133,10 @@ export default async function GastosPage({
               <Input id="monto_total" name="monto_total" type="number" min="1" required />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="tasa_iva">Tasa IVA %</Label>
-              <Input id="tasa_iva" name="tasa_iva" type="number" min="0" step="0.01" defaultValue={ivaDefault} />
-            </div>
-            <div className="space-y-1.5">
               <Label htmlFor="fecha">Fecha</Label>
               <Input id="fecha" name="fecha" type="date" />
             </div>
+            <DocTributario idPrefix="g-" defaultTasa={ivaDefault} />
             <div className="flex items-end">
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" name="pagar_efectivo" disabled={!cajaAbierta} className="size-4" />
@@ -174,6 +181,9 @@ export default async function GastosPage({
                   <TableCell>{g.categorias_gasto?.nombre ?? '—'}</TableCell>
                   <TableCell className="max-w-48 truncate">
                     {g.descripcion}
+                    {DOC_TAG[g.tipo_documento] && (
+                      <span className="ml-1 text-xs text-muted-foreground">· {DOC_TAG[g.tipo_documento]}</span>
+                    )}
                     {g.sesion_caja_id && <span className="ml-1 text-xs text-muted-foreground">(efectivo)</span>}
                   </TableCell>
                   <TableCell className="text-muted-foreground">{g.proveedores?.nombre ?? '—'}</TableCell>
@@ -189,11 +199,12 @@ export default async function GastosPage({
                         descripcion: g.descripcion,
                         fecha: g.fecha,
                         monto_total: Number(g.monto_total),
+                        tasa_iva: Number(g.tasa_iva),
                         sesion_caja_id: g.sesion_caja_id,
+                        tipo_documento: g.tipo_documento,
                       }}
                       categorias={categorias ?? []}
                       proveedores={proveedores ?? []}
-                      ivaDefault={ivaDefault}
                     />
                   </TableCell>
                 </TableRow>
