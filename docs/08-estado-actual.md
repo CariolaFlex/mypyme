@@ -60,10 +60,14 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     `components/doc-tributario.tsx`; exenta/sin-doc fuerzan IVA 0). **F29: el crédito fiscal
     ahora cuenta SOLO facturas** (`reporte_iva_credito_mensual` filtra `tipo_documento='factura'`);
     las filas históricas quedan default 'factura' → el F29 no cambia retroactivamente.
-  - **Pendiente del audit:** Bloque D (glosario en `/ayuda` + tooltips de términos — el texto
-    ya viene en el docx §9). NO se hará (over-scope beta 1 cliente): Cmd+K global, gamificación,
-    tour Driver.js, WCAG XL, unificar Productos+Inventario en tabs. Pendiente verificación e2e
-    en navegador de todo el CRUD (Bloques B/B2b/C).
+  - **Bloque D** ✅ (`6cccfa6`) — **glosario + tooltips de términos**. `lib/glosario.ts`
+    (fuente única, ~45 términos con definición+ejemplo); `components/termino.tsx`
+    (`<Termino slug>` muestra la definición al hover/focus, hereda tipografía, prop `align`);
+    sección «Glosario» con buscador en `/ayuda`; tooltips cableados en Reporte IVA (F29) y Caja.
+  - **Auditoría UX/UI: A·B·B2b·C·D cerrados.** NO se hará (over-scope beta 1 cliente): Cmd+K
+    global, gamificación, tour Driver.js, WCAG XL, unificar Productos+Inventario en tabs.
+    **Pendiente:** verificación e2e en navegador de todo el CRUD (B/B2b/C) + más tooltips
+    `<Termino>` en otras pantallas (productos/inventario/gastos) si se quiere ampliar cobertura.
 - **Ayuda contextual** ✅ — componente `HelpTip` (botón "?" con globo) enchufado al `PageHeader`
   (props `help`/`helpTitle`) en 10 pantallas; **Centro de ayuda `/ayuda`** (guía por módulo + FAQ
   acordeón `<details>`); link en sidebar. Lenguaje simple para dueños no técnicos.
