@@ -34,6 +34,7 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   `/inicio` a la primera, determinista). Verificado e2e real en navegador. + **revalidación cruzada**
   en guardar/editar (recibir orden→stock+dashboard; efectivo→caja; importar→stock+dashboard; caja→pos).
 - **Fix navegación auth/onboarding** ✅ — link «← Volver al inicio» (→ `/`) en `/login` y `/register`; botón «Cancelar y volver al inicio» en `/onboarding` que elimina el usuario recién creado vía admin API (service_role) para no dejar cuentas huérfanas sin empresa. Commit `8435091`.
+- **Cancelar suscripción + Eliminar cuenta** ✅ (`3215d7f`) — «Zona de peligro» en `/configuracion/suscripcion` (admin). Cancelar: `POST /subscription/cancel` en Flow (`at_period_end`) + estado `cancelada` (pega a Flow real). Eliminar cuenta: type-to-confirm «ELIMINAR» → cancela sub, borra empresa (cascada) + cuentas de usuario, signOut → landing. Irreversible.
 - **Auditoría UX/UI (capturas + Z.ai) — Bloques A y B** ✅ (2026-06-18). Andrés mandó un
   docx con 127 hallazgos sobre 18 pantallas. **Verifiqué contra código: varios eran falsos
   positivos** (capturas estáticas): el botón Cobrar SÍ está disabled sin caja; Inventario SÍ
