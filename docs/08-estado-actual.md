@@ -88,7 +88,12 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
    (B2B POS), datos reales de Vectium, contacto `vectiumspa@gmail.com`. Sin banner borrador. Recomendado:
    revisión por abogado antes de escalar más allá de la beta. Correo de soporte dedicado vendrá con el dominio.
 4. **`FLOW_ENFORCE=true`** en Vercel cuando se quiera bloquear acceso sin suscripción (ahora apagado → todos
-   usan libre durante su trial; con suscripción que pase el gate ya se puede encender).
+   usan libre durante su trial; con suscripción que pase el gate ya se puede encender). **Cuentas de cortesía
+   (commit `3d15cba`, migración `20260613021000`):** `empresas.acceso_cortesia_hasta DATE` → una empresa con
+   cortesía vigente NO se bloquea aunque el cobro esté encendido (gratis sin Flow, para testing/beta/regalos).
+   Setear por SQL: `UPDATE empresas SET acceso_cortesia_hasta='2099-12-31' WHERE rut='…';`. **Antes de encender
+   `FLOW_ENFORCE`, marcar como cortesía las cuentas de testing y la de la beta tester.** Códigos promo masivos
+   (concursos) = feature aparte, no construida.
 5. **Dominio definitivo** → habilita Fase D: Resend (email bienvenida/recuperación) + reactivar "Confirm email"
    en Supabase + Plausible. Hasta entonces se usa la URL de Vercel y el email queda inerte.
 6. **Secrets de Supabase en GitHub** (opcional) para que corra la suite e2e en CI.
