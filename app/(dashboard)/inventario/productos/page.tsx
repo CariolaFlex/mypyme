@@ -2,7 +2,8 @@ import { Package } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/page-header';
 import { EmptyState } from '@/components/empty-state';
-import { crearProducto, toggleActivo } from './actions';
+import { crearProducto } from './actions';
+import { ProductoRowActions } from './row-actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,7 +33,9 @@ export default async function ProductosPage({
   const [{ data: productos }, { data: categorias }, { data: config }] = await Promise.all([
     supabase
       .from('productos')
-      .select('id, sku, nombre, precio_total, activo, imagen_url, categorias_producto(nombre)')
+      .select(
+        'id, sku, nombre, categoria_id, precio_total, precio_neto, tasa_iva, stock_minimo, activo, imagen_url, categorias_producto(nombre)'
+      )
       .order('nombre'),
     supabase.from('categorias_producto').select('id, nombre').order('nombre'),
     supabase.from('configuracion_negocio').select('tasa_iva_default').single(),
@@ -133,13 +136,19 @@ export default async function ProductosPage({
                   <TableCell className="text-muted-foreground">{cat?.nombre ?? '—'}</TableCell>
                   <TableCell className="text-right">{clp.format(p.precio_total ?? 0)}</TableCell>
                   <TableCell className="text-right">
-                    <form action={toggleActivo}>
-                      <input type="hidden" name="id" value={p.id} />
-                      <input type="hidden" name="activo" value={String(p.activo)} />
-                      <Button type="submit" variant="ghost" size="sm">
-                        {p.activo ? 'Desactivar' : 'Activar'}
-                      </Button>
-                    </form>
+                    <ProductoRowActions
+                      producto={{
+                        id: p.id,
+                        sku: p.sku,
+                        nombre: p.nombre,
+                        categoria_id: p.categoria_id,
+                        precio_total: p.precio_total,
+                        tasa_iva: p.tasa_iva,
+                        stock_minimo: p.stock_minimo,
+                        activo: p.activo,
+                      }}
+                      categorias={categorias ?? []}
+                    />
                   </TableCell>
                 </TableRow>
               );

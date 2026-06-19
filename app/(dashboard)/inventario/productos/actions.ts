@@ -59,6 +59,70 @@ export async function crearProducto(formData: FormData) {
   redirect('/inventario/productos?ok=1');
 }
 
+export async function editarProducto(formData: FormData) {
+  const { supabase, empresaId } = await getEmpresaId();
+  if (!empresaId) redirect('/onboarding');
+
+  const id = String(formData.get('id') ?? '');
+  const precioTotal = Number(formData.get('precio_total') ?? 0);
+  const tasaIva = Number(formData.get('tasa_iva') ?? 0);
+  const precioNeto = tasaIva > 0 ? Math.round((precioTotal / (1 + tasaIva / 100)) * 100) / 100 : precioTotal;
+  const categoriaId = String(formData.get('categoria_id') ?? '');
+  const stockMin = formData.get('stock_minimo');
+
+  const { error } = await supabase
+    .from('productos')
+    .update({
+      sku: String(formData.get('sku') ?? '').trim(),
+      nombre: String(formData.get('nombre') ?? '').trim(),
+      categoria_id: categoriaId || null,
+      precio_total: precioTotal,
+      precio_neto: precioNeto,
+      tasa_iva: tasaIva,
+      stock_minimo: stockMin ? Number(stockMin) : null,
+      actualizado_en: new Date().toISOString(),
+    })
+    .eq('id', id);
+
+  if (error) {
+    const msg = error.code === '23505' ? 'Ya existe un producto con ese SKU' : error.message;
+    redirect(`/inventario/productos?error=${encodeURIComponent(msg)}`);
+  }
+  revalidatePath('/inventario/productos');
+  revalidatePath('/inventario/stock');
+  redirect('/inventario/productos?ok=1');
+}
+
+export async function eliminarProducto(formData: FormData) {
+  const { supabase, empresaId } = await getEmpresaId();
+  if (!empresaId) redirect('/onboarding');
+
+  const id = String(formData.get('id') ?? '');
+
+  // No se puede borrar un producto con historial financiero/de compras
+  // (ventas u órdenes lo referencian con FK RESTRICT). En ese caso se archiva
+  // (desactiva). Los movimientos de inventario caen por CASCADE.
+  const [{ count: ventas }, { count: ordenes }] = await Promise.all([
+    supabase.from('ventas_lineas').select('id', { count: 'exact', head: true }).eq('producto_id', id),
+    supabase.from('ordenes_compra_lineas').select('id', { count: 'exact', head: true }).eq('producto_id', id),
+  ]);
+
+  if ((ventas ?? 0) > 0 || (ordenes ?? 0) > 0) {
+    redirect(
+      `/inventario/productos?error=${encodeURIComponent(
+        'No se puede eliminar: el producto tiene ventas u órdenes asociadas. Desactívalo para ocultarlo sin perder el historial.'
+      )}`
+    );
+  }
+
+  const { error } = await supabase.from('productos').delete().eq('id', id);
+  if (error) redirect(`/inventario/productos?error=${encodeURIComponent(error.message)}`);
+
+  revalidatePath('/inventario/productos');
+  revalidatePath('/inventario/stock');
+  redirect('/inventario/productos?ok=1');
+}
+
 export async function toggleActivo(formData: FormData) {
   const { supabase, empresaId } = await getEmpresaId();
   if (!empresaId) redirect('/onboarding');
