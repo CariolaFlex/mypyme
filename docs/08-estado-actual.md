@@ -51,8 +51,10 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     eliminar real solo si la entidad NO tiene historial (ventas/órdenes/facturas/movimientos,
     FK RESTRICT) — si lo tiene, se archiva (desactiva) con mensaje claro y confirmación modal.
     Gastos pagados de caja: monto NO editable y NO eliminable (descuadraría la caja).
-  - **Pendiente del audit:** Bloque B2b (campo vendedor/contacto en proveedores → necesita
-    migración, pushear con password), Bloque C (selector Boleta/Factura/Exento en gastos +
+  - **Bloque B2b** ✅ (`98112e6`, migración `20260613019000` aplicada en cloud) — vendedor/
+    contacto opcional en proveedores (columnas `contacto_nombre/telefono/email`); sección
+    colapsable en alta y edición; vendedor mostrado bajo el nombre en la tabla.
+  - **Pendiente del audit:** Bloque C (selector Boleta/Factura/Exento en gastos +
     cuentas por pagar → necesita migración), Bloque D (glosario en `/ayuda` + tooltips de
     términos — el texto ya viene en el docx). NO se hará (over-scope beta 1 cliente): Cmd+K
     global, gamificación, tour Driver.js, WCAG XL, unificar Productos+Inventario en tabs.
