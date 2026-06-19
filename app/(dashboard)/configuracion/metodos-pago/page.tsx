@@ -1,7 +1,8 @@
 import { CreditCard } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/page-header';
-import { crearMetodo, toggleMetodo } from './actions';
+import { crearMetodo } from './actions';
+import { MetodoRowActions } from './row-actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -73,13 +74,7 @@ export default async function MetodosPagoPage({
                   <span className="text-muted-foreground"> · {TIPOS[m.tipo ?? 'other'] ?? m.tipo}</span>
                 )}
               </span>
-              <form action={toggleMetodo}>
-                <input type="hidden" name="id" value={m.id} />
-                <input type="hidden" name="activo" value={String(m.activo)} />
-                <Button type="submit" variant="ghost" size="sm">
-                  {m.activo ? 'Desactivar' : 'Activar'}
-                </Button>
-              </form>
+              <MetodoRowActions metodo={m} />
             </div>
           ))
         ) : (

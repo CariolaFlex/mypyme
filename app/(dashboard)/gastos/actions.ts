@@ -54,3 +54,75 @@ export async function registrarGasto(formData: FormData) {
   revalidatePath('/reportes/iva');
   redirect('/gastos?ok=1');
 }
+
+async function getCtx() {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  const empresaId = (data?.claims as Record<string, unknown> | undefined)?.empresa_id as
+    | string
+    | undefined;
+  return { supabase, empresaId };
+}
+
+export async function editarGasto(formData: FormData) {
+  const { supabase, empresaId } = await getCtx();
+  if (!empresaId) redirect('/onboarding');
+
+  const id = String(formData.get('id') ?? '');
+  const categoriaId = String(formData.get('categoria_gasto_id') ?? '');
+  const descripcion = String(formData.get('descripcion') ?? '').trim();
+  if (!categoriaId || !descripcion) redirect('/gastos?error=Completa categoría y descripción');
+
+  // Si el gasto descontó caja, no se permite cambiar el monto (descuadraría la
+  // caja, posiblemente ya cerrada). Sí se pueden corregir los campos descriptivos.
+  const { data: g } = await supabase.from('gastos').select('sesion_caja_id').eq('id', id).maybeSingle();
+  const cajaLinked = !!g?.sesion_caja_id;
+
+  const updates: Record<string, unknown> = {
+    categoria_gasto_id: categoriaId,
+    proveedor_id: String(formData.get('proveedor_id') ?? '') || null,
+    descripcion,
+  };
+  const fecha = String(formData.get('fecha') ?? '');
+  if (fecha) updates.fecha = fecha;
+
+  if (!cajaLinked) {
+    const montoTotal = Number(formData.get('monto_total') ?? 0);
+    const tasaIva = Number(formData.get('tasa_iva') ?? 0);
+    if (montoTotal <= 0) redirect('/gastos?error=El monto debe ser mayor a 0');
+    const neto = tasaIva > 0 ? Math.round((montoTotal / (1 + tasaIva / 100)) * 100) / 100 : montoTotal;
+    updates.monto_total = montoTotal;
+    updates.monto_neto = neto;
+    updates.monto_iva = Math.round((montoTotal - neto) * 100) / 100;
+  }
+
+  const { error } = await supabase.from('gastos').update(updates).eq('id', id);
+  if (error) redirect(`/gastos?error=${encodeURIComponent(error.message)}`);
+  revalidatePath('/gastos');
+  revalidatePath('/reportes/iva');
+  redirect('/gastos?ok=1');
+}
+
+export async function eliminarGasto(formData: FormData) {
+  const { supabase, empresaId } = await getCtx();
+  if (!empresaId) redirect('/onboarding');
+
+  const id = String(formData.get('id') ?? '');
+
+  // Un gasto pagado de la caja tiene un movimiento de caja asociado (FK RESTRICT)
+  // y eliminarlo descuadraría la caja. En ese caso no se permite borrar.
+  const { data: g } = await supabase.from('gastos').select('sesion_caja_id').eq('id', id).maybeSingle();
+  if (g?.sesion_caja_id) {
+    redirect(
+      `/gastos?error=${encodeURIComponent(
+        'Este gasto se pagó en efectivo y afecta la caja; no se puede eliminar para no descuadrarla.'
+      )}`
+    );
+  }
+
+  const { error } = await supabase.from('gastos').delete().eq('id', id);
+  if (error) redirect(`/gastos?error=${encodeURIComponent(error.message)}`);
+  revalidatePath('/gastos');
+  revalidatePath('/reportes/iva');
+  redirect('/gastos?ok=1');
+}

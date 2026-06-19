@@ -2,6 +2,8 @@ import { TrendingDown } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/page-header';
 import { registrarGasto } from './actions';
+import { CategoriasGastoManager } from './categorias-gasto-manager';
+import { GastoRowActions } from './row-actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,6 +23,8 @@ type GastoRow = {
   monto_iva: number;
   monto_total: number;
   sesion_caja_id: string | null;
+  categoria_gasto_id: string | null;
+  proveedor_id: string | null;
   categorias_gasto: { nombre: string } | null;
   proveedores: { nombre: string } | null;
 };
@@ -42,7 +46,7 @@ export default async function GastosPage({
       supabase
         .from('gastos')
         .select(
-          'id, fecha, descripcion, monto_neto, monto_iva, monto_total, sesion_caja_id, categorias_gasto(nombre), proveedores(nombre)'
+          'id, fecha, descripcion, monto_neto, monto_iva, monto_total, sesion_caja_id, categoria_gasto_id, proveedor_id, categorias_gasto(nombre), proveedores(nombre)'
         )
         .order('fecha', { ascending: false })
         .limit(50),
@@ -140,6 +144,8 @@ export default async function GastosPage({
         </CardContent>
       </Card>
 
+      <CategoriasGastoManager categorias={categorias ?? []} />
+
       <div>
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-sm font-medium text-muted-foreground">Últimos gastos</h2>
@@ -157,6 +163,7 @@ export default async function GastosPage({
               <TableHead className="text-right">Neto</TableHead>
               <TableHead className="text-right">IVA</TableHead>
               <TableHead className="text-right">Total</TableHead>
+              <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -173,11 +180,27 @@ export default async function GastosPage({
                   <TableCell className="text-right">{clp.format(Number(g.monto_neto))}</TableCell>
                   <TableCell className="text-right">{clp.format(Number(g.monto_iva))}</TableCell>
                   <TableCell className="text-right">{clp.format(Number(g.monto_total))}</TableCell>
+                  <TableCell className="text-right">
+                    <GastoRowActions
+                      gasto={{
+                        id: g.id,
+                        categoria_gasto_id: g.categoria_gasto_id,
+                        proveedor_id: g.proveedor_id,
+                        descripcion: g.descripcion,
+                        fecha: g.fecha,
+                        monto_total: Number(g.monto_total),
+                        sesion_caja_id: g.sesion_caja_id,
+                      }}
+                      categorias={categorias ?? []}
+                      proveedores={proveedores ?? []}
+                      ivaDefault={ivaDefault}
+                    />
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="py-6 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="py-6 text-center text-muted-foreground">
                   Aún no hay gastos.
                 </TableCell>
               </TableRow>
