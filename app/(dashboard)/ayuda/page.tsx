@@ -5,6 +5,7 @@ import {
   BarChart3, Users, Sparkles, LifeBuoy, ChevronDown,
 } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
+import { GlosarioBuscable } from './glosario-buscable';
 
 export const metadata: Metadata = {
   title: 'Centro de ayuda',
@@ -175,6 +176,18 @@ export default function AyudaPage() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* Glosario */}
+      <section id="glosario" className="space-y-4 scroll-mt-6">
+        <div>
+          <h2 className="text-lg font-bold">Glosario</h2>
+          <p className="text-sm text-muted-foreground">
+            ¿Una palabra que no conoces? Búscala acá. También aparece al pasar el mouse sobre los
+            términos subrayados en la plataforma.
+          </p>
+        </div>
+        <GlosarioBuscable />
       </section>
 
       {/* Preguntas frecuentes */}

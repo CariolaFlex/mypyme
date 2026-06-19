@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { clp, MESES } from '@/lib/reportes';
+import { Termino } from '@/components/termino';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,7 +49,9 @@ export default async function ReporteIvaPage({
         <div>
           <h1 className="text-2xl font-bold">Reporte de IVA (F29)</h1>
           <p className="text-sm text-muted-foreground">
-            IVA débito (ventas) menos crédito (gastos) por mes. Insumo para el Formulario 29.
+            <Termino slug="iva_debito">IVA débito</Termino> (ventas) menos{' '}
+            <Termino slug="iva_credito">crédito</Termino> (gastos) por mes. Insumo para el{' '}
+            <Termino slug="f29">Formulario 29</Termino>.
           </p>
         </div>
         <a
@@ -82,9 +85,15 @@ export default async function ReporteIvaPage({
             <TableHeader>
               <TableRow>
                 <TableHead>Mes</TableHead>
-                <TableHead className="text-right">IVA débito</TableHead>
-                <TableHead className="text-right">IVA crédito</TableHead>
-                <TableHead className="text-right">Resultado</TableHead>
+                <TableHead className="text-right">
+                  <Termino slug="iva_debito" align="right">IVA débito</Termino>
+                </TableHead>
+                <TableHead className="text-right">
+                  <Termino slug="iva_credito" align="right">IVA crédito</Termino>
+                </TableHead>
+                <TableHead className="text-right">
+                  <Termino slug="iva_a_pagar" align="right">Resultado</Termino>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -116,7 +125,8 @@ export default async function ReporteIvaPage({
           </Table>
           <p className="mt-4 text-xs text-muted-foreground">
             <strong>Resultado</strong> = débito − crédito. Positivo: IVA a pagar en el período.
-            Negativo (verde): remanente de crédito fiscal a favor para el mes siguiente.
+            Negativo (verde): remanente de <Termino slug="credito_fiscal">crédito fiscal</Termino> a
+            favor para el mes siguiente.
           </p>
         </CardContent>
       </Card>

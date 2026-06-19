@@ -2,6 +2,7 @@ import { Wallet } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/page-header';
 import { abrirCaja, cerrarCaja, registrarMovimientoCaja } from './actions';
+import { Termino } from '@/components/termino';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -105,7 +106,9 @@ export default async function CajaPage({
                 <div className="text-lg font-semibold">{clp.format(abierta.monto_apertura)}</div>
               </div>
               <div>
-                <div className="text-muted-foreground">Efectivo esperado</div>
+                <div className="text-muted-foreground">
+                  <Termino slug="esperado">Efectivo esperado</Termino>
+                </div>
                 <div className="text-lg font-semibold">{clp.format(esperado ?? 0)}</div>
               </div>
             </div>
@@ -194,7 +197,9 @@ export default async function CajaPage({
               <TableHead className="text-right">Inicial</TableHead>
               <TableHead className="text-right">Esperado</TableHead>
               <TableHead className="text-right">Contado</TableHead>
-              <TableHead className="text-right">Diferencia</TableHead>
+              <TableHead className="text-right">
+                <Termino slug="diferencia" align="right">Diferencia</Termino>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
