@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { clp, fmtFecha } from '@/lib/reportes';
 import {
-  PLANES, diasRestantesTrial, enrollHabilitado, enforcementActivo, tieneAcceso, type PlanKey,
+  PLANES, diasRestantesTrial, enrollHabilitado, enforcementActivo, tieneAcceso, cortesiaVigente, type PlanKey,
 } from '@/lib/flow/subscription';
 import { flowConfigurado } from '@/lib/flow/client';
 import { iniciarSuscripcion } from './actions';
@@ -79,7 +79,7 @@ export default async function SuscripcionPage({
   const [{ data: empresa }, { data: pagos }] = await Promise.all([
     supabase
       .from('empresas')
-      .select('razon_social, plan, estado_suscripcion, trial_termina_en')
+      .select('razon_social, plan, estado_suscripcion, trial_termina_en, acceso_cortesia_hasta')
       .single(),
     supabase
       .from('pagos_suscripcion')
@@ -97,7 +97,8 @@ export default async function SuscripcionPage({
   const enrollOn = enrollHabilitado();
   const banner = bannerEstado(estado, dias);
   const TonoIcon = TONO[banner.tono].icon;
-  const conAcceso = tieneAcceso(estado, empresa?.trial_termina_en ?? null);
+  const cortesia = cortesiaVigente(empresa?.acceso_cortesia_hasta ?? null);
+  const conAcceso = cortesia || tieneAcceso(estado, empresa?.trial_termina_en ?? null);
   const enforce = enforcementActivo();
 
   return (
@@ -166,6 +167,13 @@ export default async function SuscripcionPage({
               )}
             </span>
           </div>
+          {cortesia && (
+            <p className="text-xs text-emerald-700">
+              Cuenta de cortesía: tienes acceso gratuito
+              {empresa?.acceso_cortesia_hasta ? ` hasta el ${fmtFecha(empresa.acceso_cortesia_hasta)}` : ''}, sin
+              necesidad de suscripción.
+            </p>
+          )}
           {!enforce && !conAcceso && (
             <p className="text-xs text-muted-foreground">
               La restricción de acceso por suscripción aún no está activa, así que puedes seguir

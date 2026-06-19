@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { enforcementActivo, tieneAcceso } from '@/lib/flow/subscription';
+import { enforcementActivo, tieneAcceso, cortesiaVigente } from '@/lib/flow/subscription';
 
 /**
  * Refresca la sesión de Supabase en cada request y protege rutas.
@@ -100,10 +100,15 @@ export async function updateSession(request: NextRequest) {
     if (!esExento) {
       const { data: empresa } = await supabase
         .from('empresas')
-        .select('estado_suscripcion, trial_termina_en')
+        .select('estado_suscripcion, trial_termina_en, acceso_cortesia_hasta')
         .maybeSingle();
 
-      if (empresa && !tieneAcceso(empresa.estado_suscripcion, empresa.trial_termina_en)) {
+      const acceso =
+        empresa &&
+        (cortesiaVigente(empresa.acceso_cortesia_hasta) ||
+          tieneAcceso(empresa.estado_suscripcion, empresa.trial_termina_en));
+
+      if (empresa && !acceso) {
         return redirigir('/suscripcion-requerida', true);
       }
     }

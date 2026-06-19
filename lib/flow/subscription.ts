@@ -55,6 +55,21 @@ export function tieneAcceso(
   return false;
 }
 
+/**
+ * ¿La empresa tiene acceso de cortesía vigente? (cuenta gratis sin pasar por Flow:
+ * testing propio, regalos, promos). Compara por fecha (DATE 'YYYY-MM-DD'), inclusive.
+ */
+export function cortesiaVigente(
+  cortesiaHasta: string | Date | null,
+  ahora: Date = new Date()
+): boolean {
+  if (!cortesiaHasta) return false;
+  const hasta =
+    typeof cortesiaHasta === 'string' ? cortesiaHasta.slice(0, 10) : cortesiaHasta.toISOString().slice(0, 10);
+  const hoy = ahora.toISOString().slice(0, 10);
+  return hasta >= hoy;
+}
+
 /** El enforcement de suscripción solo se activa con esta env (default: off). */
 export function enforcementActivo(): boolean {
   return process.env.FLOW_ENFORCE === 'true';
