@@ -150,6 +150,90 @@ export async function registrarFactura(input: {
   return { facturaId };
 }
 
+/**
+ * Carga ítems del escaneo al inventario (movimiento 'compra' en la bodega
+ * default). Cada fila trae un producto ya elegido por el usuario (productoId)
+ * o la orden de crearlo (crear=true, usa descripción+precio). Suma stock con
+ * costo_unitario = precio. Devuelve cuántos cargó y los errores por fila.
+ */
+export async function cargarInventario(input: {
+  rows: { productoId?: string; crear?: boolean; descripcion: string; cantidad: number; precio: number }[];
+}): Promise<{ cargados: number; errores: string[] } | { error: string }> {
+  const { supabase, empresaId } = await getEmpresaId();
+  if (!empresaId) return { error: 'Sesión expirada' };
+
+  const { data: bodega } = await supabase
+    .from('bodegas')
+    .select('id')
+    .order('es_default', { ascending: false })
+    .order('creado_en', { ascending: true })
+    .limit(1)
+    .single();
+  if (!bodega?.id) return { error: 'No hay bodega para cargar el stock' };
+
+  const { data: cfg } = await supabase
+    .from('configuracion_negocio')
+    .select('usa_iva, tasa_iva_default')
+    .maybeSingle();
+  const tasa = cfg?.usa_iva ? Number(cfg.tasa_iva_default ?? 19) : 0;
+
+  let cargados = 0;
+  const errores: string[] = [];
+
+  for (const row of input.rows) {
+    const cantidad = Number(row.cantidad) || 0;
+    if (cantidad <= 0) continue;
+    let productoId = row.productoId;
+
+    // Crear el producto si el usuario lo pidió.
+    if (!productoId && row.crear) {
+      const nombre = row.descripcion.trim().slice(0, 120);
+      if (!nombre) {
+        errores.push('Una fila sin nombre no se pudo crear');
+        continue;
+      }
+      const precio = Number(row.precio) || 0;
+      const neto = tasa > 0 && precio > 0 ? Math.round((precio / (1 + tasa / 100)) * 100) / 100 : precio;
+      const base = nombre.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 9) || 'PROD';
+      let sku = base;
+      for (let n = 1; n <= 50 && !productoId; n++) {
+        const { data, error } = await supabase
+          .from('productos')
+          .insert({ empresa_id: empresaId, sku, nombre, precio_total: precio, precio_neto: neto, tasa_iva: tasa })
+          .select('id')
+          .single();
+        if (!error) {
+          productoId = data.id;
+        } else if (error.code === '23505' && !(error.message ?? '').includes('codigo_barras')) {
+          sku = `${base}-${n + 1}`;
+        } else {
+          errores.push(`«${nombre}»: ${error.message}`);
+          break;
+        }
+      }
+    }
+
+    if (!productoId) continue;
+
+    const precio = Number(row.precio) || 0;
+    const { error: movErr } = await supabase.from('movimientos_inventario').insert({
+      empresa_id: empresaId,
+      producto_id: productoId,
+      bodega_id: bodega.id,
+      cantidad,
+      costo_unitario: precio > 0 ? precio : null,
+      tipo: 'compra',
+      nota: 'Carga desde escaneo de factura',
+    });
+    if (movErr) errores.push(`«${row.descripcion.slice(0, 30)}»: ${movErr.message}`);
+    else cargados++;
+  }
+
+  revalidatePath('/inventario/stock');
+  revalidatePath('/inventario/productos');
+  return { cargados, errores };
+}
+
 export async function eliminarScan(scanId: string): Promise<{ ok: true } | { error: string }> {
   const { supabase, empresaId } = await getEmpresaId();
   if (!empresaId) return { error: 'Sesión expirada' };

@@ -8,11 +8,10 @@ export const dynamic = 'force-dynamic';
 
 export default async function EscanearFacturaPage() {
   const supabase = await createClient();
-  const { data: proveedores } = await supabase
-    .from('proveedores')
-    .select('id, nombre, rut')
-    .eq('activo', true)
-    .order('nombre');
+  const [{ data: proveedores }, { data: productos }] = await Promise.all([
+    supabase.from('proveedores').select('id, nombre, rut').eq('activo', true).order('nombre'),
+    supabase.from('productos').select('id, nombre').eq('activo', true).order('nombre'),
+  ]);
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -42,7 +41,7 @@ export default async function EscanearFacturaPage() {
           <History className="size-4" /> Ver historial de escaneos
         </Link>
       </div>
-      <EscanearFactura proveedores={proveedores ?? []} />
+      <EscanearFactura proveedores={proveedores ?? []} productos={productos ?? []} />
     </div>
   );
 }

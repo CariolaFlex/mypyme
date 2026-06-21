@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Camera, Loader2, Plus, Trash2, Check, FileText } from 'lucide-react';
+import { Camera, Loader2, Plus, Trash2, Check, FileText, Boxes } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { runOCRInBrowser } from '@/lib/ocr/engine';
 import { extraerFactura } from '@/lib/ocr/factura';
 import type { FacturaExtraida, OCRProgress, TipoDocOCR } from '@/lib/ocr/types';
-import { guardarScan, registrarFactura } from './actions';
+import { guardarScan, registrarFactura, cargarInventario } from './actions';
 
 const VACIO: FacturaExtraida = {
   rut: '', razonSocial: '', folio: '', fecha: '', neto: 0, iva: 0, total: 0, items: [],
@@ -25,9 +25,16 @@ const TIPOS: { value: TipoDocOCR; label: string }[] = [
 ];
 
 type Proveedor = { id: string; nombre: string; rut: string | null };
+type Producto = { id: string; nombre: string };
 const rutKey = (s: string | null | undefined) => (s ?? '').replace(/[.\-\s]/g, '').toUpperCase();
 
-export function EscanearFactura({ proveedores }: { proveedores: Proveedor[] }) {
+export function EscanearFactura({
+  proveedores,
+  productos,
+}: {
+  proveedores: Proveedor[];
+  productos: Producto[];
+}) {
   const router = useRouter();
   const [fase, setFase] = useState<'idle' | 'procesando' | 'review'>('idle');
   const [progress, setProgress] = useState<OCRProgress | null>(null);
@@ -38,6 +45,9 @@ export function EscanearFactura({ proveedores }: { proveedores: Proveedor[] }) {
   const [tipo, setTipo] = useState<TipoDocOCR>('factura');
   const [proveedorId, setProveedorId] = useState(''); // '' = crear nuevo
   const [vendedor, setVendedor] = useState('');
+  // Mapeo ítem→destino de inventario, paralelo a d.items: '' = no cargar,
+  // 'NEW' = crear producto, o el id de un producto existente.
+  const [cargarSel, setCargarSel] = useState<string[]>([]);
 
   async function onFile(file: File) {
     setFase('procesando');
@@ -46,6 +56,7 @@ export function EscanearFactura({ proveedores }: { proveedores: Proveedor[] }) {
       const raw = await runOCRInBrowser(file, setProgress);
       const extra = extraerFactura(raw, tipo);
       setD(extra);
+      setCargarSel(extra.items.map(() => ''));
       // Auto-vincular proveedor si el RUT escaneado coincide con uno existente.
       const k = rutKey(extra.rut);
       const match = k.length >= 7 ? proveedores.find((p) => rutKey(p.rut) === k) : undefined;
@@ -73,9 +84,36 @@ export function EscanearFactura({ proveedores }: { proveedores: Proveedor[] }) {
       return { ...p, items };
     });
   }
-  const addItem = () =>
+  const addItem = () => {
     setD((p) => ({ ...p, items: [...p.items, { descripcion: '', cantidad: 1, precio: 0, total: 0 }] }));
-  const delItem = (i: number) => setD((p) => ({ ...p, items: p.items.filter((_, j) => j !== i) }));
+    setCargarSel((s) => [...s, '']);
+  };
+  const delItem = (i: number) => {
+    setD((p) => ({ ...p, items: p.items.filter((_, j) => j !== i) }));
+    setCargarSel((s) => s.filter((_, j) => j !== i));
+  };
+  const setCargar = (i: number, v: string) => setCargarSel((s) => s.map((x, j) => (j === i ? v : x)));
+
+  async function cargarAlInventario() {
+    const rows = d.items
+      .map((it, i) => ({ sel: cargarSel[i] ?? '', it }))
+      .filter(({ sel, it }) => sel !== '' && it.cantidad > 0)
+      .map(({ sel, it }) => ({
+        productoId: sel === 'NEW' ? undefined : sel,
+        crear: sel === 'NEW',
+        descripcion: it.descripcion,
+        cantidad: it.cantidad,
+        precio: it.precio,
+      }));
+    if (rows.length === 0) return toast.error('Elige a qué producto cargar al menos un ítem.');
+    setBusy(true);
+    const res = await cargarInventario({ rows });
+    setBusy(false);
+    if ('error' in res) return toast.error(res.error);
+    if (res.errores.length)
+      toast.warning(`Cargados ${res.cargados}. ${res.errores.length} con error: ${res.errores[0]}`);
+    else toast.success(`${res.cargados} ítem(s) cargados al inventario.`);
+  }
 
   async function guardarBorrador() {
     setBusy(true);
@@ -180,6 +218,7 @@ export function EscanearFactura({ proveedores }: { proveedores: Proveedor[] }) {
   const sumaItems = d.items.reduce((a, it) => a + (Number(it.total) || 0), 0);
   const cuadraIva = d.total > 0 && Math.abs(d.neto + d.iva - d.total) <= 2;
   const cuadraItems = sumaItems > 0 && d.total > 0 && Math.abs(sumaItems - d.total) <= 2;
+  const nCargar = cargarSel.filter((s) => s !== '').length;
 
   return (
     <div className="space-y-5">
@@ -261,19 +300,50 @@ export function EscanearFactura({ proveedores }: { proveedores: Proveedor[] }) {
         ) : (
           <div className="divide-y">
             {d.items.map((it, i) => (
-              <div key={i} className="grid grid-cols-2 gap-2 px-3 py-2 sm:grid-cols-12">
-                <Input className="col-span-2 sm:col-span-5" placeholder="Descripción" value={it.descripcion} onChange={(e) => setItem(i, 'descripcion', e.target.value)} />
-                <Input className="col-span-1 sm:col-span-2" type="number" placeholder="Cant." value={it.cantidad} onChange={(e) => setItem(i, 'cantidad', e.target.value)} />
-                <Input className="col-span-1 sm:col-span-2" type="number" placeholder="Precio" value={it.precio} onChange={(e) => setItem(i, 'precio', e.target.value)} />
-                <Input className="col-span-1 sm:col-span-2" type="number" placeholder="Total" value={it.total} onChange={(e) => setItem(i, 'total', e.target.value)} />
-                <button type="button" onClick={() => delItem(i)} aria-label="Quitar" className="col-span-1 flex items-center justify-center text-muted-foreground hover:text-destructive">
-                  <Trash2 className="size-4" />
-                </button>
+              <div key={i} className="space-y-1.5 px-3 py-2">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-12">
+                  <Input className="col-span-2 sm:col-span-5" placeholder="Descripción" value={it.descripcion} onChange={(e) => setItem(i, 'descripcion', e.target.value)} />
+                  <Input className="col-span-1 sm:col-span-2" type="number" placeholder="Cant." value={it.cantidad} onChange={(e) => setItem(i, 'cantidad', e.target.value)} />
+                  <Input className="col-span-1 sm:col-span-2" type="number" placeholder="Precio" value={it.precio} onChange={(e) => setItem(i, 'precio', e.target.value)} />
+                  <Input className="col-span-1 sm:col-span-2" type="number" placeholder="Total" value={it.total} onChange={(e) => setItem(i, 'total', e.target.value)} />
+                  <button type="button" onClick={() => delItem(i)} aria-label="Quitar" className="col-span-1 flex items-center justify-center text-muted-foreground hover:text-destructive">
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
+                {/* Destino de inventario (opcional, por fila) */}
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="shrink-0 text-muted-foreground">Cargar a:</span>
+                  <select
+                    className="min-w-0 flex-1 rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-1 text-xs shadow-xs"
+                    value={cargarSel[i] ?? ''}
+                    onChange={(e) => setCargar(i, e.target.value)}
+                  >
+                    <option value="">— No cargar al inventario —</option>
+                    <option value="NEW">+ Crear producto nuevo (usa la descripción)</option>
+                    {productos.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Cargar al inventario (opcional, según el destino elegido por fila) */}
+      {nCargar > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-muted/20 px-3 py-2.5">
+          <span className="text-xs text-muted-foreground">
+            {nCargar} ítem(s) marcados para sumar stock en la bodega principal (costo = precio).
+          </span>
+          <Button type="button" size="sm" variant="outline" disabled={busy} onClick={cargarAlInventario} className="gap-2">
+            <Boxes className="size-4" /> Cargar al inventario
+          </Button>
+        </div>
+      )}
 
       {/* Cuadre (en vivo): ayuda a detectar errores del OCR antes de registrar */}
       {d.total > 0 && (
@@ -294,7 +364,7 @@ export function EscanearFactura({ proveedores }: { proveedores: Proveedor[] }) {
       <p className="text-sm text-muted-foreground">Total a registrar: <strong>{clp.format(d.total)}</strong></p>
 
       <div className="flex flex-wrap justify-end gap-2">
-        <Button type="button" variant="outline" onClick={() => { setFase('idle'); setD(VACIO); }}>
+        <Button type="button" variant="outline" onClick={() => { setFase('idle'); setD(VACIO); setCargarSel([]); }}>
           Escanear otra
         </Button>
         <Button type="button" variant="outline" disabled={busy} onClick={guardarBorrador} className="gap-2">
