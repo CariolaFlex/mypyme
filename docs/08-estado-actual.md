@@ -81,6 +81,24 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   `metadataBase`+`title.template` en root layout, OG/keywords. PWA `start_url=/inicio`. ⚠️ El matcher
   del middleware excluye `robots.txt`/`sitemap.xml` (si no, los botaba a `/login`).
 
+- **Escáner de cámara — Etapa 1 (código de barras en productos)** ✅ (`871192b`, migración
+  `20260620000000` aplicada en cloud = 32 migraciones). Nace de un plan con Perplexity (arquitecto
+  externo) para ingreso rápido sin tipear; **Etapa 1 = barcode/QR por cámara**, Etapa 2 (OCR de
+  facturas, motor de LegisEnterprise) queda para después. Perplexity creía que mypyme era Firebase/
+  Next14 → **es Supabase/Next16/Base UI** (corregido). **Nueva columna `productos.codigo_barras`**
+  TEXT nullable + índice único PARCIAL por empresa (`WHERE codigo_barras IS NOT NULL` → productos a
+  granel sin código conviven; EAN/UPC único cuando existe). Primitivas reusables en
+  `components/scanner/`: `useBarcodeScanner` (hook: `BarcodeDetector` nativo Chrome/Android →
+  fallback `@zxing/browser` WASM para iOS/Safari que NO soporta BarcodeDetector ni en iOS 17; cámara
+  trasera `facingMode:environment`; apaga la cámara al desmontar), `BarcodeScanner` (vista), 
+  `BarcodeScannerModal`, e island `CodigoConEscaner` (campo + botón cámara + **lookup anti-duplicado**
+  por toast, vive dentro del `<form>` de la server action). Cableado en alta+edición de producto;
+  `actions.ts` distingue 23505 SKU vs código. **Dep nueva `@zxing/browser`** (0 vulns). e2e
+  `scripts/verify-codigo-barras.mjs` **6/6** (RLS, unicidad por empresa, índice parcial, edición).
+  La cámara en sí se confirma en celular (no auto-testeable). El scanner quedó arquitectado para
+  reusar en el **POS** (escanear→carrito) a futuro; el «prefill nombre/precio desde la DB» va ahí,
+  no en el alta (donde duplicar no sirve).
+
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
    Domicilio fijado a El Trovador 4280 Of 307, RM (jurisdicción Santiago).
