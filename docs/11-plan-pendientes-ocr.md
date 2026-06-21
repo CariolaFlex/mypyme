@@ -81,15 +81,19 @@ se suman después reusando la misma fundación. Ruta de trabajo: `/compras/escan
 - [x] A1 · Prerellenar imagen desde Open Food Facts *(commit da595ef)*
 - [x] A2 · Plantilla CSV descargable + subir archivo en /importar *(commit da595ef)*
 
-### Etapa 2 — OCR factura proveedor
-- [ ] B1 · Trasplante motor Tesseract (`lib/ocr/`) + instalar `tesseract.js` + build webpack/Serwist OK
-- [ ] B2 · Migración #33 `ocr_scans` + RLS + grants + helpers `store.ts`
-- [ ] B3 · Extractores de cabecera + ítems de línea (best-effort)
-- [ ] B4 · UI `/compras/escanear-factura` (cámara/upload + progreso)
-- [ ] B5 · UI revisar/editar (cabecera + tabla de ítems editable + validación)
-- [ ] B6 · Ejecutar → `crear_factura_proveedor` (+ opción inventario) + marcar importado
-- [ ] B7 · Historial con filtros/estados
-- [ ] B8 · `scripts/verify-ocr.mjs` + build/lint/tsc
+### Etapa 2 — OCR factura proveedor *(todo en commit 86022c7)*
+- [x] B1 · Trasplante motor Tesseract (`lib/ocr/`) + `tesseract.js` + build webpack/Serwist OK
+- [x] B2 · Migración #33 `ocr_scans` + RLS + grants (aplicada en cloud)
+- [x] B3 · Extractores de cabecera + ítems de línea (best-effort, `lib/ocr/factura.ts`)
+- [x] B4 · UI `/compras/escanear-factura` (cámara/upload + progreso)
+- [x] B5 · UI revisar/editar (cabecera + tabla de ítems editable)
+- [x] B6 · Ejecutar → `crear_factura_proveedor` (resuelve/crea proveedor) + marcar importado
+- [x] B7 · Historial con estados + link a la factura + borrar
+- [x] B8 · `scripts/verify-ocr.mjs` 8/8 + build/lint/tsc
+
+> **Siguiente paso post-test (decisión Andrés):** si el OCR de ítems sale bien en facturas reales,
+> integrar la **carga a inventario** (destino opcional de B6). Pendiente menor: «reabrir borrador»
+> desde el historial (hoy el historial lista/borra; reabrir para re-editar queda para después).
 
 ### Descartado por ahora (over-scope beta 1 cliente)
 - [ ] OCR de boletas de servicios / guías / cartolas / liquidaciones (Fase posterior)

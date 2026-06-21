@@ -140,6 +140,17 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   directo). A2: `/inventario/importar` con botón «Descargar plantilla» (CSV BOM es-CL) + «Subir
   archivo .csv» además de pegar (`ImportarForm` client, textarea controlado). **Cierre de Etapa 1
   completo.** Plan de lo que falta (Etapa 2 OCR + checklist): `docs/11-plan-pendientes-ocr.md`.
+- **Etapa 2 — OCR escanear factura de proveedor** ✅ (`86022c7`, migración `20260621000000` aplicada
+  = 33 migraciones). Módulo OCR 100% client-side (Tesseract.js), foco: factura proveedor → Cuentas por
+  pagar. `lib/ocr/` (engine.ts dynamic import + extractores RUT/monto/fecha/org; factura.ts extracción
+  heurística best-effort de cabecera + ítems; types.ts). Tabla `ocr_scans` (RLS tenant, estados
+  borrador/revisado/importado, factura_id). `/compras/escanear-factura`: foto/cámara → progreso OCR →
+  form editable (cabecera + tabla de ítems) → «Registrar en Cuentas por pagar» (resuelve proveedor por
+  RUT o lo crea + `crear_factura_proveedor` + `tipo_documento=factura` + marca scan importado) o
+  «Guardar borrador»; historial con estados + link a la factura + borrar. Link en sidebar. **Build con
+  Tesseract OK** (no rompe Serwist/webpack). e2e `scripts/verify-ocr.mjs` **8/8**. El OCR sobre imagen
+  real se confirma en celular (no auto-testeable); ítems de línea = best-effort (texto plano), siempre
+  editable. **Siguiente post-test:** si los ítems salen bien → integrar carga a inventario.
 
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
