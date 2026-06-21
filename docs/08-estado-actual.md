@@ -123,6 +123,18 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   descargable/subir-archivo vs pegar → bajo valor); **lookup EAN→Open Food Facts** y **modo escáner
   rápido walk-through** quedan pendientes (no construidos). La edición (row-actions) NO tiene aún el
   selector de unidad/IVA (consistencia futura, no bloquea).
+- **Lookup EAN → Open Food Facts** ✅ (`c6ae2f3`). Al escanear en el alta, consulta Open Food Facts
+  (API pública, sin key, CORS abierto, client-side) y prerellena nombre (+marca) y unidad SOLO si
+  están vacíos. `lib/openfoodfacts.ts` (`buscarPorCodigo`); `CodigoConEscaner` ganó callback
+  `onScanned` (solo dispara al escanear, no al tipear). Best-effort; cobertura chilena irregular.
+- **Modo escáner rápido (walk-through de bodega)** ✅ (`e734ad3`). Nueva ruta
+  `/inventario/escaneo-rapido` (link en sidebar → Catálogo): escanear → mini-form (nombre/precio/
+  cantidad, nombre prerellenado por OFF) → «Guardar y escanear siguiente» reabre la cámara, sin
+  recargar; lista de agregados de la sesión; si el código ya existe, avisa (no duplica). Action
+  `agregarRapido` (insert SIN redirect, devuelve `{id,nombre}`; deriva neto/tasa, SKU con sufijo si
+  colisiona, registra stock inicial).
+- **Unidad de medida también en edición** ✅ (`7b2c717`). El modal de editar producto ahora tiene el
+  selector de unidad (antes solo el alta); `editarProducto` lee `unidad_medida`.
 
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
