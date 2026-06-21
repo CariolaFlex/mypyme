@@ -91,6 +91,60 @@ function montoTrasEtiqueta(lines: { text: string }[], etiqueta: RegExp, folio: s
   return 0;
 }
 
+// ── Monto escrito en palabras ("SON: CIENTO QUINCE MIL PESOS") ───────────────
+// Señal MUY robusta: las palabras no pierden separadores de miles ni se confunden
+// con códigos de producto, a diferencia de los números cuando el OCR es pobre.
+// Las facturas chilenas casi siempre traen "SON: … PESOS"; este soporte de Coca-Cola
+// trae "CIENTO QUINCE MIL PESOS". Sirve para recuperar el total cuando el OCR perdió
+// la cifra (acá la caja "VALOR TOTAL" no quedó en el texto).
+const NUM_PALABRA: Record<string, number> = {
+  cero: 0, un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6,
+  siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12, trece: 13, catorce: 14,
+  quince: 15, dieciseis: 16, diecisiete: 17, dieciocho: 18, diecinueve: 19, veinte: 20,
+  veintiun: 21, veintiuno: 21, veintidos: 22, veintitres: 23, veinticuatro: 24,
+  veinticinco: 25, veintiseis: 26, veintisiete: 27, veintiocho: 28, veintinueve: 29,
+  treinta: 30, cuarenta: 40, cincuenta: 50, sesenta: 60, setenta: 70, ochenta: 80,
+  noventa: 90, cien: 100, ciento: 100, doscientos: 200, trescientos: 300,
+  cuatrocientos: 400, quinientos: 500, seiscientos: 600, setecientos: 700,
+  ochocientos: 800, novecientos: 900,
+};
+
+/** "ciento quince mil" → 115000. 0 si no hay palabras-número. */
+function palabrasANumero(texto: string): number {
+  const words = texto
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z\s]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+  let total = 0;
+  let chunk = 0;
+  let vistos = false;
+  for (const w of words) {
+    if (w === 'y') continue;
+    if (w === 'mil') { chunk = (chunk || 1) * 1000; total += chunk; chunk = 0; vistos = true; continue; }
+    if (w === 'millon' || w === 'millones') { chunk = (chunk || 1) * 1_000_000; total += chunk; chunk = 0; vistos = true; continue; }
+    const v = NUM_PALABRA[w];
+    if (v !== undefined) { chunk += v; vistos = true; }
+    // palabras desconocidas se ignoran (toleran "SON", "IMPORTE", "PESOS", prosa)
+  }
+  return vistos ? total + chunk : 0;
+}
+
+/** Primer monto-en-letra antes de "PESOS" en alguna línea. ≥1000 para evitar
+ *  falsos positivos ("un", "dos" sueltos en prosa). */
+function montoEnLetra(lines: { text: string }[]): number {
+  for (const { text } of lines) {
+    const norm = text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const idx = norm.indexOf('peso');
+    if (idx < 0) continue;
+    const n = palabrasANumero(norm.slice(0, idx));
+    if (n >= 1000) return n;
+  }
+  return 0;
+}
+
 /** Mayor monto del bloque dado, ignorando la línea del RUT. Fallback del total. */
 function maxMonto(lines: { text: string }[], folio: string): number {
   let best = 0;
@@ -177,6 +231,10 @@ export function extraerFactura(raw: OCRRaw, tipo: TipoDocOCR = 'factura'): Factu
   );
   const folio = folioM?.[1] ?? '';
 
+  // Ítems primero: su suma es un candidato a total (y un cross-check del cuadre).
+  const items = parseItems(lines);
+  const sumaItems = items.reduce((a, it) => a + (it.total || 0), 0);
+
   // ── Montos ──────────────────────────────────────────────────────────────
   // Los totales SIEMPRE van en la parte FINAL de la hoja → priorizar la zona
   // inferior (evita confundir el folio/RUT de arriba o los precios unitarios
@@ -189,11 +247,16 @@ export function extraerFactura(raw: OCRRaw, tipo: TipoDocOCR = 'factura'): Factu
   const exclTotal =
     /neto|i\.?v\.?a|sub\s*-?\s*total|exento|afecto|descuento|anticipo|garant[ií]a|env\s*ase|unitari|precio/i;
 
+  // Etiquetas fuertes primero (los 4 docs chilenos resuelven acá → sin regresión).
+  // Si fallan, el monto-en-letra y la suma de ítems son mejores que "el mayor
+  // número de la hoja" (que agarra códigos de material, como el 135760 de Coca-Cola).
   let total =
     montoTrasEtiqueta(abajo, lblTotal, folio) ||
     montoTrasEtiqueta(lines, lblTotal, folio) ||
     montoEnLineas(abajo, /total/i, exclTotal, folio) ||
     montoEnLineas(lines, /total/i, exclTotal, folio) ||
+    montoEnLetra(lines) ||
+    (sumaItems >= 1000 ? sumaItems : 0) ||
     maxMonto(abajo, folio);
   let neto =
     montoTrasEtiqueta(abajo, /\bneto\b|afecto/i, folio) ||
@@ -216,5 +279,5 @@ export function extraerFactura(raw: OCRRaw, tipo: TipoDocOCR = 'factura'): Factu
     iva = total - neto;
   }
 
-  return { rut, razonSocial, folio, fecha, neto, iva, total, items: parseItems(lines) };
+  return { rut, razonSocial, folio, fecha, neto, iva, total, items };
 }
