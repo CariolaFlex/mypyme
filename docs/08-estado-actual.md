@@ -135,6 +135,11 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   colisiona, registra stock inicial).
 - **Unidad de medida también en edición** ✅ (`7b2c717`). El modal de editar producto ahora tiene el
   selector de unidad (antes solo el alta); `editarProducto` lee `unidad_medida`.
+- **A1 imagen desde Open Food Facts + A2 plantilla/subir CSV** ✅ (`da595ef`). A1: al escanear, si OFF
+  trae imagen, prerellena la foto (`ImagenProducto` ahora controlable; usa la URL pública de OFF
+  directo). A2: `/inventario/importar` con botón «Descargar plantilla» (CSV BOM es-CL) + «Subir
+  archivo .csv» además de pegar (`ImportarForm` client, textarea controlado). **Cierre de Etapa 1
+  completo.** Plan de lo que falta (Etapa 2 OCR + checklist): `docs/11-plan-pendientes-ocr.md`.
 
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).

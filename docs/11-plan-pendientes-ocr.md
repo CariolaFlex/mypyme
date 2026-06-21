@@ -75,8 +75,8 @@ se suman después reusando la misma fundación. Ruta de trabajo: `/compras/escan
 ## C. Checklist consolidado
 
 ### Etapa 1 — cierre
-- [ ] A1 · Prerellenar imagen desde Open Food Facts
-- [ ] A2 · Plantilla CSV descargable + subir archivo en /importar *(opcional)*
+- [x] A1 · Prerellenar imagen desde Open Food Facts *(commit da595ef)*
+- [x] A2 · Plantilla CSV descargable + subir archivo en /importar *(commit da595ef)*
 
 ### Etapa 2 — OCR factura proveedor
 - [ ] B1 · Trasplante motor Tesseract (`lib/ocr/`) + instalar `tesseract.js` + build webpack/Serwist OK
