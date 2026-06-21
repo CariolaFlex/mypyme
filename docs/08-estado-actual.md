@@ -210,8 +210,17 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     cero productos basura (no auto-crea de nombres crudos). e2e verify-ocr 8/8; carga real se confirma en
     navegador.
   - **✅ FASE 3 COMPLETA (A–F) en prod.** Bbox column-reconstruction descartado (alto riesgo/bajo retorno
-    vs el parser por tokens). **Próximo (post-test de Andrés en celular):** ajustar el parser/preproceso si
-    hace falta según facturas reales; «reabrir borrador» desde el historial (sigue pendiente, lista/borra).
+    vs el parser por tokens).
+  - **Fase 3A-v2 — extracción de montos reescrita ✅** (commit). 2º test de Andrés con **5 facturas reales**:
+    total/neto salían mal (tomaba folio/RUT/precio unitario). Causa raíz: el RUT «parece» monto grande, el
+    fallback era «el mayor monto de toda la hoja», y no usaba que los **totales van al final de la hoja**.
+    Reescritura (`lib/ocr/factura.ts`): `montosDeTexto` saca RUTs (`99.x.x-d`) y el folio antes de leer
+    montos; prioriza la **zona inferior** (`lines.slice(45%)`); `montoTrasEtiqueta` toma el valor pegado a
+    la etiqueta (resuelve «TOTAL NETO 9.146 IVA 1.646…» en una línea OCR); total = etiqueta fuerte →
+    `total` sin neto/iva → mayor monto del bloque inferior sin RUT. **Validado con node contra los 5 docs
+    (ACG/CCU/DSV/Coca/Andina): TOTAL correcto en los 5; neto/IVA exactos donde hay etiquetas.**
+  - **Próximo (post-test de Andrés en celular):** confirmar montos con foto real; «reabrir borrador» desde
+    el historial (sigue pendiente, lista/borra).
 
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
