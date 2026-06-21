@@ -5,6 +5,7 @@ import { EmptyState } from '@/components/empty-state';
 import { crearProducto } from './actions';
 import { ProductoRowActions } from './row-actions';
 import { CodigoConEscaner } from '@/components/scanner/codigo-con-escaner';
+import { ImagenProducto } from './imagen-producto';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -101,10 +102,7 @@ export default async function ProductosPage({
           <Label htmlFor="stock_minimo">Stock mínimo (opcional)</Label>
           <Input id="stock_minimo" name="stock_minimo" type="number" min="0" />
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="imagen">Imagen (opcional)</Label>
-          <Input id="imagen" name="imagen" type="file" accept="image/*" className="py-1.5" />
-        </div>
+        <ImagenProducto />
         <div className="col-span-2">
           <Button type="submit">Agregar producto</Button>
         </div>

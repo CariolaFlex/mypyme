@@ -35,19 +35,10 @@ export async function crearProducto(formData: FormData) {
   const categoriaId = String(formData.get('categoria_id') ?? '');
   const stockMin = formData.get('stock_minimo');
 
-  // Subir imagen (opcional) a Storage en la carpeta del tenant.
-  let imagenUrl: string | null = null;
-  const file = formData.get('imagen');
-  if (file instanceof File && file.size > 0) {
-    const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const path = `${empresaId}/${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage
-      .from('productos')
-      .upload(path, file, { contentType: file.type || 'image/jpeg' });
-    if (!upErr) {
-      imagenUrl = supabase.storage.from('productos').getPublicUrl(path).data.publicUrl;
-    }
-  }
+  // La imagen se sube DIRECTO a Storage desde el navegador (ver imagen-producto.tsx):
+  // el form solo trae la URL pública. Así la foto del celular no pasa por la server
+  // action (su límite de body es 1MB → las fotos de móvil la hacían crashear).
+  const imagenUrl = String(formData.get('imagen_url') ?? '').trim() || null;
 
   const codigoBarras = String(formData.get('codigo_barras') ?? '').trim();
 
