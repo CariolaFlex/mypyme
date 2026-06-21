@@ -13,16 +13,49 @@ function parseMonto(s: string): number {
   return Number(s.replace(/[^\d]/g, '')) || 0;
 }
 
-/** "15/01/2024" / "15-01-24" → "2024-01-15". '' si no parsea. */
+const MESES: Record<string, string> = {
+  enero: '01', febrero: '02', marzo: '03', abril: '04', mayo: '05', junio: '06',
+  julio: '07', agosto: '08', septiembre: '09', setiembre: '09', octubre: '10',
+  noviembre: '11', diciembre: '12',
+};
+
+/** "15/01/2024" / "15.01.24" / "22 de Enero del 2024" → "2024-01-15". '' si no parsea. */
 function fechaISO(s?: string): string {
   if (!s) return '';
+  // Numérica: dd/mm/yyyy · dd-mm-yy · dd.mm.yyyy
   const m = s.match(/(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})/);
-  if (!m) return '';
-  const d = m[1].padStart(2, '0');
-  const mo = m[2].padStart(2, '0');
-  let y = m[3];
-  if (y.length === 2) y = Number(y) > 50 ? `19${y}` : `20${y}`;
-  return `${y}-${mo}-${d}`;
+  if (m) {
+    const d = m[1].padStart(2, '0');
+    const mo = m[2].padStart(2, '0');
+    let y = m[3];
+    if (y.length === 2) y = Number(y) > 50 ? `19${y}` : `20${y}`;
+    return `${y}-${mo}-${d}`;
+  }
+  // Escrita: "22 de Enero del 2024" · "01 de octubre de 2009" (DTE chilenas).
+  const w = s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .match(/(\d{1,2})\s+de\s+([a-z]+)\s+(?:del?\s+)?(\d{4})/);
+  if (w && MESES[w[2]]) return `${w[3]}-${MESES[w[2]]}-${w[1].padStart(2, '0')}`;
+  return '';
+}
+
+/** Fecha de EMISIÓN: prioriza la fecha pegada a una etiqueta de emisión/factura
+ *  (evita tomar fechas de tránsito/vigencia/vencimiento), luego la 1ª fecha del doc. */
+function fechaFactura(lines: { text: string }[], entities: OCREntity[]): string {
+  const lbl = /fecha\s*(?:de\s*)?(?:emisi[oó]n|factura|documento)|emisi[oó]n/i;
+  for (const { text } of lines) {
+    const m = text.match(lbl);
+    if (!m) continue;
+    const f = fechaISO(text.slice(m.index ?? 0));
+    if (f) return f;
+  }
+  for (const e of entities) if (e.label === 'DATE') {
+    const f = fechaISO(e.text);
+    if (f) return f;
+  }
+  return '';
 }
 
 function first(entities: OCREntity[], label: OCREntity['label']): OCREntity | undefined {
@@ -173,6 +206,10 @@ function parseItems(lines: { text: string }[]): ItemFactura[] {
   const esMonto = (t: string) =>
     /^\d{1,3}(?:\.\d{3})+$/.test(t) || /^\d+$/.test(t) || /^\d+,\d+$/.test(t);
   const esEnteroCorto = (t: string) => /^\d+$/.test(t) && Number(t) > 0 && Number(t) < 1000;
+  // Unidades de medida típicas: el OCR aplana las columnas y la cantidad suele
+  // quedar antes de la unidad ("... 10 BOT"), fuera de la cola de montos.
+  const UNIDAD =
+    /^(bot|un|unid|und|ud|kg|kgs|gr|grs|lt|lts|cc|ml|cj|caja|cajas|doc|docena|pack|saco|sacos|bid[oó]n|tarro|tarros|tira|tiras|bulto|bultos|kilo|kilos|kls?|pza|pzas|rollo|rollos|barra|barras|lata|latas|frasco|frascos|paq|pqt|sobre|sobres|display)$/i;
 
   for (const { text } of lines) {
     const linea = text.trim();
@@ -186,36 +223,47 @@ function parseItems(lines: { text: string }[]): ItemFactura[] {
     const cola = tokens.slice(i);
     if (cola.length < 2) continue; // necesita al menos cantidad/precio + total
 
-    // Descripción = lo de antes de la cola, sin los códigos de posición iniciales.
-    const head = [...tokens.slice(0, i)];
-    while (head.length && /^\d+$/.test(head[0])) head.shift();
-    const descripcion = head.join(' ').trim();
-    if (descripcion.length < 3) continue;
-    // Necesita una PALABRA real (≥3 letras seguidas): descarta líneas de timbres/
-    // anotaciones a mano que el OCR lee como «a \ 2% M9» y se colaban como ítem
-    // (y luego envenenaban el total por suma de ítems).
-    if (!/[A-Za-zÁÉÍÓÚÑáéíóúñ]{3,}/.test(descripcion)) continue;
-
     const montos = cola.map(parseMonto);
     const total = montos[montos.length - 1];
     if (!(total > 0)) continue;
 
     let cantidad = 1;
     let precio = total;
+    let cantDeCola = false;
     if (cola.length === 2) {
       // [cantidad, total] si el primero es entero chico; si no [precio, total].
       if (esEnteroCorto(cola[0])) {
         cantidad = montos[0];
         precio = cantidad > 0 ? Math.round(total / cantidad) : total;
+        cantDeCola = true;
       } else {
         precio = montos[0];
       }
     } else {
       precio = montos[montos.length - 2] || total;
       const idx = cola.slice(0, -1).findIndex(esEnteroCorto);
-      cantidad = idx >= 0 ? montos[idx] : 1;
+      if (idx >= 0) { cantidad = montos[idx]; cantDeCola = true; }
+    }
+
+    // Descripción = lo de antes de la cola, sin los códigos de posición iniciales.
+    let head = tokens.slice(0, i);
+    while (head.length && /^\d+$/.test(head[0])) head = head.slice(1);
+
+    // Cantidad desde la columna unidad ("... 10 BOT") SOLO si la cola no dio una
+    // cantidad (no pisar "Aceite 1 LT 2 990 1.980" donde el 2 de la cola es la qty
+    // y el "1 LT" es el contenido, no la cantidad).
+    if (!cantDeCola && head.length >= 2 && UNIDAD.test(head[head.length - 1]) && /^\d{1,4}$/.test(head[head.length - 2])) {
+      const c = Number(head[head.length - 2]);
+      if (c > 0) { cantidad = c; precio = Math.round(total / c); head = head.slice(0, -2); }
     }
     if (!(cantidad > 0)) cantidad = 1;
+
+    const descripcion = head.join(' ').trim();
+    if (descripcion.length < 3) continue;
+    // Necesita una PALABRA real (≥3 letras seguidas): descarta líneas de timbres/
+    // anotaciones a mano que el OCR lee como «a \ 2% M9» y se colaban como ítem
+    // (y luego envenenaban el total por suma de ítems).
+    if (!/[A-Za-zÁÉÍÓÚÑáéíóúñ]{3,}/.test(descripcion)) continue;
 
     items.push({ descripcion: descripcion.slice(0, 120), cantidad, precio, total });
     if (items.length >= 60) break; // techo de seguridad
@@ -228,7 +276,7 @@ export function extraerFactura(raw: OCRRaw, tipo: TipoDocOCR = 'factura'): Factu
 
   const rut = first(entities, 'TAX_ID')?.normalized ?? '';
   const razonSocial = first(entities, 'ORGANIZATION')?.text ?? lines[0]?.text.slice(0, 80) ?? '';
-  const fecha = fechaISO(first(entities, 'DATE')?.text);
+  const fecha = fechaFactura(lines, entities);
 
   // Folio / N° de factura. OJO: el "factura" suelto agarraba "TOTAL FACTURA 11881"
   // (el total) como folio → exigir un marcador de número (N°/Nº/No/Nro/Folio/#),
