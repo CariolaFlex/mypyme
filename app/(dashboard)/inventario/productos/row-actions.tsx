@@ -19,6 +19,7 @@ type Producto = {
   nombre: string;
   codigo_barras: string | null;
   unidad_medida: string | null;
+  contenido: number | null;
   categoria_id: string | null;
   precio_total: number | null;
   tasa_iva: number | null;
@@ -150,19 +151,32 @@ export function ProductoRowActions({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor={`unidad-${producto.id}`}>Unidad de medida</Label>
-            <select
-              id={`unidad-${producto.id}`}
-              name="unidad_medida"
-              className={selectCls}
-              defaultValue={producto.unidad_medida ?? 'unidad'}
-            >
-              {UNIDADES.map((u) => (
-                <option key={u} value={u}>
-                  {u}
-                </option>
-              ))}
-            </select>
+            <Label htmlFor={`unidad-${producto.id}`}>Contenido y unidad</Label>
+            <div className="flex gap-2">
+              <Input
+                id={`contenido-${producto.id}`}
+                name="contenido"
+                type="number"
+                min="0"
+                step="0.001"
+                inputMode="decimal"
+                placeholder="Ej: 1.5"
+                className="w-24"
+                defaultValue={producto.contenido ?? ''}
+              />
+              <select
+                id={`unidad-${producto.id}`}
+                name="unidad_medida"
+                className={selectCls}
+                defaultValue={producto.unidad_medida ?? 'unidad'}
+              >
+                {UNIDADES.map((u) => (
+                  <option key={u} value={u}>
+                    {u}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* IVA: Afecto / Exento / Personalizado */}

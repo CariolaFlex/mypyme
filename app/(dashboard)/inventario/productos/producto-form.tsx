@@ -40,6 +40,7 @@ export function ProductoForm({
     codigo_barras: '',
     categoria_id: '',
     unidad_medida: 'unidad',
+    contenido: '',
     ivaMode: 'afecto' as 'afecto' | 'exento' | 'custom',
     tasa_iva: String(tasaDefault),
     precio_total: '',
@@ -180,22 +181,37 @@ export function ProductoForm({
         </div>
       </div>
 
-      {/* Unidad de medida */}
+      {/* Contenido + unidad de medida */}
       <div className="space-y-1.5">
-        <Label htmlFor="unidad_medida">Unidad de medida</Label>
-        <select
-          id="unidad_medida"
-          name="unidad_medida"
-          className={selectCls}
-          value={f.unidad_medida}
-          onChange={(e) => set('unidad_medida', e.target.value)}
-        >
-          {UNIDADES.map((u) => (
-            <option key={u} value={u}>
-              {u}
-            </option>
-          ))}
-        </select>
+        <Label htmlFor="unidad_medida">Contenido y unidad</Label>
+        <div className="flex gap-2">
+          <Input
+            id="contenido"
+            name="contenido"
+            type="number"
+            min="0"
+            step="0.001"
+            inputMode="decimal"
+            placeholder="Ej: 1.5"
+            className="w-24"
+            value={f.contenido}
+            onChange={(e) => set('contenido', e.target.value)}
+          />
+          <select
+            id="unidad_medida"
+            name="unidad_medida"
+            className={selectCls}
+            value={f.unidad_medida}
+            onChange={(e) => set('unidad_medida', e.target.value)}
+          >
+            {UNIDADES.map((u) => (
+              <option key={u} value={u}>
+                {u}
+              </option>
+            ))}
+          </select>
+        </div>
+        <p className="text-xs text-muted-foreground">Tamaño del producto: ej. 1,5 L · 500 g · 1 unidad. Opcional.</p>
       </div>
 
       {/* IVA: Exento / 19% / Personalizado */}

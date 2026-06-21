@@ -44,6 +44,8 @@ export async function crearProducto(formData: FormData) {
   const unidadMedida = String(formData.get('unidad_medida') ?? '').trim() || 'unidad';
   const stockInicialRaw = formData.get('stock_inicial');
   const stockInicial = stockInicialRaw ? Number(stockInicialRaw) : 0;
+  const contenidoRaw = formData.get('contenido');
+  const contenido = contenidoRaw && String(contenidoRaw).trim() ? Number(contenidoRaw) : null;
 
   const { data: prod, error } = await supabase
     .from('productos')
@@ -54,6 +56,7 @@ export async function crearProducto(formData: FormData) {
       codigo_barras: codigoBarras || null,
       categoria_id: categoriaId || null,
       unidad_medida: unidadMedida,
+      contenido,
       precio_total: precioTotal,
       precio_neto: precioNeto,
       tasa_iva: tasaIva,
@@ -209,6 +212,8 @@ export async function editarProducto(formData: FormData) {
   const stockMin = formData.get('stock_minimo');
   const codigoBarras = String(formData.get('codigo_barras') ?? '').trim();
   const unidadMedida = String(formData.get('unidad_medida') ?? '').trim() || 'unidad';
+  const contenidoRaw = formData.get('contenido');
+  const contenido = contenidoRaw && String(contenidoRaw).trim() ? Number(contenidoRaw) : null;
 
   const { error } = await supabase
     .from('productos')
@@ -217,6 +222,7 @@ export async function editarProducto(formData: FormData) {
       nombre: String(formData.get('nombre') ?? '').trim(),
       codigo_barras: codigoBarras || null,
       unidad_medida: unidadMedida,
+      contenido,
       categoria_id: categoriaId || null,
       precio_total: precioTotal,
       precio_neto: precioNeto,
