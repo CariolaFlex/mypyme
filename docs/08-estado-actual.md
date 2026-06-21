@@ -170,9 +170,21 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     `20260621010000_producto_contenido.sql` (`productos.contenido NUMERIC` nullable, **aplicada en cloud
     = 34 migraciones**); campo en alta+edición junto al select de unidad; se muestra «nombre 1,5 L» en la
     tabla. `crear/editarProducto` leen `contenido` (null si vacío).
-  - **Pendiente: Fase 3 (el grande)** — rediseño flujo OCR + compras (mejorar parser de ítems/precios
-    Tesseract, captura guiada, definir IA proveedor→orden→factura→cuentas por pagar→inventario, agrupar
-    sidebar). Se diseña antes de codear.
+  - **Fase 3 — diseño validado por Andrés (2026-06-21):** modelo de compras = **compra directa primero**
+    (atajo «Ingresar compra» escanear/manual → Cuentas por pagar + inventario opcional + pago opcional;
+    proveedor se resuelve/crea en el escaneo; Orden de compra = avanzado/plegado; sidebar agrupada en
+    «Compras»). Arranque = **mejorar el OCR primero**.
+  - **Fase 3A — mejorar OCR (Tesseract) ✅** (commit de preprocess+total+cuadre). El test mostró cabecera
+    ~ok pero TOTAL mal (6.000 vs 11.881 Andina). *(1)* `lib/ocr/preprocess.ts`: gris + estiramiento de
+    contraste por percentiles + upscale, 100% canvas client-side best-effort, cableado en `engine.ts`
+    antes de `recognize()`. *(2)* `factura.ts` `montoTotalFactura()`: prioriza etiquetas fuertes (TOTAL
+    FACTURA/A PAGAR/VALOR TOTAL), excluye neto/iva/subtotal/exento/descuento; neto/iva mutuamente
+    excluyentes. *(3)* UI: **validación de cuadre en vivo** (neto+IVA vs total; suma ítems vs total) con
+    check verde / aviso ámbar, se recalcula al editar. El OCR sobre imagen real se confirma en celular.
+  - **Pendiente Fase 3 (próximos increm.):** **3D ítems por columnas/bbox** (riesgo alto; gating para
+    carga a inventario), **3B captura guiada** (instrucciones + tipo de documento antes de escanear),
+    **3C proveedor inline prerellenado**, **3E cargar ítems al inventario**, **3F sidebar «Compras»
+    anidada + unificar «Ingresar compra»**.
 
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
