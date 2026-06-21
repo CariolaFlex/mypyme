@@ -181,10 +181,20 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     FACTURA/A PAGAR/VALOR TOTAL), excluye neto/iva/subtotal/exento/descuento; neto/iva mutuamente
     excluyentes. *(3)* UI: **validación de cuadre en vivo** (neto+IVA vs total; suma ítems vs total) con
     check verde / aviso ámbar, se recalcula al editar. El OCR sobre imagen real se confirma en celular.
-  - **Pendiente Fase 3 (próximos increm.):** **3D ítems por columnas/bbox** (riesgo alto; gating para
-    carga a inventario), **3B captura guiada** (instrucciones + tipo de documento antes de escanear),
-    **3C proveedor inline prerellenado**, **3E cargar ítems al inventario**, **3F sidebar «Compras»
-    anidada + unificar «Ingresar compra»**.
+  - **Fase 3B — captura guiada ✅** (commit). Antes de escanear: selector **tipo de documento**
+    (Factura/Boleta/Guía/Otro) + instrucciones de captura (luz, plano, que se vean RUT/N°/TOTAL). El tipo
+    *(a)* ajusta la extracción (boleta/guía/otro derivan neto+IVA del total, no suelen desglosarlo) y
+    *(b)* mapea al **`tipo_documento` tributario real** de la factura registrada (factura→factura,
+    boleta→boleta, guía/otro→sin_documento) — corrige el F29 (crédito solo cuenta 'factura'; antes
+    quedaba 'factura' fijo). `extraerFactura(raw, tipo)`.
+  - **Fase 3C — proveedor en el review ✅** (commit). Select de proveedores existentes (auto-vincula si el
+    RUT escaneado coincide, normalizado sin puntos/guion) o **«+ Crear proveedor nuevo»** prerellenado del
+    OCR (razón social + RUT) + **Vendedor/contacto opcional**. `registrarFactura` acepta `proveedorId`
+    (usa el existente) o crea con `contacto_nombre`. e2e verify-ocr 8/8.
+  - **Pendiente Fase 3 (próximos increm., esperan re-test OCR de Andrés):** **3D ítems por columnas/bbox**
+    (RIESGO ALTO; solo si la cabecera ya quedó confiable; gating para 3E), **3E cargar ítems al
+    inventario**, **3F sidebar «Compras» anidada + unificar «Ingresar compra»** (cambio de navegación,
+    mejor con Andrés mirando).
 
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
