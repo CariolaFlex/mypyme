@@ -4,6 +4,16 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 
+/** Mensaje amistoso para violaciones de unicidad (SKU vs código de barras). */
+function mensajeError(error: { code?: string; message?: string }): string {
+  if (error.code === '23505') {
+    return (error.message ?? '').includes('codigo_barras')
+      ? 'Ya existe un producto con ese código de barras'
+      : 'Ya existe un producto con ese SKU';
+  }
+  return error.message ?? 'No se pudo guardar el producto';
+}
+
 async function getEmpresaId() {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
@@ -39,10 +49,13 @@ export async function crearProducto(formData: FormData) {
     }
   }
 
+  const codigoBarras = String(formData.get('codigo_barras') ?? '').trim();
+
   const { error } = await supabase.from('productos').insert({
     empresa_id: empresaId,
     sku: String(formData.get('sku') ?? '').trim(),
     nombre: String(formData.get('nombre') ?? '').trim(),
+    codigo_barras: codigoBarras || null,
     categoria_id: categoriaId || null,
     precio_total: precioTotal,
     precio_neto: precioNeto,
@@ -52,8 +65,7 @@ export async function crearProducto(formData: FormData) {
   });
 
   if (error) {
-    const msg = error.code === '23505' ? 'Ya existe un producto con ese SKU' : error.message;
-    redirect(`/inventario/productos?error=${encodeURIComponent(msg)}`);
+    redirect(`/inventario/productos?error=${encodeURIComponent(mensajeError(error))}`);
   }
   revalidatePath('/inventario/productos');
   redirect('/inventario/productos?ok=1');
@@ -69,12 +81,14 @@ export async function editarProducto(formData: FormData) {
   const precioNeto = tasaIva > 0 ? Math.round((precioTotal / (1 + tasaIva / 100)) * 100) / 100 : precioTotal;
   const categoriaId = String(formData.get('categoria_id') ?? '');
   const stockMin = formData.get('stock_minimo');
+  const codigoBarras = String(formData.get('codigo_barras') ?? '').trim();
 
   const { error } = await supabase
     .from('productos')
     .update({
       sku: String(formData.get('sku') ?? '').trim(),
       nombre: String(formData.get('nombre') ?? '').trim(),
+      codigo_barras: codigoBarras || null,
       categoria_id: categoriaId || null,
       precio_total: precioTotal,
       precio_neto: precioNeto,
@@ -85,8 +99,7 @@ export async function editarProducto(formData: FormData) {
     .eq('id', id);
 
   if (error) {
-    const msg = error.code === '23505' ? 'Ya existe un producto con ese SKU' : error.message;
-    redirect(`/inventario/productos?error=${encodeURIComponent(msg)}`);
+    redirect(`/inventario/productos?error=${encodeURIComponent(mensajeError(error))}`);
   }
   revalidatePath('/inventario/productos');
   revalidatePath('/inventario/stock');

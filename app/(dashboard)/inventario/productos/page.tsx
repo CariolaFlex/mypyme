@@ -4,6 +4,7 @@ import { PageHeader } from '@/components/page-header';
 import { EmptyState } from '@/components/empty-state';
 import { crearProducto } from './actions';
 import { ProductoRowActions } from './row-actions';
+import { CodigoConEscaner } from '@/components/scanner/codigo-con-escaner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,7 +35,7 @@ export default async function ProductosPage({
     supabase
       .from('productos')
       .select(
-        'id, sku, nombre, categoria_id, precio_total, precio_neto, tasa_iva, stock_minimo, activo, imagen_url, categorias_producto(nombre)'
+        'id, sku, nombre, codigo_barras, categoria_id, precio_total, precio_neto, tasa_iva, stock_minimo, activo, imagen_url, categorias_producto(nombre)'
       )
       .order('nombre'),
     supabase.from('categorias_producto').select('id, nombre').order('nombre'),
@@ -71,6 +72,9 @@ export default async function ProductosPage({
         <div className="space-y-1.5">
           <Label htmlFor="nombre">Nombre</Label>
           <Input id="nombre" name="nombre" required />
+        </div>
+        <div className="col-span-2">
+          <CodigoConEscaner />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="categoria_id">Categoría</Label>
@@ -141,6 +145,7 @@ export default async function ProductosPage({
                         id: p.id,
                         sku: p.sku,
                         nombre: p.nombre,
+                        codigo_barras: p.codigo_barras,
                         categoria_id: p.categoria_id,
                         precio_total: p.precio_total,
                         tasa_iva: p.tasa_iva,

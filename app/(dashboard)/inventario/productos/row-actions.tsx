@@ -6,12 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/modal';
 import { ConfirmSubmit } from '@/components/confirm-submit';
+import { CodigoConEscaner } from '@/components/scanner/codigo-con-escaner';
 import { editarProducto, eliminarProducto, toggleActivo } from './actions';
 
 type Producto = {
   id: string;
   sku: string;
   nombre: string;
+  codigo_barras: string | null;
   categoria_id: string | null;
   precio_total: number | null;
   tasa_iva: number | null;
@@ -71,6 +73,13 @@ export function ProductoRowActions({
           <div className="space-y-1.5">
             <Label htmlFor={`nombre-${producto.id}`}>Nombre</Label>
             <Input id={`nombre-${producto.id}`} name="nombre" required defaultValue={producto.nombre} />
+          </div>
+          <div className="col-span-2">
+            <CodigoConEscaner
+              id={`codigo-${producto.id}`}
+              defaultValue={producto.codigo_barras ?? ''}
+              excludeId={producto.id}
+            />
           </div>
           <div className="col-span-2 space-y-1.5">
             <Label htmlFor={`cat-${producto.id}`}>Categoría</Label>
