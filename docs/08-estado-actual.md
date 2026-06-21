@@ -109,6 +109,21 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   action → crash eliminado de raíz, más rápido en móvil, y un fallo de upload solo muestra toast (no
   rompe el alta). `crearProducto` ahora lee `imagen_url` (string) en vez del File.
 
+- **Form de producto mejorado (reporte del test de Etapa 1)** ✅ (`431e4a3`). El alta de producto
+  pasó a client component `producto-form.tsx`. Agregado: **unidad de medida** (la columna
+  `unidad_medida` YA EXISTÍA, solo se cableó; sin migración), **selector IVA** Afecto/Exento(0%)/
+  Personalizado (el precio se rotula «sin IVA» en exento), **crear categoría inline** (mini-modal +
+  action `crearCategoriaRapida` que devuelve id, sin salir del form), **stock inicial** opcional
+  (registra un movimiento de ajuste en la bodega default, igual que el import) + **label de stock
+  mínimo más claro** («Alerta de stock mínimo» + subtexto) al final, **calculadora de presentación/
+  lotes** colapsable (costo unitario y margen en vivo para packs/mangas/docenas; **NO se persiste**,
+  solo ayuda a fijar el precio — scope reducido a propósito), y **autosave de borrador** en
+  sessionStorage (lazy-init, sin setState en effect; en error conserva lo escrito, tras alta exitosa
+  limpia). Del reporte: **import CSV ya existe** (`/inventario/importar`, solo le falta plantilla
+  descargable/subir-archivo vs pegar → bajo valor); **lookup EAN→Open Food Facts** y **modo escáner
+  rápido walk-through** quedan pendientes (no construidos). La edición (row-actions) NO tiene aún el
+  selector de unidad/IVA (consistencia futura, no bloquea).
+
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
    Domicilio fijado a El Trovador 4280 Of 307, RM (jurisdicción Santiago).
