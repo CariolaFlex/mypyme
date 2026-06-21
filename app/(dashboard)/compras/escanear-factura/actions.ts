@@ -2,7 +2,16 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
-import type { FacturaExtraida } from '@/lib/ocr/types';
+import type { FacturaExtraida, TipoDocOCR } from '@/lib/ocr/types';
+
+/** Mapea el tipo del escáner al tipo_documento tributario (afecta el F29: el
+ *  crédito fiscal cuenta solo 'factura'). */
+const TIPO_DOC: Record<TipoDocOCR, string> = {
+  factura: 'factura',
+  boleta: 'boleta',
+  guia: 'sin_documento',
+  otro: 'sin_documento',
+};
 
 async function getEmpresaId() {
   const supabase = await createClient();
@@ -57,6 +66,7 @@ export async function registrarFactura(input: {
   datos: FacturaExtraida;
   textoPlano?: string;
   confianza?: number;
+  tipo?: TipoDocOCR;
 }): Promise<{ facturaId: string } | { error: string }> {
   const { supabase, empresaId, usuarioId } = await getEmpresaId();
   if (!empresaId) return { error: 'Sesión expirada' };
@@ -102,7 +112,10 @@ export async function registrarFactura(input: {
   });
   if (rpcErr) return { error: rpcErr.message };
 
-  await supabase.from('facturas_proveedor').update({ tipo_documento: 'factura' }).eq('id', facturaId);
+  await supabase
+    .from('facturas_proveedor')
+    .update({ tipo_documento: TIPO_DOC[input.tipo ?? 'factura'] })
+    .eq('id', facturaId);
 
   // ── Marcar el scan como importado ─────────────────────────────────────
   const scanFila = {

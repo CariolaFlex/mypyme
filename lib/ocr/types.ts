@@ -1,5 +1,9 @@
 /** Tipos del módulo OCR (adaptado de LegisEnterprise al contexto de facturas). */
 
+/** Tipo de documento que el usuario indica antes de escanear (ajusta la heurística
+ *  y el tipo_documento tributario de la factura registrada). */
+export type TipoDocOCR = 'factura' | 'boleta' | 'guia' | 'otro';
+
 export interface OCRProgress {
   step: 'loading' | 'ocr' | 'analyzing' | 'done';
   message: string;

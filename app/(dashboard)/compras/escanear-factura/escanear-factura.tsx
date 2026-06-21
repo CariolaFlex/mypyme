@@ -9,13 +9,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { runOCRInBrowser } from '@/lib/ocr/engine';
 import { extraerFactura } from '@/lib/ocr/factura';
-import type { FacturaExtraida, OCRProgress } from '@/lib/ocr/types';
+import type { FacturaExtraida, OCRProgress, TipoDocOCR } from '@/lib/ocr/types';
 import { guardarScan, registrarFactura } from './actions';
 
 const VACIO: FacturaExtraida = {
   rut: '', razonSocial: '', folio: '', fecha: '', neto: 0, iva: 0, total: 0, items: [],
 };
 const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' });
+const TIPOS: { value: TipoDocOCR; label: string }[] = [
+  { value: 'factura', label: 'Factura' },
+  { value: 'boleta', label: 'Boleta' },
+  { value: 'guia', label: 'Guía' },
+  { value: 'otro', label: 'Otro' },
+];
 
 export function EscanearFactura() {
   const router = useRouter();
@@ -25,13 +31,14 @@ export function EscanearFactura() {
   const [meta, setMeta] = useState<{ textoPlano: string; confianza: number }>({ textoPlano: '', confianza: 0 });
   const [scanId, setScanId] = useState<string | undefined>();
   const [busy, setBusy] = useState(false);
+  const [tipo, setTipo] = useState<TipoDocOCR>('factura');
 
   async function onFile(file: File) {
     setFase('procesando');
     setProgress({ step: 'loading', message: 'Preparando…', percent: 0 });
     try {
       const raw = await runOCRInBrowser(file, setProgress);
-      setD(extraerFactura(raw));
+      setD(extraerFactura(raw, tipo));
       setMeta({ textoPlano: raw.fullText, confianza: raw.avgConfidence });
       setScanId(undefined);
       setFase('review');
@@ -69,21 +76,53 @@ export function EscanearFactura() {
 
   async function registrar() {
     setBusy(true);
-    const res = await registrarFactura({ scanId, datos: d, textoPlano: meta.textoPlano, confianza: meta.confianza });
+    const res = await registrarFactura({ scanId, datos: d, textoPlano: meta.textoPlano, confianza: meta.confianza, tipo });
     setBusy(false);
     if ('error' in res) return toast.error(res.error);
     toast.success('Factura registrada en Cuentas por pagar.');
     router.push(`/compras/facturas/${res.facturaId}`);
   }
 
-  // ── Idle: subir/foto ────────────────────────────────────────────────────
+  // ── Idle: tipo de documento + instrucciones + subir/foto ────────────────
   if (fase === 'idle') {
     return (
       <div className="space-y-4">
+        {/* 1) Tipo de documento (ajusta la extracción y el tipo tributario) */}
+        <div className="space-y-1.5">
+          <p className="text-sm font-medium">¿Qué vas a escanear?</p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {TIPOS.map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => setTipo(t.value)}
+                className={`rounded-lg border px-3 py-2 text-sm transition-colors ${
+                  tipo === t.value
+                    ? 'border-primary bg-primary/10 font-medium text-primary'
+                    : 'border-input bg-input/40 hover:bg-muted'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 2) Instrucciones de captura (mejoran mucho el resultado) */}
+        <div className="rounded-lg border bg-muted/20 px-3 py-2.5 text-xs text-muted-foreground">
+          <p className="mb-1 font-medium text-foreground">Para que salga bien:</p>
+          <ul className="ml-4 list-disc space-y-0.5">
+            <li>Buena luz, sin sombras ni reflejos sobre el papel.</li>
+            <li>Documento <strong>plano y derecho</strong>, que llene el encuadre.</li>
+            <li>Que se vean nítidos el <strong>RUT</strong>, el <strong>N° de documento</strong> y el <strong>TOTAL</strong>.</li>
+          </ul>
+        </div>
+
+        {/* 3) Cámara / subir */}
         <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-10 text-center hover:bg-muted/40">
           <Camera className="size-8 text-muted-foreground" />
-          <span className="text-sm font-medium">Toca para sacar una foto o subir la factura</span>
-          <span className="text-xs text-muted-foreground">Imagen nítida, bien iluminada y derecha.</span>
+          <span className="text-sm font-medium">Toca para sacar una foto o subir el documento</span>
+          <span className="text-xs text-muted-foreground">Se lee en tu teléfono. La 1ª vez descarga ~8 MB de idioma.</span>
           <input
             type="file"
             accept="image/*"
@@ -95,9 +134,8 @@ export function EscanearFactura() {
             }}
           />
         </label>
-        <p className="rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-          El OCR corre en tu teléfono (sin servidor). La primera vez descarga ~8 MB de idioma. Los
-          datos extraídos son una ayuda: <strong>revísalos y corrígelos</strong> antes de registrar.
+        <p className="text-xs text-muted-foreground">
+          Los datos extraídos son una ayuda: <strong>revísalos y corrígelos</strong> antes de registrar.
         </p>
       </div>
     );

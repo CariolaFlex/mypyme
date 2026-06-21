@@ -6,7 +6,7 @@
  * UI antes de guardar. No prometer precisión en facturas de layout complejo.
  */
 
-import type { OCRRaw, FacturaExtraida, ItemFactura, OCREntity } from './types';
+import type { OCRRaw, FacturaExtraida, ItemFactura, OCREntity, TipoDocOCR } from './types';
 
 /** "$1.234.567" / "1.234.567" → 1234567 (CLP entero). */
 function parseMonto(s: string): number {
@@ -75,7 +75,7 @@ function parseItems(lines: { text: string }[]): ItemFactura[] {
   return items;
 }
 
-export function extraerFactura(raw: OCRRaw): FacturaExtraida {
+export function extraerFactura(raw: OCRRaw, tipo: TipoDocOCR = 'factura'): FacturaExtraida {
   const { entities, lines, fullText } = raw;
 
   const rut = first(entities, 'TAX_ID')?.normalized ?? '';
@@ -101,6 +101,13 @@ export function extraerFactura(raw: OCRRaw): FacturaExtraida {
     iva = total - neto;
   } else if (!total && neto) {
     total = neto + iva;
+  }
+
+  // Boletas/guías/otros normalmente NO desglosan neto/IVA: si solo hay total
+  // (o el desglose detectado no cuadra), derivar asumiendo 19% (editable).
+  if (tipo !== 'factura' && total && (!neto || !iva || Math.abs(neto + iva - total) > 2)) {
+    neto = Math.round(total / 1.19);
+    iva = total - neto;
   }
 
   return { rut, razonSocial, folio, fecha, neto, iva, total, items: parseItems(lines) };
