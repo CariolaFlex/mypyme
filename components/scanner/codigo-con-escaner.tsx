@@ -19,15 +19,26 @@ export function CodigoConEscaner({
   id = 'codigo_barras',
   name = 'codigo_barras',
   defaultValue = '',
+  value: valueProp,
+  onValueChange,
   excludeId,
 }: {
   id?: string;
   name?: string;
   defaultValue?: string;
+  /** Modo controlado (opcional): si se pasa `value`, el padre maneja el estado. */
+  value?: string;
+  onValueChange?: (v: string) => void;
   /** En edición, no avisar si el match es el propio producto. */
   excludeId?: string;
 }) {
-  const [value, setValue] = useState(defaultValue);
+  const [internal, setInternal] = useState(defaultValue);
+  const controlled = valueProp !== undefined;
+  const value = controlled ? valueProp : internal;
+  const setValue = (v: string) => {
+    if (!controlled) setInternal(v);
+    onValueChange?.(v);
+  };
   const [open, setOpen] = useState(false);
 
   async function lookup(code: string) {

@@ -41,25 +41,79 @@ export async function crearProducto(formData: FormData) {
   const imagenUrl = String(formData.get('imagen_url') ?? '').trim() || null;
 
   const codigoBarras = String(formData.get('codigo_barras') ?? '').trim();
+  const unidadMedida = String(formData.get('unidad_medida') ?? '').trim() || 'unidad';
+  const stockInicialRaw = formData.get('stock_inicial');
+  const stockInicial = stockInicialRaw ? Number(stockInicialRaw) : 0;
 
-  const { error } = await supabase.from('productos').insert({
-    empresa_id: empresaId,
-    sku: String(formData.get('sku') ?? '').trim(),
-    nombre: String(formData.get('nombre') ?? '').trim(),
-    codigo_barras: codigoBarras || null,
-    categoria_id: categoriaId || null,
-    precio_total: precioTotal,
-    precio_neto: precioNeto,
-    tasa_iva: tasaIva,
-    stock_minimo: stockMin ? Number(stockMin) : null,
-    imagen_url: imagenUrl,
-  });
+  const { data: prod, error } = await supabase
+    .from('productos')
+    .insert({
+      empresa_id: empresaId,
+      sku: String(formData.get('sku') ?? '').trim(),
+      nombre: String(formData.get('nombre') ?? '').trim(),
+      codigo_barras: codigoBarras || null,
+      categoria_id: categoriaId || null,
+      unidad_medida: unidadMedida,
+      precio_total: precioTotal,
+      precio_neto: precioNeto,
+      tasa_iva: tasaIva,
+      stock_minimo: stockMin ? Number(stockMin) : null,
+      imagen_url: imagenUrl,
+    })
+    .select('id')
+    .single();
 
   if (error) {
     redirect(`/inventario/productos?error=${encodeURIComponent(mensajeError(error))}`);
   }
+
+  // Stock inicial (opcional): registra un movimiento de ajuste en la bodega
+  // por defecto, igual que el import masivo.
+  if (stockInicial > 0 && prod?.id) {
+    const { data: bodega } = await supabase
+      .from('bodegas')
+      .select('id')
+      .order('es_default', { ascending: false })
+      .order('creado_en', { ascending: true })
+      .limit(1)
+      .single();
+    if (bodega?.id) {
+      await supabase.from('movimientos_inventario').insert({
+        empresa_id: empresaId,
+        producto_id: prod.id,
+        bodega_id: bodega.id,
+        cantidad: stockInicial,
+        tipo: 'ajuste',
+      });
+    }
+  }
+
   revalidatePath('/inventario/productos');
+  revalidatePath('/inventario/stock');
   redirect('/inventario/productos?ok=1');
+}
+
+/** Crea una categoría desde el formulario de producto y devuelve su id/nombre. */
+export async function crearCategoriaRapida(
+  nombre: string
+): Promise<{ id: string; nombre: string } | { error: string }> {
+  const { supabase, empresaId } = await getEmpresaId();
+  if (!empresaId) return { error: 'Sesión expirada' };
+  const limpio = nombre.trim();
+  if (!limpio) return { error: 'Escribe un nombre' };
+
+  const { data, error } = await supabase
+    .from('categorias_producto')
+    .insert({ empresa_id: empresaId, nombre: limpio })
+    .select('id, nombre')
+    .single();
+
+  if (error) {
+    return { error: error.code === '23505' ? 'Ya existe esa categoría' : error.message };
+  }
+  revalidatePath('/inventario/productos');
+  revalidatePath('/inventario/categorias');
+  return { id: data.id, nombre: data.nombre };
 }
 
 export async function editarProducto(formData: FormData) {

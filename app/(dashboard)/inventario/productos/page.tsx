@@ -2,13 +2,8 @@ import { Package } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/page-header';
 import { EmptyState } from '@/components/empty-state';
-import { crearProducto } from './actions';
 import { ProductoRowActions } from './row-actions';
-import { CodigoConEscaner } from '@/components/scanner/codigo-con-escaner';
-import { ImagenProducto } from './imagen-producto';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { ProductoForm } from './producto-form';
 import {
   Table,
   TableBody,
@@ -21,15 +16,13 @@ import {
 export const dynamic = 'force-dynamic';
 
 const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' });
-const selectCls =
-  'w-full rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs';
 
 export default async function ProductosPage({
   searchParams,
 }: {
   searchParams: Promise<{ ok?: string; error?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { ok, error } = await searchParams;
   const supabase = await createClient();
 
   const [{ data: productos }, { data: categorias }, { data: config }] = await Promise.all([
@@ -65,48 +58,7 @@ export default async function ProductosPage({
         </p>
       )}
 
-      <form action={crearProducto} className="grid grid-cols-2 gap-3 rounded-lg border p-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="sku">SKU</Label>
-          <Input id="sku" name="sku" required />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="nombre">Nombre</Label>
-          <Input id="nombre" name="nombre" required />
-        </div>
-        <div className="col-span-2">
-          <CodigoConEscaner />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="categoria_id">Categoría</Label>
-          <select id="categoria_id" name="categoria_id" className={selectCls}>
-            <option value="">— Sin categoría —</option>
-            {categorias?.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nombre}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="precio_total">Precio (c/IVA)</Label>
-            <Input id="precio_total" name="precio_total" type="number" min="0" step="1" required />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="tasa_iva">IVA %</Label>
-            <Input id="tasa_iva" name="tasa_iva" type="number" min="0" step="0.01" defaultValue={tasaDefault} />
-          </div>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="stock_minimo">Stock mínimo (opcional)</Label>
-          <Input id="stock_minimo" name="stock_minimo" type="number" min="0" />
-        </div>
-        <ImagenProducto />
-        <div className="col-span-2">
-          <Button type="submit">Agregar producto</Button>
-        </div>
-      </form>
+      <ProductoForm categorias={categorias ?? []} tasaDefault={tasaDefault} clearDraft={!!ok} />
 
       <Table>
         <TableHeader>
