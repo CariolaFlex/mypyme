@@ -67,37 +67,48 @@ export async function registrarFactura(input: {
   textoPlano?: string;
   confianza?: number;
   tipo?: TipoDocOCR;
+  /** Si viene, usa ese proveedor existente (no resuelve ni crea). */
+  proveedorId?: string;
+  /** Vendedor/contacto al crear un proveedor nuevo. */
+  vendedor?: string;
 }): Promise<{ facturaId: string } | { error: string }> {
   const { supabase, empresaId, usuarioId } = await getEmpresaId();
   if (!empresaId) return { error: 'Sesión expirada' };
 
   const d = input.datos;
   if (!(d.total > 0)) return { error: 'El total debe ser mayor a 0' };
-  const nombreProv = d.razonSocial.trim();
-  if (!nombreProv) return { error: 'Falta la razón social del proveedor' };
 
-  // ── Resolver proveedor: por RUT, luego por nombre; si no, crearlo ──────
-  let proveedorId: string | null = null;
-  const rut = d.rut.trim();
-  if (rut) {
-    const { data } = await supabase.from('proveedores').select('id').eq('rut', rut).limit(1);
-    proveedorId = data?.[0]?.id ?? null;
-  }
+  // ── Proveedor: usar el elegido, o resolver por RUT/nombre, o crearlo ───
+  let proveedorId: string | null = input.proveedorId ?? null;
   if (!proveedorId) {
-    const { data: ins, error: insErr } = await supabase
-      .from('proveedores')
-      .insert({ empresa_id: empresaId, nombre: nombreProv, rut: rut || null })
-      .select('id')
-      .single();
-    if (insErr) {
-      // Nombre duplicado → recuperar el existente.
-      if (insErr.code === '23505') {
-        const { data } = await supabase.from('proveedores').select('id').eq('nombre', nombreProv).limit(1);
-        proveedorId = data?.[0]?.id ?? null;
+    const nombreProv = d.razonSocial.trim();
+    if (!nombreProv) return { error: 'Elige un proveedor o escribe la razón social' };
+    const rut = d.rut.trim();
+    if (rut) {
+      const { data } = await supabase.from('proveedores').select('id').eq('rut', rut).limit(1);
+      proveedorId = data?.[0]?.id ?? null;
+    }
+    if (!proveedorId) {
+      const { data: ins, error: insErr } = await supabase
+        .from('proveedores')
+        .insert({
+          empresa_id: empresaId,
+          nombre: nombreProv,
+          rut: rut || null,
+          contacto_nombre: input.vendedor?.trim() || null,
+        })
+        .select('id')
+        .single();
+      if (insErr) {
+        // Nombre duplicado → recuperar el existente.
+        if (insErr.code === '23505') {
+          const { data } = await supabase.from('proveedores').select('id').eq('nombre', nombreProv).limit(1);
+          proveedorId = data?.[0]?.id ?? null;
+        }
+        if (!proveedorId) return { error: `No se pudo crear el proveedor: ${insErr.message}` };
+      } else {
+        proveedorId = ins.id;
       }
-      if (!proveedorId) return { error: `No se pudo crear el proveedor: ${insErr.message}` };
-    } else {
-      proveedorId = ins.id;
     }
   }
 

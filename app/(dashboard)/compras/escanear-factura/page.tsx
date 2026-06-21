@@ -1,11 +1,19 @@
 import Link from 'next/link';
 import { ScanText, History } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
+import { createClient } from '@/lib/supabase/server';
 import { EscanearFactura } from './escanear-factura';
 
 export const dynamic = 'force-dynamic';
 
-export default function EscanearFacturaPage() {
+export default async function EscanearFacturaPage() {
+  const supabase = await createClient();
+  const { data: proveedores } = await supabase
+    .from('proveedores')
+    .select('id, nombre, rut')
+    .eq('activo', true)
+    .order('nombre');
+
   return (
     <div className="max-w-2xl space-y-6">
       <PageHeader
@@ -25,7 +33,7 @@ export default function EscanearFacturaPage() {
       >
         <History className="size-4" /> Ver historial de escaneos
       </Link>
-      <EscanearFactura />
+      <EscanearFactura proveedores={proveedores ?? []} />
     </div>
   );
 }
