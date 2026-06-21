@@ -60,6 +60,9 @@ se suman después reusando la misma fundación. Ruta de trabajo: `/compras/escan
   (+ `tipo_documento='factura'`). Marca el scan como `importado` + link a la factura.
 - **Destino opcional:** cargar ítems a inventario → `importar_catalogo` o `registrar_movimiento`.
 - Proveedor inexistente → crearlo al vuelo (reusa alta de proveedor).
+- **⭐ DECISIÓN ANDRÉS (2026-06-21):** arrancamos con **solo Cuentas por pagar**. **Si el OCR de ítems
+  sale bien en las pruebas reales → integrar la carga a inventario** (este destino opcional). Anotado
+  como siguiente paso post-test.
 
 ### B7 — Historial
 - `/compras/escanear-factura/historial`: lista de scans con filtros por estado/fecha, reabrir un
