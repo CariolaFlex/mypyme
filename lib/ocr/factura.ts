@@ -30,18 +30,28 @@ function first(entities: OCREntity[], label: OCREntity['label']): OCREntity | un
 }
 
 // Un RUT (99.554.560-8) "parece" un monto grande → hay que sacarlo antes de
-// extraer montos, o se cuela como total/neto. También se quita el folio.
+// extraer montos, o se cuela como total/neto. También se quitan el folio y las
+// fechas (que tampoco son plata).
 const RUT_RE = /\d{1,2}\.\d{3}\.\d{3}\s*-?\s*[\dkK]\b/g;
-const MONEY_RE = /\$?\s*\d{1,3}(?:[.,]\d{3})+|\$\s*\d+/g;
+const DATE_RE = /\b\d{1,2}[/\-.]\d{1,2}[/\-.]\d{2,4}\b/g;
+// Acepta montos CON separador (30.000) o con $, Y enteros PLANOS de ≥4 dígitos:
+// las fotos de celular a menudo pierden el separador de miles (lee "35700").
+const MONEY_RE = /\$?\s*\d{1,3}(?:[.,]\d{3})+|\$\s*\d+|\b\d{4,9}\b/g;
 
-/** Montos (≥100) de un texto, sin RUTs ni el folio (que no son plata). */
+function quitarNoMontos(text: string, folio?: string): string {
+  let t = text.replace(RUT_RE, ' ').replace(DATE_RE, ' ');
+  if (folio && folio.length >= 4) t = t.split(folio).join(' ');
+  return t;
+}
+
+/** Montos de un texto (sin RUT/folio/fecha). Separados ≥100; planos ≥1000 (para
+ *  no confundir cantidades/porcentajes con plata cuando NO hay etiqueta cerca). */
 function montosDeTexto(text: string, folio?: string): number[] {
-  let t = text.replace(RUT_RE, ' ');
-  if (folio && folio.length >= 3) t = t.split(folio).join(' ');
   const out: number[] = [];
-  for (const m of t.matchAll(MONEY_RE)) {
+  for (const m of quitarNoMontos(text, folio).matchAll(MONEY_RE)) {
     const v = parseMonto(m[0]);
-    if (v >= 100) out.push(v);
+    const conSeparador = /[.,$]/.test(m[0]);
+    if (conSeparador ? v >= 100 : v >= 1000) out.push(v);
   }
   return out;
 }
@@ -66,11 +76,17 @@ function montoEnLineas(lines: { text: string }[], palabras: RegExp, excluir: Reg
  */
 function montoTrasEtiqueta(lines: { text: string }[], etiqueta: RegExp, folio: string): number {
   for (const { text } of lines) {
-    const t = text.replace(RUT_RE, ' ');
+    const t = quitarNoMontos(text, folio);
     const m = t.match(etiqueta);
     if (!m) continue;
-    const nums = montosDeTexto(t.slice((m.index ?? 0) + m[0].length), folio);
-    if (nums.length) return nums[0];
+    // Primer número ≥100 tras la etiqueta (acepta plano: la etiqueta lo ancla, así
+    // que un entero sin separador pegado a "TOTAL"/"NETO" es válido). Salta la tasa
+    // ("IVA 19% 5.700" → ignora 19, toma 5.700).
+    const resto = t.slice((m.index ?? 0) + m[0].length);
+    for (const nm of resto.matchAll(/\$?\s*(\d{1,3}(?:[.,]\d{3})+|\d{2,9})/g)) {
+      const v = parseMonto(nm[1]);
+      if (v >= 100) return v;
+    }
   }
   return 0;
 }
@@ -153,8 +169,12 @@ export function extraerFactura(raw: OCRRaw, tipo: TipoDocOCR = 'factura'): Factu
   const razonSocial = first(entities, 'ORGANIZATION')?.text ?? lines[0]?.text.slice(0, 80) ?? '';
   const fecha = fechaISO(first(entities, 'DATE')?.text);
 
-  // Folio / N° de factura
-  const folioM = fullText.match(/(?:factura|folio|n[°ºo]\.?)\D{0,6}(\d{2,})/i);
+  // Folio / N° de factura. OJO: el "factura" suelto agarraba "TOTAL FACTURA 11881"
+  // (el total) como folio → exigir un marcador de número (N°/Nº/No/Nro/Folio/#),
+  // o "factura N°". Sin marcador legible, mejor folio vacío que tomar el total.
+  const folioM = fullText.match(
+    /(?:folio|nro\.?|n[°ºo]\.?|#|factura\s*(?:electr[oó]nica\s*)?n[°ºo]\.?)\s*[:.\-]?\s*(\d{3,})/i
+  );
   const folio = folioM?.[1] ?? '';
 
   // ── Montos ──────────────────────────────────────────────────────────────
