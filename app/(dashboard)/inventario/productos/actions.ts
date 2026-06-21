@@ -208,6 +208,7 @@ export async function editarProducto(formData: FormData) {
   const categoriaId = String(formData.get('categoria_id') ?? '');
   const stockMin = formData.get('stock_minimo');
   const codigoBarras = String(formData.get('codigo_barras') ?? '').trim();
+  const unidadMedida = String(formData.get('unidad_medida') ?? '').trim() || 'unidad';
 
   const { error } = await supabase
     .from('productos')
@@ -215,6 +216,7 @@ export async function editarProducto(formData: FormData) {
       sku: String(formData.get('sku') ?? '').trim(),
       nombre: String(formData.get('nombre') ?? '').trim(),
       codigo_barras: codigoBarras || null,
+      unidad_medida: unidadMedida,
       categoria_id: categoriaId || null,
       precio_total: precioTotal,
       precio_neto: precioNeto,

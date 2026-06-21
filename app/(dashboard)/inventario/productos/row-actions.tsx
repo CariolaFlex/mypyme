@@ -9,11 +9,14 @@ import { ConfirmSubmit } from '@/components/confirm-submit';
 import { CodigoConEscaner } from '@/components/scanner/codigo-con-escaner';
 import { editarProducto, eliminarProducto, toggleActivo } from './actions';
 
+const UNIDADES = ['unidad', 'g', 'kg', 'mg', 'ml', 'L', 'cc', 'oz', 'm', 'cm', 'pack', 'otro'];
+
 type Producto = {
   id: string;
   sku: string;
   nombre: string;
   codigo_barras: string | null;
+  unidad_medida: string | null;
   categoria_id: string | null;
   precio_total: number | null;
   tasa_iva: number | null;
@@ -80,6 +83,21 @@ export function ProductoRowActions({
               defaultValue={producto.codigo_barras ?? ''}
               excludeId={producto.id}
             />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor={`unidad-${producto.id}`}>Unidad de medida</Label>
+            <select
+              id={`unidad-${producto.id}`}
+              name="unidad_medida"
+              className={selectCls}
+              defaultValue={producto.unidad_medida ?? 'unidad'}
+            >
+              {UNIDADES.map((u) => (
+                <option key={u} value={u}>
+                  {u}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="col-span-2 space-y-1.5">
             <Label htmlFor={`cat-${producto.id}`}>Categoría</Label>

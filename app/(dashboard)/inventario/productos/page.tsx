@@ -29,7 +29,7 @@ export default async function ProductosPage({
     supabase
       .from('productos')
       .select(
-        'id, sku, nombre, codigo_barras, categoria_id, precio_total, precio_neto, tasa_iva, stock_minimo, activo, imagen_url, categorias_producto(nombre)'
+        'id, sku, nombre, codigo_barras, unidad_medida, categoria_id, precio_total, precio_neto, tasa_iva, stock_minimo, activo, imagen_url, categorias_producto(nombre)'
       )
       .order('nombre'),
     supabase.from('categorias_producto').select('id, nombre').order('nombre'),
@@ -96,6 +96,7 @@ export default async function ProductosPage({
                         sku: p.sku,
                         nombre: p.nombre,
                         codigo_barras: p.codigo_barras,
+                        unidad_medida: p.unidad_medida,
                         categoria_id: p.categoria_id,
                         precio_total: p.precio_total,
                         tasa_iva: p.tasa_iva,
