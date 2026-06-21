@@ -104,6 +104,7 @@ export default async function ProductosPage({
                         activo: p.activo,
                       }}
                       categorias={categorias ?? []}
+                      tasaDefault={tasaDefault}
                     />
                   </TableCell>
                 </TableRow>
