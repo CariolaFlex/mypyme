@@ -29,31 +29,60 @@ function first(entities: OCREntity[], label: OCREntity['label']): OCREntity | un
   return entities.find((e) => e.label === label);
 }
 
-/** Busca un monto en las líneas que contengan alguna de las palabras dadas. */
-function montoEnLineas(lines: { text: string }[], palabras: RegExp, excluir?: RegExp): number {
+// Un RUT (99.554.560-8) "parece" un monto grande → hay que sacarlo antes de
+// extraer montos, o se cuela como total/neto. También se quita el folio.
+const RUT_RE = /\d{1,2}\.\d{3}\.\d{3}\s*-?\s*[\dkK]\b/g;
+const MONEY_RE = /\$?\s*\d{1,3}(?:[.,]\d{3})+|\$\s*\d+/g;
+
+/** Montos (≥100) de un texto, sin RUTs ni el folio (que no son plata). */
+function montosDeTexto(text: string, folio?: string): number[] {
+  let t = text.replace(RUT_RE, ' ');
+  if (folio && folio.length >= 3) t = t.split(folio).join(' ');
+  const out: number[] = [];
+  for (const m of t.matchAll(MONEY_RE)) {
+    const v = parseMonto(m[0]);
+    if (v >= 100) out.push(v);
+  }
+  return out;
+}
+
+/** Mayor monto en líneas que contengan `palabras` (y no `excluir`). */
+function montoEnLineas(lines: { text: string }[], palabras: RegExp, excluir: RegExp | undefined, folio: string): number {
   let best = 0;
   for (const { text } of lines) {
     if (!palabras.test(text)) continue;
     if (excluir && excluir.test(text)) continue;
-    const montos = [...text.matchAll(/\$?\s*\d{1,3}(?:\.\d{3})+|\$\s*\d+/g)].map((m) => parseMonto(m[0]));
-    const max = Math.max(0, ...montos);
+    const max = Math.max(0, ...montosDeTexto(text, folio));
     if (max > best) best = max;
   }
   return best;
 }
 
 /**
- * Total de la factura. El bug clásico era tomar "el mayor monto en una línea con
- * 'total'", que confunde TOTAL NETO / TOTAL IVA con el total final. Estrategia:
- *  1) etiquetas fuertes del total final (TOTAL FACTURA / A PAGAR / VALOR TOTAL…),
- *  2) líneas con "total" PERO excluyendo neto/iva/subtotal/exento/descuento,
- *  3) (en el caller) fallback al mayor monto del documento.
+ * Primer monto que aparece JUSTO DESPUÉS de la etiqueta en la línea. Clave para
+ * facturas donde el OCR junta "TOTAL NETO 9.146 IVA 1.646 …" en una sola línea:
+ * tomar el máximo de la línea (montoEnLineas) confundiría neto con iva, pero el
+ * valor pegado a cada etiqueta sí es el correcto.
  */
-function montoTotalFactura(lines: { text: string }[]): number {
-  const fuerte =
-    /total\s*(?:factura|a\s*pagar|final|general|adeudado)|valor\s*total|monto\s*total|total\s*\$/i;
-  const excluir = /neto|i\.?v\.?a|sub\s*-?\s*total|exento|afecto|descuento|anticipo|garant[ií]a|env\s*ase/i;
-  return montoEnLineas(lines, fuerte) || montoEnLineas(lines, /total/i, excluir);
+function montoTrasEtiqueta(lines: { text: string }[], etiqueta: RegExp, folio: string): number {
+  for (const { text } of lines) {
+    const t = text.replace(RUT_RE, ' ');
+    const m = t.match(etiqueta);
+    if (!m) continue;
+    const nums = montosDeTexto(t.slice((m.index ?? 0) + m[0].length), folio);
+    if (nums.length) return nums[0];
+  }
+  return 0;
+}
+
+/** Mayor monto del bloque dado, ignorando la línea del RUT. Fallback del total. */
+function maxMonto(lines: { text: string }[], folio: string): number {
+  let best = 0;
+  for (const { text } of lines) {
+    if (/rut/i.test(text)) continue;
+    for (const v of montosDeTexto(text, folio)) if (v > best) best = v;
+  }
+  return best;
 }
 
 /**
@@ -128,16 +157,31 @@ export function extraerFactura(raw: OCRRaw, tipo: TipoDocOCR = 'factura'): Factu
   const folioM = fullText.match(/(?:factura|folio|n[°ºo]\.?)\D{0,6}(\d{2,})/i);
   const folio = folioM?.[1] ?? '';
 
-  // Montos: buscar por palabra clave; si falta, derivar.
-  let total = montoTotalFactura(lines);
-  let neto = montoEnLineas(lines, /neto|afecto/i, /i\.?v\.?a/i);
-  let iva = montoEnLineas(lines, /i\.?v\.?a/i, /neto|afecto/i);
+  // ── Montos ──────────────────────────────────────────────────────────────
+  // Los totales SIEMPRE van en la parte FINAL de la hoja → priorizar la zona
+  // inferior (evita confundir el folio/RUT de arriba o los precios unitarios
+  // del medio con el total). Etiqueta→valor pegado (no el máximo de la línea).
+  const corte = Math.floor(lines.length * 0.45);
+  const abajo = lines.length > 6 ? lines.slice(corte) : lines;
 
-  if (!total) {
-    // fallback: el mayor monto del documento
-    const montos = entities.filter((e) => e.label === 'MONEY').map((e) => parseMonto(e.text));
-    total = Math.max(0, ...montos);
-  }
+  const lblTotal =
+    /(?:monto|valor)\s*total|total\s*(?:factura|a\s*pagar|final|general|adeudado)|invoice\s*total|total\s*de\s*factura/i;
+  const exclTotal =
+    /neto|i\.?v\.?a|sub\s*-?\s*total|exento|afecto|descuento|anticipo|garant[ií]a|env\s*ase|unitari|precio/i;
+
+  let total =
+    montoTrasEtiqueta(abajo, lblTotal, folio) ||
+    montoTrasEtiqueta(lines, lblTotal, folio) ||
+    montoEnLineas(abajo, /total/i, exclTotal, folio) ||
+    montoEnLineas(lines, /total/i, exclTotal, folio) ||
+    maxMonto(abajo, folio);
+  let neto =
+    montoTrasEtiqueta(abajo, /\bneto\b|afecto/i, folio) ||
+    montoTrasEtiqueta(lines, /\bneto\b|afecto/i, folio);
+  let iva =
+    montoTrasEtiqueta(abajo, /i\.?v\.?a(?!\s*adicional)/i, folio) ||
+    montoTrasEtiqueta(lines, /i\.?v\.?a(?!\s*adicional)/i, folio);
+
   if (total && !neto && !iva) {
     neto = Math.round(total / 1.19);
     iva = total - neto;
