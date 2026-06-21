@@ -202,11 +202,16 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     último monto=total, penúltimo=precio, entero corto=cantidad. **Validado con líneas reales (Andina +
     soporte Coca-Cola): descripción y total OK, cantidad OK en tablas claras**, descarta dirección/total/
     cliente. Best-effort y editable (columnas de descuento → precio unitario aprox).
-  - **Pendiente Fase 3 — 3E cargar ítems al inventario:** requiere mapear cada ítem del OCR a un producto
-    del catálogo (los nombres crudos del OCR no calzan solos) → decisión de diseño pendiente con Andrés
-    (auto-match best-effort vs selector explícito por fila). Escribe stock, hacerlo con su OK. **El resto
-    de Fase 3 (3A-3F) está en prod.** Bbox column-reconstruction descartado (alto riesgo/bajo retorno vs
-    el parser por tokens).
+  - **Fase 3E — cargar ítems al inventario ✅** (commit). Decisión Andrés = **selector explícito por fila**.
+    Cada ítem del review tiene un select «Cargar a:» → producto existente / «+ Crear producto nuevo» (usa
+    descripción+precio) / «no cargar». Botón «Cargar al inventario» registra un movimiento `'compra'`
+    (`costo_unitario`=precio) en la bodega principal solo para las filas elegidas. `cargarInventario` crea
+    el producto si se pidió (SKU autogenerado con reintento, neto derivado del IVA del negocio). Seguro:
+    cero productos basura (no auto-crea de nombres crudos). e2e verify-ocr 8/8; carga real se confirma en
+    navegador.
+  - **✅ FASE 3 COMPLETA (A–F) en prod.** Bbox column-reconstruction descartado (alto riesgo/bajo retorno
+    vs el parser por tokens). **Próximo (post-test de Andrés en celular):** ajustar el parser/preproceso si
+    hace falta según facturas reales; «reabrir borrador» desde el historial (sigue pendiente, lista/borra).
 
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
