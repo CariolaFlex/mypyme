@@ -225,6 +225,20 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     a etiqueta); +quita fechas. (2) el folio `factura\D{0,6}(\d+)` agarraba «TOTAL FACTURA 11881» (el total)
     y lo borraba de los montos → ahora exige marcador real (N°/Nº/Nro/Folio/#). Validado simulando OCR sin
     separadores: total OK en los 5. Andrés: «no inventa nada» (✓), le gustó el % de confianza.
+  - **Fase 3A-v4 — total por monto-en-letra + suma de ítems ✅** (`7d41c39`). Test real Andrés con Coca-Cola
+    «soporte de entrega» (doc colombiano, buen test de adaptabilidad): el OCR **no leyó la caja «VALOR
+    TOTAL 115.500»** (desapareció del texto) → el fallback `maxMonto` agarró el **código de material 135760**
+    del ítem 1 como total. Causa raíz verificada con test importando el `.ts` real (Node 24 type-strip) contra
+    el **texto OCR pegado del visor**. Fix en `factura.ts`: tras las etiquetas fuertes (los 4 docs chilenos
+    resuelven ahí → cero regresión), nuevos fallbacks `montoEnLetra` (parser español de palabras→número,
+    «CIENTO QUINCE MIL PESOS»→115000, OCR-estable porque las palabras no pierden separadores; generaliza al
+    «SON: … PESOS» chileno) y `sumaItems` (≥1000), ANTES de `maxMonto`. Items se parsean primero (su suma es
+    candidato + cross-check). Validado: caso real total=115000 ✓; regresión (etiqueta «TOTAL A PAGAR» gana,
+    prosa «un … pesos» NO inventa). Tests `/tmp/test-cocacola.mjs` + `/tmp/test-regresion.mjs`.
+    **Pendiente del mismo doc (NO hecho, bajo ROI/riesgo):** razón social tomó la línea del teléfono
+    («© Nacional 018000912580») — el proveedor real (Coca-Cola) está en el LOGO=imagen, irrecuperable por OCR;
+    cantidad de ítems = 1 (real 10/12) porque la palabra «BOT» (unidad) corta la cola de montos — diferir hasta
+    tener el texto OCR de los otros 4 docs (no tocar `parseItems` sin validar contra ellos = riesgo de regresión).
   - **Próximo (post-test de Andrés en celular):** re-confirmar montos con foto real; «reabrir borrador»
     desde el historial (sigue pendiente, lista/borra).
 
