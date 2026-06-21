@@ -36,9 +36,11 @@ export default async function NuevaFacturaPage({
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Nueva factura de proveedor</h1>
+        <h1 className="text-2xl font-bold">Ingresar compra a mano</h1>
         <p className="text-sm text-muted-foreground">
           <Link href="/compras/facturas" className="underline-offset-2 hover:underline">← Volver a cuentas por pagar</Link>
+          {' · '}
+          <Link href="/compras/escanear-factura" className="underline-offset-2 hover:underline">o escanear el documento con la cámara</Link>
         </p>
       </div>
 

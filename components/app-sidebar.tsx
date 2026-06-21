@@ -47,12 +47,12 @@ export function AppSidebar({
       ],
     },
     {
-      titulo: 'Compras y gastos',
+      titulo: 'Compras',
       items: [
+        { href: '/compras/escanear-factura', label: 'Ingresar compra', icon: ScanText },
+        { href: '/compras/facturas', label: 'Cuentas por pagar', icon: ReceiptText },
         { href: '/compras/proveedores', label: 'Proveedores', icon: Truck },
         { href: '/compras/ordenes', label: 'Órdenes de compra', icon: ClipboardList },
-        { href: '/compras/facturas', label: 'Cuentas por pagar', icon: ReceiptText },
-        { href: '/compras/escanear-factura', label: 'Escanear factura', icon: ScanText },
         { href: '/gastos', label: 'Gastos', icon: TrendingDown },
       ],
     },

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ScanText, History } from 'lucide-react';
+import { ScanText, History, PencilLine } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { createClient } from '@/lib/supabase/server';
 import { EscanearFactura } from './escanear-factura';
@@ -18,21 +18,30 @@ export default async function EscanearFacturaPage() {
     <div className="max-w-2xl space-y-6">
       <PageHeader
         icon={ScanText}
-        title="Escanear factura"
-        description="Saca una foto de la factura del proveedor y regístrala en Cuentas por pagar."
+        title="Ingresar compra"
+        description="Saca una foto de la factura/boleta del proveedor y regístrala en Cuentas por pagar."
         help={
           <>
             <p>El <strong>OCR corre en tu teléfono</strong> y extrae proveedor, RUT, fecha, total e ítems.</p>
             <p>Es una <strong>ayuda</strong>: siempre revisa y corrige antes de registrar. En facturas con tablas complejas los ítems pueden no salir — registra el total igual.</p>
+            <p>¿Sin foto a mano? Usa <strong>«Ingresar a mano»</strong> para cargar la factura escribiendo los datos.</p>
           </>
         }
       />
-      <Link
-        href="/compras/escanear-factura/historial"
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <History className="size-4" /> Ver historial de escaneos
-      </Link>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+        <Link
+          href="/compras/facturas/nueva"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground"
+        >
+          <PencilLine className="size-4" /> Ingresar a mano (sin foto)
+        </Link>
+        <Link
+          href="/compras/escanear-factura/historial"
+          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground"
+        >
+          <History className="size-4" /> Ver historial de escaneos
+        </Link>
+      </div>
       <EscanearFactura proveedores={proveedores ?? []} />
     </div>
   );
