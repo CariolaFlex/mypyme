@@ -18,14 +18,25 @@ import { extraerFactura } from '../lib/ocr/factura.ts';
 const DIR = dirname(fileURLToPath(import.meta.url));
 const fixture = (name) => readFileSync(join(DIR, 'ocr-fixtures', name), 'utf8');
 
-// Reproduce cómo engine.ts arma las líneas a partir de fullText.
+// Reproduce cómo engine.ts arma el OCRRaw a partir de fullText. Las entidades
+// (RUT/fecha) se replican acá con los MISMOS regex de engine.ts para no importar
+// engine.ts (que arrastra preprocess y el type-strip crudo de Node no resuelve el
+// import sin extensión). El parser de líneas/montos/ítems sí es el real (factura.ts).
+const RUT_ENTITY = /\b\d{1,2}\.?\d{3}\.?\d{3}\s*[-–]\s*[\dkK]\b/g;
+const DATE_ENTITY = /\b\d{1,2}[/\-.]\d{1,2}[/\-.]\d{2,4}\b/g;
+function entitiesDe(text) {
+  const out = [];
+  for (const m of text.matchAll(RUT_ENTITY)) out.push({ label: 'TAX_ID', text: m[0], normalized: m[0].replace(/\s/g, '') });
+  for (const m of text.matchAll(DATE_ENTITY)) out.push({ label: 'DATE', text: m[0] });
+  return out;
+}
 function toRaw(text, conf) {
   const lines = text
     .split('\n')
     .map((t) => ({ text: t.replace(/\s+/g, ' ').trim() }))
     .filter((l) => l.text.length > 0)
     .map((l) => ({ text: l.text, confidence: conf }));
-  return { fullText: text, lines, entities: [], avgConfidence: conf };
+  return { fullText: text, lines, entities: entitiesDe(text), avgConfidence: conf };
 }
 
 let fails = 0;
@@ -54,9 +65,7 @@ console.log('DSV-GL (texto OCR real, caso difícil):');
   const r = extraerFactura(toRaw(fixture('dsv.txt'), 0.6), 'factura');
   check('total', r.total, 25700);   // lo que el OCR leyó (real 35.700: el motor erró un dígito)
   check('items', r.items.length, 0); // el timbre "a \ 2% M9" ya NO se cuela como ítem
-  // RUT: el regex de engine ahora tolera espacios alrededor del guion.
-  const rut = fixture('dsv.txt').match(/\b\d{1,2}\.?\d{3}\.?\d{3}\s*[-–]\s*[\dkK]\b/);
-  check('RUT detectable', rut ? rut[0].replace(/\s/g, '') : '', '96.570.750-6');
+  check('RUT (entity, con espacios)', r.rut, '96.570.750-6'); // regex tolera "96.570.750 - 6"
 }
 
 // ── Casos sintéticos de formato (regresión de heurísticas) ──────────────────
