@@ -7,7 +7,7 @@ import {
   LayoutDashboard, ShoppingCart, Wallet, Package, Boxes, Tags, Upload,
   Truck, ClipboardList, ReceiptText, TrendingDown, BarChart3, FileText,
   Building2, CreditCard, Users, Sparkles, LogOut, History, Menu, X,
-  LifeBuoy, BookOpen,
+  LifeBuoy, BookOpen, ScanLine,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -40,6 +40,7 @@ export function AppSidebar({
       titulo: 'Catálogo',
       items: [
         { href: '/inventario/productos', label: 'Productos', icon: Package },
+        { href: '/inventario/escaneo-rapido', label: 'Escaneo rápido', icon: ScanLine },
         { href: '/inventario/stock', label: 'Inventario', icon: Boxes, badge: stockBajo },
         { href: '/inventario/categorias', label: 'Categorías', icon: Tags },
         { href: '/inventario/importar', label: 'Importar catálogo', icon: Upload },

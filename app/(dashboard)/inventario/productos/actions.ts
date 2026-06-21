@@ -93,6 +93,87 @@ export async function crearProducto(formData: FormData) {
   redirect('/inventario/productos?ok=1');
 }
 
+/**
+ * Alta rápida para el modo escáner (walk-through de bodega): inserta el producto
+ * y devuelve el resultado SIN redirigir, para encadenar escaneos sin recargar.
+ * Deriva neto/tasa del negocio, genera SKU del nombre (con sufijo si colisiona)
+ * y registra el stock inicial como ajuste.
+ */
+export async function agregarRapido(input: {
+  codigo_barras?: string;
+  nombre: string;
+  precio_total: number;
+  cantidad?: number;
+}): Promise<{ id: string; nombre: string } | { error: string }> {
+  const { supabase, empresaId } = await getEmpresaId();
+  if (!empresaId) return { error: 'Sesión expirada' };
+
+  const nombre = input.nombre.trim();
+  if (!nombre) return { error: 'Falta el nombre' };
+  if (!(input.precio_total > 0)) return { error: 'Precio inválido' };
+
+  const { data: cfg } = await supabase
+    .from('configuracion_negocio')
+    .select('usa_iva, tasa_iva_default')
+    .single();
+  const tasa = cfg?.usa_iva ? Number(cfg.tasa_iva_default ?? 19) : 0;
+  const neto =
+    tasa > 0 ? Math.round((input.precio_total / (1 + tasa / 100)) * 100) / 100 : input.precio_total;
+
+  const base = nombre.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 9) || 'PROD';
+  let sku = base;
+  let prodId: string | null = null;
+  for (let n = 1; n <= 50; n++) {
+    const { data, error } = await supabase
+      .from('productos')
+      .insert({
+        empresa_id: empresaId,
+        sku,
+        nombre,
+        codigo_barras: input.codigo_barras?.trim() || null,
+        precio_total: input.precio_total,
+        precio_neto: neto,
+        tasa_iva: tasa,
+      })
+      .select('id')
+      .single();
+    if (!error) {
+      prodId = data.id;
+      break;
+    }
+    // Colisión de SKU → reintenta con sufijo. Colisión de código de barras → error claro.
+    if (error.code === '23505' && !(error.message ?? '').includes('codigo_barras')) {
+      sku = `${base}-${n + 1}`;
+      continue;
+    }
+    return { error: mensajeError(error) };
+  }
+  if (!prodId) return { error: 'No se pudo generar un SKU único' };
+
+  if (input.cantidad && input.cantidad > 0) {
+    const { data: bodega } = await supabase
+      .from('bodegas')
+      .select('id')
+      .order('es_default', { ascending: false })
+      .order('creado_en', { ascending: true })
+      .limit(1)
+      .single();
+    if (bodega?.id) {
+      await supabase.from('movimientos_inventario').insert({
+        empresa_id: empresaId,
+        producto_id: prodId,
+        bodega_id: bodega.id,
+        cantidad: input.cantidad,
+        tipo: 'ajuste',
+      });
+    }
+  }
+
+  revalidatePath('/inventario/productos');
+  revalidatePath('/inventario/stock');
+  return { id: prodId, nombre };
+}
+
 /** Crea una categoría desde el formulario de producto y devuelve su id/nombre. */
 export async function crearCategoriaRapida(
   nombre: string
