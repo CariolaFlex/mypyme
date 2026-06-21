@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Modal } from '@/components/ui/modal';
 import { CodigoConEscaner } from '@/components/scanner/codigo-con-escaner';
 import { ImagenProducto } from './imagen-producto';
+import { buscarPorCodigo } from '@/lib/openfoodfacts';
 import { crearProducto, crearCategoriaRapida } from './actions';
 
 const selectCls =
@@ -108,6 +109,25 @@ export function ProductoForm({
     toast.success(`Categoría «${res.nombre}» creada`);
   }
 
+  // ── Enriquecimiento al escanear (Open Food Facts) ───────────────────────
+  // Best-effort: prerellena nombre/unidad SOLO si están vacíos (no pisa lo tipeado).
+  async function enriquecer(code: string) {
+    const p = await buscarPorCodigo(code);
+    if (!p) return;
+    setF((prev) => {
+      const sugerido =
+        p.marca && p.nombre && !p.nombre.toLowerCase().includes(p.marca.toLowerCase())
+          ? `${p.marca} ${p.nombre}`
+          : (p.nombre ?? p.marca ?? '');
+      return {
+        ...prev,
+        nombre: prev.nombre.trim() ? prev.nombre : sugerido,
+        unidad_medida: prev.unidad_medida === 'unidad' && p.unidad ? p.unidad : prev.unidad_medida,
+      };
+    });
+    toast.success(`Datos encontrados: ${p.nombre ?? p.marca}`);
+  }
+
   return (
     <form action={crearProducto} className="grid grid-cols-2 gap-3 rounded-lg border p-4">
       {/* Valores efectivos / ocultos */}
@@ -123,7 +143,11 @@ export function ProductoForm({
       </div>
 
       <div className="col-span-2">
-        <CodigoConEscaner value={f.codigo_barras} onValueChange={(v) => set('codigo_barras', v)} />
+        <CodigoConEscaner
+          value={f.codigo_barras}
+          onValueChange={(v) => set('codigo_barras', v)}
+          onScanned={enriquecer}
+        />
       </div>
 
       {/* Categoría + crear inline */}

@@ -21,6 +21,7 @@ export function CodigoConEscaner({
   defaultValue = '',
   value: valueProp,
   onValueChange,
+  onScanned,
   excludeId,
 }: {
   id?: string;
@@ -29,6 +30,8 @@ export function CodigoConEscaner({
   /** Modo controlado (opcional): si se pasa `value`, el padre maneja el estado. */
   value?: string;
   onValueChange?: (v: string) => void;
+  /** Se dispara SOLO al escanear con la cámara (no al tipear). Para enriquecer. */
+  onScanned?: (code: string) => void;
   /** En edición, no avisar si el match es el propio producto. */
   excludeId?: string;
 }) {
@@ -63,6 +66,7 @@ export function CodigoConEscaner({
     setOpen(false);
     toast.success(`Código escaneado: ${code}`);
     void lookup(code);
+    onScanned?.(code);
   }
 
   return (
