@@ -239,6 +239,18 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     («© Nacional 018000912580») — el proveedor real (Coca-Cola) está en el LOGO=imagen, irrecuperable por OCR;
     cantidad de ítems = 1 (real 10/12) porque la palabra «BOT» (unidad) corta la cola de montos — diferir hasta
     tener el texto OCR de los otros 4 docs (no tocar `parseItems` sin validar contra ellos = riesgo de regresión).
+  - **Fase 3A-v5 — RUT con espacios + ítems basura + maxMonto sin cuentas ✅** (`f4394c5`). Test real DSV-GL
+    (factura **cancelada/timbrada/fax, USD+CLP**, ~60% confianza — caso pésimo): RUT vacío, total **2.008**
+    (venía de un timbre que el OCR leyó como ítem «a \ 2% M9» → envenenaba el total por suma de ítems),
+    cuadre **verde pero confiadamente erróneo**. 3 fixes generalizables, validados contra el texto OCR real
+    (DSV + Coca-Cola, sin regresión): *(1)* `engine.ts` el regex de RUT tolera espacios alrededor del guion
+    («96.570.750 - 6») → RUT recuperado; *(2)* `factura.ts parseItems` la descripción necesita una **palabra
+    real** (≥3 letras seguidas) → descarta timbres/anotaciones que se colaban como ítem; *(3)* `maxMonto`
+    (último recurso) salta líneas de **banco/cuenta/teléfono/folio** → no agarra números de cuenta como total.
+    Resultado DSV: RUT ok, ítem basura fuera, **total 25.700** (lo que el OCR leyó de la hoja; real 35.700 —
+    el motor confundió un dígito, **no recuperable por heurística**) en vez de 2.008. Tests
+    `/tmp/test-ocr-real.mjs` (lee `/tmp/dsv.txt`+`/tmp/coca.txt`). **Lección: el techo en facturas
+    canceladas/fax es el MOTOR, no el parser; la red de seguridad es la edición + el cuadre.**
   - **Próximo (post-test de Andrés en celular):** re-confirmar montos con foto real; «reabrir borrador»
     desde el historial (sigue pendiente, lista/borra).
 
