@@ -71,7 +71,7 @@ export default async function UsuariosPage({
               <select
                 id="rol"
                 name="rol"
-                className="block rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs"
+                className="block rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs"
                 defaultValue="empleado"
               >
                 <option value="empleado">Empleado</option>
@@ -105,7 +105,7 @@ export default async function UsuariosPage({
                       <select
                         name="rol"
                         defaultValue={m.rol}
-                        className="rounded-md border border-input bg-transparent px-2 py-1.5 text-sm shadow-xs"
+                        className="rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-1.5 text-sm shadow-xs"
                       >
                         <option value="empleado">Empleado</option>
                         <option value="admin">Administrador</option>

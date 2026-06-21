@@ -18,7 +18,7 @@ import {
 export const dynamic = 'force-dynamic';
 
 const selectCls =
-  'w-full rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs';
+  'w-full rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs';
 
 export default async function StockPage({
   searchParams,

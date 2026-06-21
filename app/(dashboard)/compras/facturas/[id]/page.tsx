@@ -99,7 +99,7 @@ export default async function FacturaDetallePage({
               <div className="space-y-1.5">
                 <Label htmlFor="metodo_pago_id">Método</Label>
                 <select id="metodo_pago_id" name="metodo_pago_id"
-                  className="rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs">
+                  className="rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs">
                   {metodos?.map((m) => (<option key={m.id} value={m.id}>{m.nombre}</option>))}
                 </select>
               </div>

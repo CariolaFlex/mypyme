@@ -51,7 +51,7 @@ export default async function MetodosPagoPage({
         <Input name="nombre" required placeholder="Nombre (ej. App Mercado Pago)" />
         <select
           name="tipo"
-          className="rounded-md border border-input bg-transparent px-2 text-sm shadow-xs"
+          className="rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 text-sm shadow-xs"
         >
           <option value="cash">Efectivo</option>
           <option value="card">Tarjeta</option>

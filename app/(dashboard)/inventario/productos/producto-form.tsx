@@ -13,7 +13,7 @@ import { buscarPorCodigo } from '@/lib/openfoodfacts';
 import { crearProducto, crearCategoriaRapida } from './actions';
 
 const selectCls =
-  'w-full rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs';
+  'w-full rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs';
 
 const UNIDADES = ['unidad', 'g', 'kg', 'mg', 'ml', 'L', 'cc', 'oz', 'm', 'cm', 'pack', 'otro'];
 const PRESENTACIONES = ['Pack', 'Six-pack', 'Docena', 'Caja', 'Manga', 'Otro'];

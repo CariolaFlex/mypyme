@@ -355,7 +355,7 @@ export function PosClient({
                         prev.map((x) => (x.key === p.key ? { ...x, metodoId: e.target.value } : x))
                       )
                     }
-                    className="min-w-0 flex-1 rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs"
+                    className="min-w-0 flex-1 rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs"
                   >
                     {metodos.map((m) => (
                       <option key={m.id} value={m.id}>

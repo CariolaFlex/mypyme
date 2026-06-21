@@ -100,7 +100,7 @@ export default async function GastosPage({
                 id="categoria_gasto_id"
                 name="categoria_gasto_id"
                 required
-                className="w-full rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs"
+                className="w-full rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs"
               >
                 {categorias?.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -114,7 +114,7 @@ export default async function GastosPage({
               <select
                 id="proveedor_id"
                 name="proveedor_id"
-                className="w-full rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs"
+                className="w-full rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs"
               >
                 <option value="">— Sin proveedor —</option>
                 {proveedores?.map((p) => (

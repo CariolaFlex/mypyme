@@ -68,7 +68,7 @@ export function NuevaOcClient({
             id="proveedor"
             value={proveedorId}
             onChange={(e) => setProveedorId(e.target.value)}
-            className="w-full rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs"
+            className="w-full rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs"
           >
             {proveedores.length === 0 && <option value="">— Crea un proveedor primero —</option>}
             {proveedores.map((p) => (
@@ -96,7 +96,7 @@ export function NuevaOcClient({
                     const prod = productos.find((p) => p.id === e.target.value);
                     update(r.key, { productoId: e.target.value, tasa: String(prod?.tasa_iva ?? ivaDefault) });
                   }}
-                  className="w-full rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs"
+                  className="w-full rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs"
                 >
                   <option value="">— Selecciona —</option>
                   {productos.map((p) => (

@@ -65,8 +65,8 @@
   --accent: #e8eefc;           /* tinte azul claro */
   --accent-foreground: #1e3a8a; /* azul profundo */
   --destructive: oklch(0.577 0.245 27.325);
-  --border: #e5e7eb;            /* gris claro */
-  --input: #e5e7eb;
+  --border: #e5e7eb;            /* gris claro (divisores sutiles) */
+  --input: #cbd5e1;            /* slate-300: borde de campos visible */
   --ring: #2563eb;
   --chart-1: #0d1b2a;          /* marino */
   --chart-2: #2563eb;          /* azul real */
@@ -146,6 +146,16 @@
   }
   html {
     @apply font-sans;
+  }
+  /* Foco visible para campos nativos (selects/inputs/textarea sin clases de foco
+     propias). Los componentes base <Input>/<Select> ya traen su anillo y ganan
+     por capa de utilidades — esto no los pisa. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: none;
+    border-color: var(--ring);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 22%, transparent);
   }
 }
 

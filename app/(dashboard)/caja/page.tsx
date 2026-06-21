@@ -122,7 +122,7 @@ export default async function CajaPage({
                   <select
                     id="tipo"
                     name="tipo"
-                    className="rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs"
+                    className="rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs"
                   >
                     <option value="entrada_manual">Entrada</option>
                     <option value="salida_manual">Salida</option>

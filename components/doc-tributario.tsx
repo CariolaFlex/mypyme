@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
-const selectCls = 'w-full rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs';
+const selectCls = 'w-full rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs';
 
 export const TIPOS_DOC = [
   ['factura', 'Factura (con crédito fiscal)'],

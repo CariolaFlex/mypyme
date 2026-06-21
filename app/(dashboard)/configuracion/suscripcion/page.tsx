@@ -211,7 +211,7 @@ export default async function SuscripcionPage({
                   id="plan"
                   name="plan"
                   defaultValue={planKey}
-                  className="block rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs"
+                  className="block rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs"
                 >
                   {(Object.keys(PLANES) as PlanKey[]).map((k) => (
                     <option key={k} value={k}>

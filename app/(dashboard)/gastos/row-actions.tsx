@@ -22,7 +22,7 @@ type Gasto = {
 };
 type Opcion = { id: string; nombre: string };
 
-const selectCls = 'w-full rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs';
+const selectCls = 'w-full rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs';
 
 export function GastoRowActions({
   gasto,

@@ -61,7 +61,7 @@ export default async function NuevaFacturaPage({
               <div className="space-y-1.5">
                 <Label htmlFor="proveedor_id">Proveedor *</Label>
                 <select id="proveedor_id" name="proveedor_id" required
-                  className="w-full rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs">
+                  className="w-full rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs">
                   {proveedores?.map((p) => (<option key={p.id} value={p.id}>{p.nombre}</option>))}
                 </select>
               </div>
@@ -72,7 +72,7 @@ export default async function NuevaFacturaPage({
               <div className="space-y-1.5 sm:col-span-2">
                 <Label htmlFor="orden_compra_id">Orden de compra (opcional)</Label>
                 <select id="orden_compra_id" name="orden_compra_id"
-                  className="w-full rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs">
+                  className="w-full rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs">
                   <option value="">— Sin OC —</option>
                   {ocs.map((o) => (
                     <option key={o.id} value={o.id}>

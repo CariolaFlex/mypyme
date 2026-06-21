@@ -10,7 +10,7 @@ import { editarMetodo, eliminarMetodo, toggleMetodo } from './actions';
 
 type Metodo = { id: string; nombre: string; tipo: string | null; activo: boolean };
 
-const selectCls = 'w-full rounded-md border border-input bg-transparent px-2 py-2 text-sm shadow-xs';
+const selectCls = 'w-full rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs';
 
 export function MetodoRowActions({ metodo }: { metodo: Metodo }) {
   const [editar, setEditar] = useState(false);

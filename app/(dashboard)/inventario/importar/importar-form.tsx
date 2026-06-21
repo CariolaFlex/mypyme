@@ -70,7 +70,7 @@ export function ImportarForm() {
         spellCheck={false}
         value={datos}
         onChange={(e) => setDatos(e.target.value)}
-        className="w-full rounded-md border border-input bg-transparent p-3 font-mono text-sm shadow-xs focus:outline-none focus:ring-2 focus:ring-ring"
+        className="w-full rounded-md border border-input bg-input/50 backdrop-blur-sm p-3 font-mono text-sm shadow-xs focus:outline-none focus:ring-2 focus:ring-ring"
       />
 
       <div className="flex items-center gap-3">
