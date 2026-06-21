@@ -131,7 +131,7 @@ export function ProductoForm({
   }
 
   return (
-    <form action={crearProducto} className="grid grid-cols-2 gap-3 rounded-lg border p-4">
+    <form action={crearProducto} className="grid gap-3 sm:grid-cols-2 rounded-lg border p-4">
       {/* Valores efectivos / ocultos */}
       <input type="hidden" name="tasa_iva" value={tasaEfectiva} />
 
@@ -258,7 +258,7 @@ export function ProductoForm({
               Si compras por pack (ej. «Confort 12 mangas»), calcula el costo por unidad y tu margen.
               Esto NO se guarda: solo te ayuda a fijar el precio de venta de arriba.
             </p>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               <div className="space-y-1.5">
                 <Label htmlFor="lote-tipo">Tipo</Label>
                 <select

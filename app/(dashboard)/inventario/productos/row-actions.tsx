@@ -67,7 +67,7 @@ export function ProductoRowActions({
       </form>
 
       <Modal open={editar} onClose={() => setEditar(false)} title={`Editar «${producto.nombre}»`}>
-        <form action={editarProducto} className="grid grid-cols-2 gap-3">
+        <form action={editarProducto} className="grid gap-3 sm:grid-cols-2">
           <input type="hidden" name="id" value={producto.id} />
           <div className="space-y-1.5">
             <Label htmlFor={`sku-${producto.id}`}>SKU</Label>

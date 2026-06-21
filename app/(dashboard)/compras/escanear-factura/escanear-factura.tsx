@@ -124,7 +124,7 @@ export function EscanearFactura() {
         {Math.round(meta.confianza * 100)}%.
       </div>
 
-      <div className="grid grid-cols-2 gap-3 rounded-lg border p-4">
+      <div className="grid gap-3 sm:grid-cols-2 rounded-lg border p-4">
         <div className="col-span-2 space-y-1.5">
           <Label htmlFor="prov">Proveedor (razón social)</Label>
           <Input id="prov" value={d.razonSocial} onChange={(e) => setCampo('razonSocial', e.target.value)} />
@@ -171,11 +171,11 @@ export function EscanearFactura() {
         ) : (
           <div className="divide-y">
             {d.items.map((it, i) => (
-              <div key={i} className="grid grid-cols-12 gap-2 px-3 py-2">
-                <Input className="col-span-5" placeholder="Descripción" value={it.descripcion} onChange={(e) => setItem(i, 'descripcion', e.target.value)} />
-                <Input className="col-span-2" type="number" placeholder="Cant." value={it.cantidad} onChange={(e) => setItem(i, 'cantidad', e.target.value)} />
-                <Input className="col-span-2" type="number" placeholder="Precio" value={it.precio} onChange={(e) => setItem(i, 'precio', e.target.value)} />
-                <Input className="col-span-2" type="number" placeholder="Total" value={it.total} onChange={(e) => setItem(i, 'total', e.target.value)} />
+              <div key={i} className="grid grid-cols-2 gap-2 px-3 py-2 sm:grid-cols-12">
+                <Input className="col-span-2 sm:col-span-5" placeholder="Descripción" value={it.descripcion} onChange={(e) => setItem(i, 'descripcion', e.target.value)} />
+                <Input className="col-span-1 sm:col-span-2" type="number" placeholder="Cant." value={it.cantidad} onChange={(e) => setItem(i, 'cantidad', e.target.value)} />
+                <Input className="col-span-1 sm:col-span-2" type="number" placeholder="Precio" value={it.precio} onChange={(e) => setItem(i, 'precio', e.target.value)} />
+                <Input className="col-span-1 sm:col-span-2" type="number" placeholder="Total" value={it.total} onChange={(e) => setItem(i, 'total', e.target.value)} />
                 <button type="button" onClick={() => delItem(i)} aria-label="Quitar" className="col-span-1 flex items-center justify-center text-muted-foreground hover:text-destructive">
                   <Trash2 className="size-4" />
                 </button>

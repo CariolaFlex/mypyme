@@ -61,7 +61,7 @@ export default async function StockPage({
         </p>
       )}
 
-      <form action={registrarMovimiento} className="grid grid-cols-5 items-end gap-2 rounded-lg border p-4">
+      <form action={registrarMovimiento} className="grid grid-cols-2 gap-2 rounded-lg border p-4 sm:grid-cols-5 sm:items-end">
         <input type="hidden" name="bodega_id" value={bodegaDefault?.id ?? ''} />
         <div className="col-span-2 space-y-1.5">
           <Label htmlFor="producto_id">Producto</Label>
@@ -86,8 +86,8 @@ export default async function StockPage({
           <Label htmlFor="cantidad">Cantidad</Label>
           <Input id="cantidad" name="cantidad" type="number" min="0" step="0.001" required />
         </div>
-        <Button type="submit">Registrar</Button>
-        <div className="col-span-5">
+        <Button type="submit" className="col-span-2 sm:col-span-1">Registrar</Button>
+        <div className="col-span-2 sm:col-span-5">
           <Input name="nota" placeholder="Nota (opcional): proveedor, motivo de merma, etc." />
         </div>
       </form>

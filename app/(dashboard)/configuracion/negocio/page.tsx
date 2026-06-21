@@ -64,7 +64,7 @@ export default async function NegocioPage({
           <Label htmlFor="giro">Giro</Label>
           <Input id="giro" name="giro" defaultValue={empresa?.giro ?? ''} />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="telefono">Teléfono</Label>
             <Input id="telefono" name="telefono" defaultValue={empresa?.telefono ?? ''} />
@@ -77,7 +77,7 @@ export default async function NegocioPage({
 
         <Separator />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="tasa_iva_default">Tasa IVA (%)</Label>
             <Input
