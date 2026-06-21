@@ -56,21 +56,63 @@ function montoTotalFactura(lines: { text: string }[]): number {
   return montoEnLineas(lines, fuerte) || montoEnLineas(lines, /total/i, excluir);
 }
 
+/**
+ * Ítems de línea (best-effort). Tesseract da texto plano, no tabla → heurística:
+ * por cada línea con una descripción a la izquierda y ≥2 números al final, toma
+ * el último como total, el anterior como precio unitario y un entero corto como
+ * cantidad. Más recall que el regex estricto anterior (que exigía exactamente
+ * "desc cant precio total"). Siempre editable; el usuario borra los falsos.
+ */
 function parseItems(lines: { text: string }[]): ItemFactura[] {
   const items: ItemFactura[] = [];
-  const saltar = /total|neto|i\.?v\.?a|subtotal|rut|factura|fecha|se[ñn]or|cliente|giro|direcci[oó]n|tel[eé]fono|email|correo/i;
+  const saltar =
+    /total|neto|i\.?v\.?a|sub\s*-?\s*total|rut|n[°ºo]\s*factura|fecha|se[ñn]or|cliente|giro|direcci[oó]n|tel[eé]fono|email|correo|importe|c[oó]digo|descripci[oó]n|cantidad|precio|unitario|p[aá]gina|despacho|consecutivo|ruta/i;
+
+  const esMonto = (t: string) =>
+    /^\d{1,3}(?:\.\d{3})+$/.test(t) || /^\d+$/.test(t) || /^\d+,\d+$/.test(t);
+  const esEnteroCorto = (t: string) => /^\d+$/.test(t) && Number(t) > 0 && Number(t) < 1000;
+
   for (const { text } of lines) {
-    if (saltar.test(text)) continue;
-    // descripción + cantidad + precio unitario + total (3 números al final)
-    const m = text.match(/^(.+?)\s+(\d{1,4})\s+\$?\s*([\d.]{2,})\s+\$?\s*([\d.]{2,})\s*$/);
-    if (!m) continue;
-    const descripcion = m[1].trim();
-    const cantidad = Number(m[2]);
-    const precio = parseMonto(m[3]);
-    const total = parseMonto(m[4]);
-    if (descripcion.length >= 2 && cantidad > 0 && precio > 0 && total > 0) {
-      items.push({ descripcion, cantidad, precio, total });
+    const linea = text.trim();
+    if (linea.length < 5 || saltar.test(linea)) continue;
+
+    const tokens = linea.split(/\s+/).map((t) => t.replace(/^\$/, ''));
+    // La descripción puede tener números (250X12, 1.5LT) → no parto en el primer
+    // número, sino que aíslo la COLA de montos al final de la línea.
+    let i = tokens.length;
+    while (i > 0 && esMonto(tokens[i - 1])) i--;
+    const cola = tokens.slice(i);
+    if (cola.length < 2) continue; // necesita al menos cantidad/precio + total
+
+    // Descripción = lo de antes de la cola, sin los códigos de posición iniciales.
+    const head = [...tokens.slice(0, i)];
+    while (head.length && /^\d+$/.test(head[0])) head.shift();
+    const descripcion = head.join(' ').trim();
+    if (descripcion.length < 3) continue;
+
+    const montos = cola.map(parseMonto);
+    const total = montos[montos.length - 1];
+    if (!(total > 0)) continue;
+
+    let cantidad = 1;
+    let precio = total;
+    if (cola.length === 2) {
+      // [cantidad, total] si el primero es entero chico; si no [precio, total].
+      if (esEnteroCorto(cola[0])) {
+        cantidad = montos[0];
+        precio = cantidad > 0 ? Math.round(total / cantidad) : total;
+      } else {
+        precio = montos[0];
+      }
+    } else {
+      precio = montos[montos.length - 2] || total;
+      const idx = cola.slice(0, -1).findIndex(esEnteroCorto);
+      cantidad = idx >= 0 ? montos[idx] : 1;
     }
+    if (!(cantidad > 0)) cantidad = 1;
+
+    items.push({ descripcion: descripcion.slice(0, 120), cantidad, precio, total });
+    if (items.length >= 60) break; // techo de seguridad
   }
   return items;
 }
