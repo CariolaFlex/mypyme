@@ -99,6 +99,16 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   reusar en el **POS** (escanear→carrito) a futuro; el «prefill nombre/precio desde la DB» va ahí,
   no en el alta (donde duplicar no sirve).
 
+- **Fix crash al subir imagen de producto desde móvil** ✅ (`50426fd`). Reportado en el test de
+  Etapa 1 en iPhone/Safari: escanear OK, pero al adjuntar una foto del celular → «server error» y se
+  perdía el formulario. **Causa raíz:** sin `serverActions.bodySizeLimit`, Next usa **1MB** por
+  defecto; las fotos de móvil (2–5MB) excedían el body de la server action y Next lo rechazaba ANTES
+  del `try/catch` → crash. **Fix:** nuevo island `imagen-producto.tsx` que sube la foto **directo a
+  Storage desde el navegador** (downscale a 1200px + JPEG 0.85; bucket `productos` ya con RLS por
+  carpeta=empresa_id) y mete solo la URL pública en un input oculto. El archivo nunca pasa por la
+  action → crash eliminado de raíz, más rápido en móvil, y un fallo de upload solo muestra toast (no
+  rompe el alta). `crearProducto` ahora lee `imagen_url` (string) en vez del File.
+
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
    Domicilio fijado a El Trovador 4280 Of 307, RM (jurisdicción Santiago).
