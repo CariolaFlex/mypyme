@@ -145,11 +145,14 @@ function montoEnLetra(lines: { text: string }[]): number {
   return 0;
 }
 
-/** Mayor monto del bloque dado, ignorando la línea del RUT. Fallback del total. */
+/** Mayor monto del bloque dado, ignorando líneas que NO son plata: RUT, números de
+ *  cuenta/banco, teléfono/fax, folios con N°. Fallback del total (último recurso). */
 function maxMonto(lines: { text: string }[], folio: string): number {
+  const noEsPlata =
+    /rut|banco|scotiabank|cta\.?\s*cte|cuenta|dep[oó]sito|transferencia|fono|tel[eé]fono|fax|n[°º*]\s*[:.\-]?\s*\d/i;
   let best = 0;
   for (const { text } of lines) {
-    if (/rut/i.test(text)) continue;
+    if (noEsPlata.test(text)) continue;
     for (const v of montosDeTexto(text, folio)) if (v > best) best = v;
   }
   return best;
@@ -188,6 +191,10 @@ function parseItems(lines: { text: string }[]): ItemFactura[] {
     while (head.length && /^\d+$/.test(head[0])) head.shift();
     const descripcion = head.join(' ').trim();
     if (descripcion.length < 3) continue;
+    // Necesita una PALABRA real (≥3 letras seguidas): descarta líneas de timbres/
+    // anotaciones a mano que el OCR lee como «a \ 2% M9» y se colaban como ítem
+    // (y luego envenenaban el total por suma de ítems).
+    if (!/[A-Za-zÁÉÍÓÚÑáéíóúñ]{3,}/.test(descripcion)) continue;
 
     const montos = cola.map(parseMonto);
     const total = montos[montos.length - 1];

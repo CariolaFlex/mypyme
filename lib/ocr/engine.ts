@@ -33,8 +33,9 @@ function extractEntities(text: string): OCREntity[] {
     }
   };
 
-  // RUT: 12.345.678-9 / 12345678-9 / 1.234.567-K
-  for (const m of text.matchAll(/\b\d{1,2}\.?\d{3}\.?\d{3}[-–]\s*[\dkK]\b/g)) {
+  // RUT: 12.345.678-9 / 12345678-9 / 1.234.567-K / "96.570.750 - 6" (con espacios
+  // alrededor del guion, frecuente en facturas escaneadas).
+  for (const m of text.matchAll(/\b\d{1,2}\.?\d{3}\.?\d{3}\s*[-–]\s*[\dkK]\b/g)) {
     const raw = m[0].replace(/\s/g, '');
     add('TAX_ID', raw, normalizarRut(raw));
   }
