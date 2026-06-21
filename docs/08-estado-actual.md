@@ -219,8 +219,14 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     la etiqueta (resuelve «TOTAL NETO 9.146 IVA 1.646…» en una línea OCR); total = etiqueta fuerte →
     `total` sin neto/iva → mayor monto del bloque inferior sin RUT. **Validado con node contra los 5 docs
     (ACG/CCU/DSV/Coca/Andina): TOTAL correcto en los 5; neto/IVA exactos donde hay etiquetas.**
-  - **Próximo (post-test de Andrés en celular):** confirmar montos con foto real; «reabrir borrador» desde
-    el historial (sigue pendiente, lista/borra).
+  - **Fase 3A-v3 — leer enteros sin separador + fix folio ✅** (commit). Foto real (DSV-GL, escaneo gris 60%)
+    daba todos los montos en 0: (1) el OCR pierde el separador de miles («35700» no «35.700») y `MONEY_RE`
+    solo aceptaba con separador/`$` → ahora acepta enteros planos ≥4 díg (≥1000 sin etiqueta, ≥100 pegados
+    a etiqueta); +quita fechas. (2) el folio `factura\D{0,6}(\d+)` agarraba «TOTAL FACTURA 11881» (el total)
+    y lo borraba de los montos → ahora exige marcador real (N°/Nº/Nro/Folio/#). Validado simulando OCR sin
+    separadores: total OK en los 5. Andrés: «no inventa nada» (✓), le gustó el % de confianza.
+  - **Próximo (post-test de Andrés en celular):** re-confirmar montos con foto real; «reabrir borrador»
+    desde el historial (sigue pendiente, lista/borra).
 
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
