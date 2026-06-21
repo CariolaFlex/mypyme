@@ -251,8 +251,27 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     el motor confundió un dígito, **no recuperable por heurística**) en vez de 2.008. Tests
     `/tmp/test-ocr-real.mjs` (lee `/tmp/dsv.txt`+`/tmp/coca.txt`). **Lección: el techo en facturas
     canceladas/fax es el MOTOR, no el parser; la red de seguridad es la edición + el cuadre.**
-  - **Próximo (post-test de Andrés en celular):** re-confirmar montos con foto real; «reabrir borrador»
-    desde el historial (sigue pendiente, lista/borra).
+  - **Fase 3A-v6 — cantidad por unidad + fechas + test con fixtures reales ✅** (`8de1162`, `3706b00`).
+    Sesión nocturna autónoma; Andrés pidió «máxima potencia» con 5 facturas de ejemplo, pero **solo tengo
+    el texto OCR real de 2** (DSV + Coca; las otras 3 = solo imagen, no puedo correr Tesseract sobre adjuntos).
+    Decisión disciplinada: **solo mejoras estructurales validadas contra texto OCR real** (no tunear a
+    reconstrucciones idealizadas = el error histórico) + infra de test para los 3 que faltan. Hecho:
+    *(1)* `parseItems` recupera la **cantidad de la columna unidad** («... 10 BOT») cuando la cola de montos
+    no la trae (el OCR aplana columnas); solo si la cola no dio cantidad (no pisa «Aceite 1 LT 2 …» donde el 2
+    es la qty). Fix del bug visible en Coca: cantidad 1→**10 y 12** (el total de línea no cambia).
+    *(2)* `fechaISO` parsea **fechas escritas** («22 de Enero del 2024»); `fechaFactura` prioriza la fecha
+    pegada a etiqueta de emisión/factura (evita fechas de tránsito/vigencia como en DSV). *(3)* **Test
+    permanente** `scripts/verify-ocr-parser.mjs` + `scripts/ocr-fixtures/{dsv,coca}.txt`: corre contra el
+    texto OCR REAL, queda en la suite `test:e2e` (no necesita DB), valida total/ítems/cantidad/RUT/fecha sin
+    regresión. **Para sumar facturas: pegar su texto OCR real del visor en un `.txt` y agregar el caso.**
+    Verificado: parser test + verify-ocr 8/8 + tsc/lint/build. **NO hecho a propósito (riesgo sin texto OCR
+    real):** RUT proveedor-vs-cliente (el «primer RUT» ya suele ser el proveedor, arriba), razón social en
+    docs con logo (irrecuperable), tuning por-doc de ABC/Andina/CCU. **Techo confirmado: en fax/cancelado el
+    error es del MOTOR (lee mal dígitos: DSV 35.700→«25.700»), no del parser → red de seguridad = edición + cuadre.**
+  - **Próximo (cuando Andrés pegue el texto OCR real de ABC/Andina/CCU):** afinar RUT proveedor, folio y
+    razón social con validación real. Otros: «reabrir borrador» desde el historial (lista/borra); POS responsive;
+    pintar en rojo campos de baja confianza del OCR. **GOTCHA: tras cada deploy, la PWA (Serwist) sirve el JS
+    cacheado → cerrar/reabrir la PWA 2 veces para ver el código nuevo (pasó con el Coca-Cola «seguía en 135.760»).**
 
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
