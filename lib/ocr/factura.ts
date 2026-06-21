@@ -42,6 +42,20 @@ function montoEnLineas(lines: { text: string }[], palabras: RegExp, excluir?: Re
   return best;
 }
 
+/**
+ * Total de la factura. El bug clásico era tomar "el mayor monto en una línea con
+ * 'total'", que confunde TOTAL NETO / TOTAL IVA con el total final. Estrategia:
+ *  1) etiquetas fuertes del total final (TOTAL FACTURA / A PAGAR / VALOR TOTAL…),
+ *  2) líneas con "total" PERO excluyendo neto/iva/subtotal/exento/descuento,
+ *  3) (en el caller) fallback al mayor monto del documento.
+ */
+function montoTotalFactura(lines: { text: string }[]): number {
+  const fuerte =
+    /total\s*(?:factura|a\s*pagar|final|general|adeudado)|valor\s*total|monto\s*total|total\s*\$/i;
+  const excluir = /neto|i\.?v\.?a|sub\s*-?\s*total|exento|afecto|descuento|anticipo|garant[ií]a|env\s*ase/i;
+  return montoEnLineas(lines, fuerte) || montoEnLineas(lines, /total/i, excluir);
+}
+
 function parseItems(lines: { text: string }[]): ItemFactura[] {
   const items: ItemFactura[] = [];
   const saltar = /total|neto|i\.?v\.?a|subtotal|rut|factura|fecha|se[ñn]or|cliente|giro|direcci[oó]n|tel[eé]fono|email|correo/i;
@@ -73,9 +87,9 @@ export function extraerFactura(raw: OCRRaw): FacturaExtraida {
   const folio = folioM?.[1] ?? '';
 
   // Montos: buscar por palabra clave; si falta, derivar.
-  let total = montoEnLineas(lines, /total/i, /sub\s*total/i);
-  let neto = montoEnLineas(lines, /neto|afecto/i);
-  let iva = montoEnLineas(lines, /i\.?v\.?a/i);
+  let total = montoTotalFactura(lines);
+  let neto = montoEnLineas(lines, /neto|afecto/i, /i\.?v\.?a/i);
+  let iva = montoEnLineas(lines, /i\.?v\.?a/i, /neto|afecto/i);
 
   if (!total) {
     // fallback: el mayor monto del documento

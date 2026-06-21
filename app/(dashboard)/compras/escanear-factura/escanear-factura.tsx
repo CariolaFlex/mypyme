@@ -117,6 +117,12 @@ export function EscanearFactura() {
   }
 
   // ── Review / editar ─────────────────────────────────────────────────────
+  // Validación de cuadre (se recalcula al editar): da confianza aunque el OCR
+  // falle. Tolerancia de ±2 por redondeos.
+  const sumaItems = d.items.reduce((a, it) => a + (Number(it.total) || 0), 0);
+  const cuadraIva = d.total > 0 && Math.abs(d.neto + d.iva - d.total) <= 2;
+  const cuadraItems = sumaItems > 0 && d.total > 0 && Math.abs(sumaItems - d.total) <= 2;
+
   return (
     <div className="space-y-5">
       <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
@@ -184,6 +190,22 @@ export function EscanearFactura() {
           </div>
         )}
       </div>
+
+      {/* Cuadre (en vivo): ayuda a detectar errores del OCR antes de registrar */}
+      {d.total > 0 && (
+        <div className="space-y-1 text-xs">
+          <p className={cuadraIva ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}>
+            {cuadraIva ? '✓' : '⚠'} Neto + IVA = {clp.format(d.neto + d.iva)}
+            {cuadraIva ? ' (cuadra con el total)' : ` — no coincide con el total ${clp.format(d.total)}`}
+          </p>
+          {sumaItems > 0 && (
+            <p className={cuadraItems ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}>
+              {cuadraItems ? '✓' : '⚠'} Suma de ítems = {clp.format(sumaItems)}
+              {cuadraItems ? ' (cuadra con el total)' : ` — no coincide con el total ${clp.format(d.total)}`}
+            </p>
+          )}
+        </div>
+      )}
 
       <p className="text-sm text-muted-foreground">Total a registrar: <strong>{clp.format(d.total)}</strong></p>
 

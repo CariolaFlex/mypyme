@@ -7,6 +7,7 @@
  */
 
 import type { OCRProgress, OCRLine, OCREntity, OCRRaw } from './types';
+import { preprocesarImagen } from './preprocess';
 
 // ─── Extracción de entidades (Chile) ──────────────────────────────────────────
 
@@ -74,6 +75,11 @@ export async function runOCRInBrowser(
   file: File,
   onProgress?: (p: OCRProgress) => void
 ): Promise<OCRRaw> {
+  onProgress?.({ step: 'loading', message: 'Preparando la imagen…', percent: 3 });
+  // Preprocesa (gris + contraste + upscale) para subir la precisión. Best-effort:
+  // si falla, sigue con el archivo original.
+  const entrada = await preprocesarImagen(file);
+
   onProgress?.({ step: 'loading', message: 'Inicializando motor OCR…', percent: 5 });
 
   const { createWorker } = await import('tesseract.js');
@@ -99,7 +105,7 @@ export async function runOCRInBrowser(
   let lines: OCRLine[] = [];
   let avgConfidence = 0;
   try {
-    const { data } = await worker.recognize(file);
+    const { data } = await worker.recognize(entrada);
     fullText = data.text || '';
     avgConfidence = (data.confidence || 0) / 100;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
