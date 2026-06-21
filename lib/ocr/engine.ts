@@ -108,13 +108,17 @@ export async function runOCRInBrowser(
     const { data } = await worker.recognize(entrada);
     fullText = data.text || '';
     avgConfidence = (data.confidence || 0) / 100;
+    // Tesseract.js v5+ NO devuelve data.lines por defecto (solo data.text) →
+    // derivar las líneas del texto completo (data.text ya trae los saltos de
+    // línea). Es lo que el parser de cabecera/ítems necesita. Si en el futuro
+    // se pide `blocks:true`, esto sigue siendo un fallback válido.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    lines = ((data as any).lines || [])
-      .filter((l: { text: string }) => l.text.trim().length > 0)
-      .map((l: { text: string; confidence?: number }) => ({
-        text: l.text.replace(/\n/g, ' ').trim(),
-        confidence: (l.confidence || 0) / 100,
-      }));
+    const rawLines: { text: string; confidence?: number }[] = (data as any).lines || [];
+    lines = (rawLines.length ? rawLines.map((l) => ({ text: l.text, confidence: l.confidence })) : fullText
+      .split('\n')
+      .map((t) => ({ text: t, confidence: undefined as number | undefined })))
+      .map((l) => ({ text: l.text.replace(/\s+/g, ' ').trim(), confidence: (l.confidence ?? avgConfidence * 100) / 100 }))
+      .filter((l) => l.text.length > 0);
   } finally {
     await worker.terminate();
   }

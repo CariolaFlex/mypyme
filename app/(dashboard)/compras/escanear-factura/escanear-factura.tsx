@@ -363,6 +363,33 @@ export function EscanearFactura({
 
       <p className="text-sm text-muted-foreground">Total a registrar: <strong>{clp.format(d.total)}</strong></p>
 
+      {/* Texto reconocido (diagnóstico): permite ver qué leyó el OCR y reportarlo */}
+      {meta.textoPlano && (
+        <details className="rounded-lg border bg-muted/20 text-xs">
+          <summary className="cursor-pointer px-3 py-2 text-muted-foreground">
+            Ver texto reconocido (para reportar errores)
+          </summary>
+          <div className="space-y-2 border-t p-3">
+            <pre className="max-h-60 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] text-muted-foreground">
+              {meta.textoPlano}
+            </pre>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                navigator.clipboard?.writeText(meta.textoPlano).then(
+                  () => toast.success('Texto copiado'),
+                  () => toast.error('No se pudo copiar')
+                );
+              }}
+            >
+              Copiar texto
+            </Button>
+          </div>
+        </details>
+      )}
+
       <div className="flex flex-wrap justify-end gap-2">
         <Button type="button" variant="outline" onClick={() => { setFase('idle'); setD(VACIO); setCargarSel([]); }}>
           Escanear otra
