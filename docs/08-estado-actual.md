@@ -152,6 +152,28 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   real se confirma en celular (no auto-testeable); ítems de línea = best-effort (texto plano), siempre
   editable. **Siguiente post-test:** si los ítems salen bien → integrar carga a inventario.
 
+- **Test en celular #2 — Fase 1 (UX global) + Fase 2 (bugs de producto)** ✅ (2026-06-21). Andrés
+  testeó todo junto. Decisiones del feedback: motor OCR = **seguir con Tesseract** (mejorar parser +
+  apoyarse en captura guiada + tabla editable; NO se fue a visión LLM); orden = **quick wins primero**.
+  - **Fase 1 — UX global** (commits de campos + responsive): *(1)* **Campos visibles** — los inputs/
+    selects eran `bg-transparent` sobre cards claras = casi invisibles. Token `--input` `#e5e7eb`→`#cbd5e1`
+    (borde visible en TODOS los campos, usan `border-input`); `bg-transparent`→`bg-input/50 backdrop-blur-sm`
+    (relleno glass) en componentes base `Input`/`Select` + ~15 selects/inputs/textarea nativos; foco
+    visible global para campos nativos (`@layer base`). `--border` queda claro (divisores). *(2)*
+    **Responsive móvil** — grids fijos colapsan: forms `grid-cols-2/3`→`grid-cols-1 sm:`, stock
+    `grid-cols-5`→`grid-cols-2 sm:`, ítems OCR `grid-cols-12`→`grid-cols-2 sm:grid-cols-12`. POS (2 paneles)
+    queda para rework aparte.
+  - **Fase 2 — bugs de producto:** *(3)* edición de producto ahora tiene **selector IVA Afecto/Exento/
+    Personalizado** (deriva el modo de la tasa: 0=exento, default=afecto, otra=custom) + **«+ Nueva
+    categoría» inline** (reusa `crearCategoriaRapida`); antes solo el alta los tenía. `ProductoRowActions`
+    recibe `tasaDefault`. *(4)* **Contenido por unidad** (ej. 1,5 L · 500 g) — **migración #34**
+    `20260621010000_producto_contenido.sql` (`productos.contenido NUMERIC` nullable, **aplicada en cloud
+    = 34 migraciones**); campo en alta+edición junto al select de unidad; se muestra «nombre 1,5 L» en la
+    tabla. `crear/editarProducto` leen `contenido` (null si vacío).
+  - **Pendiente: Fase 3 (el grande)** — rediseño flujo OCR + compras (mejorar parser de ítems/precios
+    Tesseract, captura guiada, definir IA proveedor→orden→factura→cuentas por pagar→inventario, agrupar
+    sidebar). Se diseña antes de codear.
+
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
    Domicilio fijado a El Trovador 4280 Of 307, RM (jurisdicción Santiago).
