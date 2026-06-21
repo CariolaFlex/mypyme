@@ -191,10 +191,22 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     RUT escaneado coincide, normalizado sin puntos/guion) o **«+ Crear proveedor nuevo»** prerellenado del
     OCR (razón social + RUT) + **Vendedor/contacto opcional**. `registrarFactura` acepta `proveedorId`
     (usa el existente) o crea con `contacto_nombre`. e2e verify-ocr 8/8.
-  - **Pendiente Fase 3 (próximos increm., esperan re-test OCR de Andrés):** **3D ítems por columnas/bbox**
-    (RIESGO ALTO; solo si la cabecera ya quedó confiable; gating para 3E), **3E cargar ítems al
-    inventario**, **3F sidebar «Compras» anidada + unificar «Ingresar compra»** (cambio de navegación,
-    mejor con Andrés mirando).
+  - **Fase 3F — flujo + sidebar ✅** (commit). Modelo validado (compra directa primero). Sidebar: grupo
+    «Compras y gastos»→«Compras», orden acción-primero (Ingresar compra · Cuentas por pagar · Proveedores ·
+    Órdenes de compra · Gastos). «Escanear factura»→**«Ingresar compra»** (la foto es el camino principal);
+    la página enlaza «Ingresar a mano (sin foto)» (→ `/compras/facturas/nueva`) y la factura manual enlaza
+    de vuelta «o escanear el documento» → entrada unificada en ambos sentidos.
+  - **Fase 3D — parser de ítems por tokens ✅** (commit). El regex estricto («desc cant precio total» en
+    una línea) daba ~0 ítems. Nuevo `parseItems` por tokens: aísla la **cola de montos** al final de la
+    línea (la descripción puede tener números: 250X12, 1.5LT), descarta códigos de posición iniciales,
+    último monto=total, penúltimo=precio, entero corto=cantidad. **Validado con líneas reales (Andina +
+    soporte Coca-Cola): descripción y total OK, cantidad OK en tablas claras**, descarta dirección/total/
+    cliente. Best-effort y editable (columnas de descuento → precio unitario aprox).
+  - **Pendiente Fase 3 — 3E cargar ítems al inventario:** requiere mapear cada ítem del OCR a un producto
+    del catálogo (los nombres crudos del OCR no calzan solos) → decisión de diseño pendiente con Andrés
+    (auto-match best-effort vs selector explícito por fila). Escribe stock, hacerlo con su OK. **El resto
+    de Fase 3 (3A-3F) está en prod.** Bbox column-reconstruction descartado (alto riesgo/bajo retorno vs
+    el parser por tokens).
 
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
