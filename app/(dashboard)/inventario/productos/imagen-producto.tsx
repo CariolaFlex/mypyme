@@ -40,9 +40,24 @@ async function downscaleToJpeg(file: File): Promise<Blob> {
   });
 }
 
-export function ImagenProducto({ name = 'imagen_url' }: { name?: string }) {
+export function ImagenProducto({
+  name = 'imagen_url',
+  value: valueProp,
+  onChange,
+}: {
+  name?: string;
+  /** Modo controlado opcional: permite prerellenar la imagen (ej. desde Open Food Facts). */
+  value?: string;
+  onChange?: (url: string) => void;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [url, setUrl] = useState('');
+  const [internal, setInternal] = useState('');
+  const controlled = valueProp !== undefined;
+  const url = controlled ? valueProp : internal;
+  const setUrl = (v: string) => {
+    if (!controlled) setInternal(v);
+    onChange?.(v);
+  };
   const [busy, setBusy] = useState(false);
 
   async function onFile(file: File) {

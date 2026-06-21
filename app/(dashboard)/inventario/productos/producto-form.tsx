@@ -45,6 +45,7 @@ export function ProductoForm({
     precio_total: '',
     stock_inicial: '',
     stock_minimo: '',
+    imagen_url: '',
   };
   // ── Autosave de borrador (sessionStorage) ───────────────────────────────
   // Restaura con lazy-init (no effect → no choca con react-hooks/set-state-in-effect).
@@ -123,6 +124,7 @@ export function ProductoForm({
         ...prev,
         nombre: prev.nombre.trim() ? prev.nombre : sugerido,
         unidad_medida: prev.unidad_medida === 'unidad' && p.unidad ? p.unidad : prev.unidad_medida,
+        imagen_url: prev.imagen_url || p.imagen || '',
       };
     });
     toast.success(`Datos encontrados: ${p.nombre ?? p.marca}`);
@@ -237,7 +239,7 @@ export function ProductoForm({
         />
       </div>
 
-      <ImagenProducto />
+      <ImagenProducto value={f.imagen_url} onChange={(v) => set('imagen_url', v)} />
 
       {/* Presentación comercial / lotes (calculadora, no se guarda) */}
       <div className="col-span-2 rounded-md border bg-muted/20">
