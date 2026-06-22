@@ -268,7 +268,22 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     real):** RUT proveedor-vs-cliente (el «primer RUT» ya suele ser el proveedor, arriba), razón social en
     docs con logo (irrecuperable), tuning por-doc de ABC/Andina/CCU. **Techo confirmado: en fax/cancelado el
     error es del MOTOR (lee mal dígitos: DSV 35.700→«25.700»), no del parser → red de seguridad = edición + cuadre.**
-  - **Próximo (cuando Andrés pegue el texto OCR real de ABC/Andina/CCU):** afinar RUT proveedor, folio y
+  - **Fase 3A-v7 — 6 facturas reales (PDF de Andrés) ✅** (`da26629`). Andrés pasó un PDF con el **texto OCR
+    real** de 6 facturas (visor). Extraído con `pdftotext -layout -enc UTF-8`; fixtures
+    `scripts/ocr-fixtures/{coca,andina,abc,dsv,panama,ccu}.txt`. Baseline medido contra las 6 → 3 fixes
+    estructurales validados (sin regresión): *(1)* `montoTrasEtiqueta` acepta **separador de miles con
+    espacio** pegado a etiqueta («TOTAL FACTURA 11 901» → 11901; Andina pasó de 901→11.901, real 11.881 que
+    el OCR leyó «11 901»); anclado a etiqueta = no merge-ea números sueltos. *(2)* **Folio**: `\b` antes de
+    cada marcador (deja de tomar el «no» de «teléfoNo» → ABC ya no agarra «Telefono 111111111») + `*` para
+    «Nº» leído «N*» (Andina folio → 0000155241). *(3)* **Neto** matchea «MONTO NETO»/«MONTONETO» pegado (ABC
+    neto 0 → 7.307.927). **Resultado por doc:** coca ✓ (115.000, cant 10/12), andina (total 11.901/OCR, RUT
+    91.144.000-8, folio ok), abc (total/neto 7.307.927, RUT 77.777.777-0, fecha 2024-01-22, IVA 1.388.506;
+    es factura de COMPRA con IVA retenido → neto+IVA no cuadra con total pero el total es correcto = neto),
+    dsv (25.700/OCR, RUT, 0 ítems). **panama y ccu = OCR del MOTOR ilegible** (Panamá import raro; CCU nota
+    de crédito con tabla vacía) → total basura/0, se corrigen a mano (informativo en el test, sin asertar).
+    `verify-ocr-parser.mjs` cubre las 6 con ground-truth. **Confirma la lección: lo recuperable depende del
+    MOTOR; el parser ya entiende los formatos legibles (DTE chilena, soporte, factura compra).**
+  - **Próximo:** afinar RUT proveedor (vs cliente), folio y
     razón social con validación real. Otros: «reabrir borrador» desde el historial (lista/borra); POS responsive;
     pintar en rojo campos de baja confianza del OCR. **GOTCHA: tras cada deploy, la PWA (Serwist) sirve el JS
     cacheado → cerrar/reabrir la PWA 2 veces para ver el código nuevo (pasó con el Coca-Cola «seguía en 135.760»).**
