@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { AvisoHerramienta } from '@/components/aviso-herramienta';
 import { runOCRInBrowser } from '@/lib/ocr/engine';
 import { extraerFactura } from '@/lib/ocr/factura';
 import type { FacturaExtraida, OCRProgress, TipoDocOCR } from '@/lib/ocr/types';
@@ -28,12 +29,31 @@ type Proveedor = { id: string; nombre: string; rut: string | null };
 type Producto = { id: string; nombre: string };
 const rutKey = (s: string | null | undefined) => (s ?? '').replace(/[.\-\s]/g, '').toUpperCase();
 
+type IvaModo = 'con' | 'sin' | 'exento';
+
+/** Deriva neto/iva/total desde el monto que el usuario ingresa, según el modo:
+ *  'con' = el monto incluye IVA (total) · 'sin' = el monto es neto · 'exento' = sin IVA. */
+function derivarMontos(modo: IvaModo, tasaPct: number, monto: number) {
+  const t = Math.max(0, tasaPct) / 100;
+  if (modo === 'exento') return { neto: monto, iva: 0, total: monto };
+  if (modo === 'sin') {
+    const neto = monto;
+    const iva = Math.round(neto * t);
+    return { neto, iva, total: neto + iva };
+  }
+  const total = monto; // 'con'
+  const neto = Math.round(total / (1 + t));
+  return { neto, iva: total - neto, total };
+}
+
 export function EscanearFactura({
   proveedores,
   productos,
+  tasaDefault,
 }: {
   proveedores: Proveedor[];
   productos: Producto[];
+  tasaDefault: number;
 }) {
   const router = useRouter();
   const [fase, setFase] = useState<'idle' | 'procesando' | 'review'>('idle');
@@ -45,6 +65,10 @@ export function EscanearFactura({
   const [tipo, setTipo] = useState<TipoDocOCR>('factura');
   const [proveedorId, setProveedorId] = useState(''); // '' = crear nuevo
   const [vendedor, setVendedor] = useState('');
+  // IVA: cómo interpretar el monto + tasa (default del negocio) + ajuste manual.
+  const [ivaModo, setIvaModo] = useState<IvaModo>('con');
+  const [tasa, setTasa] = useState<number>(tasaDefault);
+  const [ivaManual, setIvaManual] = useState(false);
   // Mapeo ítem→destino de inventario, paralelo a d.items: '' = no cargar,
   // 'NEW' = crear producto, o el id de un producto existente.
   const [cargarSel, setCargarSel] = useState<string[]>([]);
@@ -56,6 +80,12 @@ export function EscanearFactura({
       const raw = await runOCRInBrowser(file, setProgress);
       const extra = extraerFactura(raw, tipo);
       setD(extra);
+      // El OCR entrega el total con IVA → arranca en 'con'. Si detectó tasa real
+      // (iva/neto) la usa; si no, la del negocio. El usuario puede cambiarlo.
+      const tasaOCR = extra.neto > 0 ? Math.round((extra.iva / extra.neto) * 100) : 0;
+      setIvaModo('con');
+      setTasa(tasaOCR >= 1 && tasaOCR <= 40 ? tasaOCR : tasaDefault);
+      setIvaManual(false);
       setCargarSel(extra.items.map(() => ''));
       // Auto-vincular proveedor si el RUT escaneado coincide con uno existente.
       const k = rutKey(extra.rut);
@@ -73,6 +103,21 @@ export function EscanearFactura({
 
   const setCampo = <K extends keyof FacturaExtraida>(k: K, v: FacturaExtraida[K]) =>
     setD((p) => ({ ...p, [k]: v }));
+
+  // El monto visible = total (modo con/exento) o neto (modo sin).
+  const montoVisible = ivaModo === 'sin' ? d.neto : d.total;
+  const setMonto = (v: number) => setD((p) => ({ ...p, ...derivarMontos(ivaModo, tasa, v) }));
+  const cambiarModoIva = (m: IvaModo) => {
+    setIvaModo(m);
+    const monto = m === 'sin' ? d.neto : d.total;
+    setD((p) => ({ ...p, ...derivarMontos(m, tasa, monto) }));
+  };
+  const cambiarTasa = (v: number) => {
+    setTasa(v);
+    setD((p) => ({ ...p, ...derivarMontos(ivaModo, v, ivaModo === 'sin' ? p.neto : p.total) }));
+  };
+  const setNetoManual = (v: number) => setD((p) => ({ ...p, neto: v, total: v + p.iva }));
+  const setIvaManualVal = (v: number) => setD((p) => ({ ...p, iva: v, total: p.neto + v }));
 
   function setItem(i: number, campo: 'descripcion' | 'cantidad' | 'precio' | 'total', v: string) {
     setD((p) => {
@@ -145,6 +190,7 @@ export function EscanearFactura({
   if (fase === 'idle') {
     return (
       <div className="space-y-4">
+        <AvisoHerramienta variante="ocr" />
         {/* 1) Tipo de documento (ajusta la extracción y el tipo tributario) */}
         <div className="space-y-1.5">
           <p className="text-sm font-medium">¿Qué vas a escanear?</p>
@@ -222,10 +268,10 @@ export function EscanearFactura({
 
   return (
     <div className="space-y-5">
-      <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
-        Revisa los datos: el OCR puede equivocarse. Confianza del reconocimiento:{' '}
-        {Math.round(meta.confianza * 100)}%.
-      </div>
+      <AvisoHerramienta variante="ocr" />
+      <p className="-mt-3 text-xs text-muted-foreground">
+        Confianza del reconocimiento: <strong>{Math.round(meta.confianza * 100)}%</strong>.
+      </p>
 
       <div className="grid gap-3 sm:grid-cols-2 rounded-lg border p-4">
         {/* Proveedor: elegir existente o crear nuevo (prerellenado del OCR) */}
@@ -270,17 +316,64 @@ export function EscanearFactura({
           <Label htmlFor="fecha">Fecha</Label>
           <Input id="fecha" type="date" value={d.fecha} onChange={(e) => setCampo('fecha', e.target.value)} />
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="total">Total (c/IVA)</Label>
-          <Input id="total" type="number" min="0" value={d.total} onChange={(e) => setCampo('total', Number(e.target.value) || 0)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="neto">Neto</Label>
-          <Input id="neto" type="number" min="0" value={d.neto} onChange={(e) => setCampo('neto', Number(e.target.value) || 0)} />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="iva">IVA</Label>
-          <Input id="iva" type="number" min="0" value={d.iva} onChange={(e) => setCampo('iva', Number(e.target.value) || 0)} />
+        {/* Monto + IVA: el usuario elige si el valor incluye IVA, es neto o exento */}
+        <div className="col-span-2 space-y-2 rounded-md border bg-muted/10 p-3">
+          <div className="space-y-1.5">
+            <Label>¿El monto incluye IVA?</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {([['con', 'Incluye IVA'], ['sin', 'Sin IVA (neto)'], ['exento', 'Exento']] as const).map(
+                ([v, l]) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => cambiarModoIva(v)}
+                    className={`rounded-lg border px-2 py-2 text-xs transition-colors ${
+                      ivaModo === v
+                        ? 'border-primary bg-primary/10 font-medium text-primary'
+                        : 'border-input bg-input/40 hover:bg-muted'
+                    }`}
+                  >
+                    {l}
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="monto">
+                {ivaModo === 'sin' ? 'Monto neto' : ivaModo === 'exento' ? 'Monto (exento)' : 'Total (con IVA)'}
+              </Label>
+              <Input id="monto" type="number" min="0" value={montoVisible} onChange={(e) => setMonto(Number(e.target.value) || 0)} />
+            </div>
+            {ivaModo !== 'exento' && (
+              <div className="space-y-1.5">
+                <Label htmlFor="tasa">Tasa IVA %</Label>
+                <Input id="tasa" type="number" min="0" step="0.01" value={tasa} onChange={(e) => cambiarTasa(Number(e.target.value) || 0)} />
+              </div>
+            )}
+          </div>
+          {/* Desglose calculado + ajuste manual opcional */}
+          <div className="rounded-md border bg-background/60 px-3 py-2 text-sm">
+            <div className="flex justify-between"><span className="text-muted-foreground">Neto</span><span>{clp.format(d.neto)}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">IVA</span><span>{clp.format(d.iva)}</span></div>
+            <div className="mt-0.5 flex justify-between border-t pt-0.5 font-medium"><span>Total</span><span>{clp.format(d.total)}</span></div>
+            <button type="button" className="mt-1.5 text-xs text-primary hover:underline" onClick={() => setIvaManual((v) => !v)}>
+              {ivaManual ? 'Cerrar ajuste manual' : 'Ajustar neto / IVA a mano'}
+            </button>
+          </div>
+          {ivaManual && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="neto">Neto (manual)</Label>
+                <Input id="neto" type="number" min="0" value={d.neto} onChange={(e) => setNetoManual(Number(e.target.value) || 0)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="iva">IVA (manual)</Label>
+                <Input id="iva" type="number" min="0" value={d.iva} onChange={(e) => setIvaManualVal(Number(e.target.value) || 0)} />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -298,15 +391,35 @@ export function EscanearFactura({
             o registrar solo el total.
           </p>
         ) : (
+          <>
+          <div className="hidden border-b bg-muted/10 px-3 py-1.5 text-[11px] font-medium text-muted-foreground sm:grid sm:grid-cols-12 sm:gap-2">
+            <span className="sm:col-span-5">Descripción</span>
+            <span className="sm:col-span-2">Cantidad</span>
+            <span className="sm:col-span-2">Precio unit.</span>
+            <span className="sm:col-span-2">Total</span>
+            <span className="sm:col-span-1" />
+          </div>
           <div className="divide-y">
             {d.items.map((it, i) => (
               <div key={i} className="space-y-1.5 px-3 py-2">
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-12">
-                  <Input className="col-span-2 sm:col-span-5" placeholder="Descripción" value={it.descripcion} onChange={(e) => setItem(i, 'descripcion', e.target.value)} />
-                  <Input className="col-span-1 sm:col-span-2" type="number" placeholder="Cant." value={it.cantidad} onChange={(e) => setItem(i, 'cantidad', e.target.value)} />
-                  <Input className="col-span-1 sm:col-span-2" type="number" placeholder="Precio" value={it.precio} onChange={(e) => setItem(i, 'precio', e.target.value)} />
-                  <Input className="col-span-1 sm:col-span-2" type="number" placeholder="Total" value={it.total} onChange={(e) => setItem(i, 'total', e.target.value)} />
-                  <button type="button" onClick={() => delItem(i)} aria-label="Quitar" className="col-span-1 flex items-center justify-center text-muted-foreground hover:text-destructive">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-12 sm:items-end">
+                  <div className="col-span-2 sm:col-span-5">
+                    <span className="mb-0.5 block text-[10px] text-muted-foreground sm:hidden">Descripción</span>
+                    <Input className="w-full" placeholder="Descripción" value={it.descripcion} onChange={(e) => setItem(i, 'descripcion', e.target.value)} />
+                  </div>
+                  <div className="col-span-1 sm:col-span-2">
+                    <span className="mb-0.5 block text-[10px] text-muted-foreground sm:hidden">Cantidad</span>
+                    <Input className="w-full" type="number" value={it.cantidad} onChange={(e) => setItem(i, 'cantidad', e.target.value)} />
+                  </div>
+                  <div className="col-span-1 sm:col-span-2">
+                    <span className="mb-0.5 block text-[10px] text-muted-foreground sm:hidden">Precio unit.</span>
+                    <Input className="w-full" type="number" value={it.precio} onChange={(e) => setItem(i, 'precio', e.target.value)} />
+                  </div>
+                  <div className="col-span-1 sm:col-span-2">
+                    <span className="mb-0.5 block text-[10px] text-muted-foreground sm:hidden">Total</span>
+                    <Input className="w-full" type="number" value={it.total} onChange={(e) => setItem(i, 'total', e.target.value)} />
+                  </div>
+                  <button type="button" onClick={() => delItem(i)} aria-label="Quitar ítem" className="col-span-2 flex items-center justify-center py-1 text-muted-foreground hover:text-destructive sm:col-span-1 sm:pb-2">
                     <Trash2 className="size-4" />
                   </button>
                 </div>
@@ -330,6 +443,7 @@ export function EscanearFactura({
               </div>
             ))}
           </div>
+          </>
         )}
       </div>
 

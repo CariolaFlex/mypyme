@@ -8,10 +8,12 @@ export const dynamic = 'force-dynamic';
 
 export default async function EscanearFacturaPage() {
   const supabase = await createClient();
-  const [{ data: proveedores }, { data: productos }] = await Promise.all([
+  const [{ data: proveedores }, { data: productos }, { data: cfg }] = await Promise.all([
     supabase.from('proveedores').select('id, nombre, rut').eq('activo', true).order('nombre'),
     supabase.from('productos').select('id, nombre').eq('activo', true).order('nombre'),
+    supabase.from('configuracion_negocio').select('usa_iva, tasa_iva_default').maybeSingle(),
   ]);
+  const tasaDefault = cfg?.usa_iva ? Number(cfg.tasa_iva_default ?? 19) : 0;
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -41,7 +43,7 @@ export default async function EscanearFacturaPage() {
           <History className="size-4" /> Ver historial de escaneos
         </Link>
       </div>
-      <EscanearFactura proveedores={proveedores ?? []} productos={productos ?? []} />
+      <EscanearFactura proveedores={proveedores ?? []} productos={productos ?? []} tasaDefault={tasaDefault} />
     </div>
   );
 }
