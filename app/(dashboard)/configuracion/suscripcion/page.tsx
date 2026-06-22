@@ -10,6 +10,7 @@ import { clp, fmtFecha } from '@/lib/reportes';
 import {
   PLANES, diasRestantesTrial, enrollHabilitado, enforcementActivo, tieneAcceso, cortesiaVigente, type PlanKey,
 } from '@/lib/flow/subscription';
+import { PLAN_BENEFICIOS } from '@/lib/planes';
 import { flowConfigurado } from '@/lib/flow/client';
 import { ConfirmSubmit } from '@/components/confirm-submit';
 import { iniciarSuscripcion, cancelarSuscripcion } from './actions';
@@ -280,9 +281,19 @@ export default async function SuscripcionPage({
                   {actual && <Badge variant="secondary">Tu plan</Badge>}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-xl font-bold">{clp.format(p.precioMensual)}</div>
-                <p className="text-xs text-muted-foreground">por mes</p>
+              <CardContent className="space-y-3">
+                <div>
+                  <div className="text-xl font-bold">{clp.format(p.precioMensual)}</div>
+                  <p className="text-xs text-muted-foreground">por mes</p>
+                </div>
+                <ul className="space-y-1.5 text-xs text-muted-foreground">
+                  {PLAN_BENEFICIOS[k].features.map((f) => (
+                    <li key={f} className="flex items-start gap-1.5">
+                      <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 text-primary" />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
               </CardContent>
             </Card>
           );

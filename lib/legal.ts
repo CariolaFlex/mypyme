@@ -16,7 +16,7 @@ export const LEGAL = {
   // (ej. soporte@gestionala.cl) cuando se cree, junto con el dominio.
   emailContacto: 'vectiumspa@gmail.com',
   // Fecha de última actualización de los textos legales.
-  actualizado: '16 de junio de 2026',
+  actualizado: '22 de junio de 2026',
 } as const;
 
 // Canal de soporte. El WhatsApp es opcional: si queda vacío, la tarjeta de
