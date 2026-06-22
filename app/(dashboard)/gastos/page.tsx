@@ -4,7 +4,7 @@ import { PageHeader } from '@/components/page-header';
 import { registrarGasto } from './actions';
 import { CategoriasGastoManager } from './categorias-gasto-manager';
 import { GastoRowActions } from './row-actions';
-import { DocTributario } from '@/components/doc-tributario';
+import { MontoTributario } from '@/components/monto-tributario';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -128,15 +128,11 @@ export default async function GastosPage({
               <Label htmlFor="descripcion">Descripción *</Label>
               <Input id="descripcion" name="descripcion" required placeholder="Ej. Compra de café en grano" />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="monto_total">Monto total (con IVA) *</Label>
-              <Input id="monto_total" name="monto_total" type="number" min="1" required />
-            </div>
+            <MontoTributario idPrefix="g-" defaultTasa={ivaDefault} />
             <div className="space-y-1.5">
               <Label htmlFor="fecha">Fecha</Label>
               <Input id="fecha" name="fecha" type="date" />
             </div>
-            <DocTributario idPrefix="g-" defaultTasa={ivaDefault} />
             <div className="flex items-end">
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" name="pagar_efectivo" disabled={!cajaAbierta} className="size-4" />

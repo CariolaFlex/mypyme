@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { crearFactura } from '../actions';
-import { DocTributario } from '@/components/doc-tributario';
+import { MontoTributario } from '@/components/monto-tributario';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -83,15 +83,11 @@ export default async function NuevaFacturaPage({
                   ))}
                 </select>
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="monto_total">Monto total (con IVA) *</Label>
-                <Input id="monto_total" name="monto_total" type="number" min="1" required />
-              </div>
+              <MontoTributario idPrefix="f-" defaultTasa={ivaDefault} />
               <div className="space-y-1.5">
                 <Label htmlFor="fecha">Fecha</Label>
                 <Input id="fecha" name="fecha" type="date" />
               </div>
-              <DocTributario idPrefix="f-" defaultTasa={ivaDefault} />
               <div className="space-y-1.5">
                 <Label htmlFor="vencimiento">Vencimiento</Label>
                 <Input id="vencimiento" name="vencimiento" type="date" />
