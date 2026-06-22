@@ -103,9 +103,18 @@ SON: DIECINUEVE MIL CIENTO CUARENTA Y SIETE PESOS`;
   check('contenido (1 LT) no pisa cantidad', r2.items[0]?.cantidad, 2);
 }
 
+// ── Panamá (OCR del motor ilegible: el total NO quedó en el texto) ──────────
+// No se puede recuperar el total, pero SÍ se exige que NO invente uno: antes
+// tomaba el año "2022" (de "MAYO, 2022") como total. Mejor 0 (no detectado).
+console.log('Panamá (no inventar año como total):');
+{
+  const r = extraerFactura(raw('panama.txt', 0.5), 'factura');
+  check('total no es el año', r.total, 0);
+}
+
 // ── Informativo: docs cuyo OCR del motor falló (no recuperable por parser) ──
 console.log('Informativo (OCR del motor ilegible — no se asierta):');
-for (const [name, tipo] of [['panama.txt', 'factura'], ['ccu.txt', 'factura']]) {
+for (const [name, tipo] of [['ccu.txt', 'factura']]) {
   const r = extraerFactura(raw(name, 0.5), tipo);
   console.log(`  ${name}: total=${r.total} items=${r.items.length} (se corrige a mano)`);
 }

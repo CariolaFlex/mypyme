@@ -389,6 +389,19 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   (`md:hidden`) → cero duplicación. Nuevo estado `carritoOpen` (se cierra solo al cobrar, en `limpiar()`).
   Buscador+Escanear pasó a `flex-col sm:flex-row`. Iconos `ShoppingCart`/`X` de lucide. tsc/lint/build OK.
   Sin migraciones. **Falta verificación en celular de Andrés** (cámara/cobro/granel/sheet; PWA: reabrir ×2).
+- **OCR — robustez anti-falso-positivo** ✅ (commit). Andrés: «hazlo más inteligente, que reconozca mejor».
+  Medí el baseline del parser contra las **6 fixtures reales** (`scripts/verify-ocr-parser.mjs`): **4/4 de
+  los docs legibles pasan** (coca/andina/abc/dsv) — el parser está EN SU TECHO; panama/ccu fallan porque su
+  **texto OCR del motor no contiene los montos** (verificado leyendo las fixtures: panama solo trae el «2022»
+  de una fecha, ccu es basura) → es el MOTOR, no el parser. NO se tocó el motor a ciegas: el pipeline ya
+  normaliza espacios (`\s+→' '`) así que `preserve_interword_spaces` no haría nada, y preproceso/PSM no se
+  pueden medir sin las fotos reales (lección dura del proyecto = no degradar lo que funciona). **Única mejora
+  limpia/medible/alineada con «no inventar»:** panama devolvía `total=2022` (un AÑO). Fix en `factura.ts`
+  `maxMonto` (último recurso): descartar enteros PLANOS en rango 1900–2099 (un total chico real viene con
+  separador `2.022`/`$`; un año viene plano) → panama `total` 2022→**0** (no detectado, honesto). Cero
+  regresión (los 4 buenos resuelven por etiqueta, no llegan a maxMonto). Test: panama pasó de informativo a
+  **aserción** (`total=0`). parser test + tsc/lint/build OK. **Para un salto mayor de reconocimiento haría
+  falta tunear el motor con fotos reales de docs que hoy leen mal (metodología: foto→fixture→fix→test).**
   - **Próximo (lista):** afinar RUT proveedor (vs cliente)/folio/razón social — **bloqueado: necesita el texto
     OCR real de más facturas** (pegar del visor); POS responsive (layout 2 paneles fijo, rework con navegador);
     pintar baja confianza OCR (hoy solo hay confianza global, no por campo). **GOTCHA: tras cada deploy, la PWA

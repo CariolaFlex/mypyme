@@ -189,7 +189,15 @@ function maxMonto(lines: { text: string }[], folio: string): number {
   let best = 0;
   for (const { text } of lines) {
     if (noEsPlata.test(text)) continue;
-    for (const v of montosDeTexto(text, folio)) if (v > best) best = v;
+    for (const m of quitarNoMontos(text, folio).matchAll(MONEY_RE)) {
+      const v = parseMonto(m[0]);
+      const conSeparador = /[.,$]/.test(m[0]);
+      // Un entero PLANO en rango de año (1900–2099) casi siempre es un año
+      // ("MAYO 2022"), no plata: un total chico real viene con separador
+      // ("2.022") o $. Solo en este último recurso → no inventar un año como total.
+      if (!conSeparador && v >= 1900 && v <= 2099) continue;
+      if (conSeparador ? v >= 100 : v >= 1000) { if (v > best) best = v; }
+    }
   }
   return best;
 }
