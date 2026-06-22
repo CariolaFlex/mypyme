@@ -283,7 +283,19 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     de crédito con tabla vacía) → total basura/0, se corrigen a mano (informativo en el test, sin asertar).
     `verify-ocr-parser.mjs` cubre las 6 con ground-truth. **Confirma la lección: lo recuperable depende del
     MOTOR; el parser ya entiende los formatos legibles (DTE chilena, soporte, factura compra).**
-  - **Próximo:** afinar RUT proveedor (vs cliente), folio y
+  - **Fase 3B-UX — claridad del review (no motor) ✅** (`d0cebce`). Feedback de Andrés (el OCR ya le sirve;
+    quiere claridad): *(1)* **Encabezados de columna** en los ítems (Descripción/Cantidad/Precio unit./Total):
+    fila de títulos en desktop (`hidden sm:grid`) + label por campo en móvil (`sm:hidden`); antes las casillas
+    no decían qué eran. Botón borrar a ancho completo en móvil. *(2)* **Selector con/sin IVA** en el monto:
+    «Incluye IVA / Sin IVA (neto) / Exento» + **tasa %** (default `configuracion_negocio.tasa_iva_default`,
+    editable) → deriva neto/IVA/total automático (`derivarMontos`), con «ajustar neto/IVA a mano». Reemplaza
+    el trío crudo total/neto/iva. `page.tsx` pasa `tasaDefault`. *(3)* **`components/aviso-herramienta.tsx`**
+    (reusable, amigable/profesional: «en mejora continua, puede equivocarse, revisa») en escaneo (idle+review)
+    y en el **modal del escáner de barras/QR** (cubre alta/edición de producto + escaneo rápido). Verificado
+    tsc/lint/build; **falta verificar interacción en navegador (Andrés)**. **PENDIENTE: replicar el selector
+    con/sin IVA a factura manual (`/compras/facturas/nueva`) y gastos (`/gastos`)** — ya tienen tasa% vía
+    `DocTributario`, falta el toggle con/sin; son forms de server action (requieren island, hacer tras OK de Andrés).
+  - **Próximo:** replicar selector IVA a factura-manual/gastos; afinar RUT proveedor (vs cliente), folio y
     razón social con validación real. Otros: «reabrir borrador» desde el historial (lista/borra); POS responsive;
     pintar en rojo campos de baja confianza del OCR. **GOTCHA: tras cada deploy, la PWA (Serwist) sirve el JS
     cacheado → cerrar/reabrir la PWA 2 veces para ver el código nuevo (pasó con el Coca-Cola «seguía en 135.760»).**
