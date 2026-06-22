@@ -3,9 +3,13 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState, useTransition } from 'react';
 import { toast } from 'sonner';
+import { ScanLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Modal } from '@/components/ui/modal';
+import { BarcodeScannerModal } from '@/components/scanner/barcode-scanner-modal';
 import { db, type ProductoCache } from '@/lib/db';
 import { flushQueue, enviarVenta, contarPendientes } from '@/lib/sync';
 import { imprimirBoleta, type BoletaData, type NegocioBoleta } from '@/lib/boleta';
@@ -15,6 +19,7 @@ type Categoria = { id: string; nombre: string };
 type PagoRow = { key: string; metodoId: string };
 
 const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' });
+const qtyFmt = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 3 });
 
 // Normaliza para búsqueda: minúsculas sin acentos.
 const norm = (s: string) =>
@@ -126,6 +131,64 @@ export function PosClient({
 
   const add = (id: string) => setCart((c) => ({ ...c, [id]: (c[id] ?? 0) + 1 }));
   const dec = (id: string) => setCart((c) => ({ ...c, [id]: Math.max(0, (c[id] ?? 0) - 1) }));
+
+  // ── Escáner de códigos en el POS ────────────────────────────────────────
+  const [scanOpen, setScanOpen] = useState(false);
+  const [continuo, setContinuo] = useState(false);
+  // Lookup por código de barras (en memoria → funciona offline).
+  const productoByCode = useMemo(() => {
+    const m = new Map<string, ProductoCache>();
+    for (const p of productos) if (p.codigo_barras) m.set(p.codigo_barras.trim(), p);
+    return m;
+  }, [productos]);
+
+  // ── Venta a granel / por peso ───────────────────────────────────────────
+  const [granelId, setGranelId] = useState<string | null>(null);
+  const [granelModo, setGranelModo] = useState<'peso' | 'monto'>('peso');
+  const [granelInput, setGranelInput] = useState('');
+  const granelProd = granelId ? productosById.get(granelId) : null;
+
+  const abrirGranel = (id: string) => {
+    setGranelId(id);
+    setGranelModo('peso');
+    setGranelInput(cart[id] ? String(cart[id]) : '');
+  };
+  // Al tocar un producto en la grilla: granel → modal de peso/monto; unitario → +1.
+  const onTile = (p: ProductoCache) => (p.granel ? abrirGranel(p.id) : add(p.id));
+
+  function onScan(code: string) {
+    const p = productoByCode.get(code.trim());
+    if (!p) {
+      toast.error('Ese código no está en tu catálogo');
+      return;
+    }
+    if (p.granel) {
+      abrirGranel(p.id);
+      if (!continuo) setScanOpen(false);
+      return;
+    }
+    add(p.id);
+    toast.success(`Agregado: ${p.nombre}`);
+    if (!continuo) setScanOpen(false);
+  }
+
+  // Derivados del modal de granel: peso↔monto. process_sale recalcula el total
+  // de línea (autoritativo) como precio_total × cantidad.
+  const granelPrecioU = granelProd?.precio_total ?? 0;
+  const granelVal = Number(granelInput) || 0;
+  const granelCantidad =
+    granelModo === 'peso'
+      ? granelVal
+      : granelPrecioU > 0
+        ? Math.round((granelVal / granelPrecioU) * 1000) / 1000
+        : 0;
+  const granelTotal = Math.round(granelPrecioU * granelCantidad);
+  const confirmarGranel = () => {
+    if (!granelId || !(granelCantidad > 0)) return;
+    setCart((c) => ({ ...c, [granelId]: granelCantidad }));
+    setGranelId(null);
+    setGranelInput('');
+  };
 
   const agregarPago = () => {
     setPagos((prev) => {
@@ -251,11 +314,21 @@ export function PosClient({
       <div className="grid h-[calc(100vh-8rem)] grid-cols-[1fr_20rem] gap-4">
         {/* Catálogo */}
         <div className="flex flex-col gap-3 overflow-hidden">
-          <Input
-            placeholder="Buscar producto…"
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-          />
+          <div className="flex gap-2">
+            <Input
+              placeholder="Buscar producto…"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="shrink-0 gap-2"
+              onClick={() => setScanOpen(true)}
+            >
+              <ScanLine className="size-4" /> Escanear
+            </Button>
+          </div>
           {categorias.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               <button
@@ -286,12 +359,13 @@ export function PosClient({
               {productosFiltrados.map((p) => (
                 <button
                   key={p.id}
-                  onClick={() => add(p.id)}
+                  onClick={() => onTile(p)}
                   className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-xl border bg-card p-3 text-center shadow-xs transition-all duration-150 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md active:translate-y-0 active:shadow-xs"
                 >
                   <span className="text-sm font-medium leading-tight">{p.nombre}</span>
                   <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary tabular-nums">
                     {clp.format(p.precio_total ?? 0)}
+                    {p.granel ? `/${p.unidad_medida ?? 'u'}` : ''}
                   </span>
                 </button>
               ))}
@@ -317,15 +391,26 @@ export function PosClient({
                   return (
                     <li key={id} className="flex items-center justify-between gap-2 text-sm">
                       <span className="flex-1 truncate">{p.nombre}</span>
-                      <div className="flex items-center gap-1">
-                        <Button type="button" variant="outline" size="icon-sm" onClick={() => dec(id)}>
-                          −
-                        </Button>
-                        <span className="w-6 text-center">{qty}</span>
-                        <Button type="button" variant="outline" size="icon-sm" onClick={() => add(id)}>
-                          +
-                        </Button>
-                      </div>
+                      {p.granel ? (
+                        // Granel: el peso se edita en el modal (tocar el chip).
+                        <button
+                          type="button"
+                          onClick={() => abrirGranel(id)}
+                          className="rounded-md border px-2 py-1 text-xs tabular-nums hover:bg-muted"
+                        >
+                          {qtyFmt.format(qty)} {p.unidad_medida ?? ''} ✎
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <Button type="button" variant="outline" size="icon-sm" onClick={() => dec(id)}>
+                            −
+                          </Button>
+                          <span className="w-6 text-center">{qty}</span>
+                          <Button type="button" variant="outline" size="icon-sm" onClick={() => add(id)}>
+                            +
+                          </Button>
+                        </div>
+                      )}
                       <span className="w-20 text-right tabular-nums">
                         {clp.format((p.precio_total ?? 0) * qty)}
                       </span>
@@ -434,6 +519,79 @@ export function PosClient({
           </div>
         </div>
       </div>
+
+      {/* Escáner de códigos → al carrito (offline, busca en el catálogo) */}
+      <BarcodeScannerModal
+        open={scanOpen}
+        onScan={onScan}
+        onClose={() => setScanOpen(false)}
+        continuo={continuo}
+        onToggleContinuo={setContinuo}
+      />
+
+      {/* Venta a granel: peso ↔ monto */}
+      <Modal
+        open={granelId !== null}
+        onClose={() => setGranelId(null)}
+        title={granelProd ? `Vender ${granelProd.nombre}` : 'Vender a granel'}
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Precio: <strong>{clp.format(granelPrecioU)}</strong> por {granelProd?.unidad_medida ?? 'unidad'}.
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {(['peso', 'monto'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setGranelModo(m)}
+                className={`rounded-lg border px-2 py-2 text-sm transition-colors ${
+                  granelModo === m
+                    ? 'border-primary bg-primary/10 font-medium text-primary'
+                    : 'border-input bg-input/40 hover:bg-muted'
+                }`}
+              >
+                {m === 'peso' ? 'Por peso' : 'Por monto $'}
+              </button>
+            ))}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="granel-input">
+              {granelModo === 'peso' ? `Cantidad (${granelProd?.unidad_medida ?? 'unidad'})` : 'Monto en $'}
+            </Label>
+            <Input
+              id="granel-input"
+              type="number"
+              min="0"
+              step={granelModo === 'peso' ? '0.001' : '1'}
+              inputMode="decimal"
+              value={granelInput}
+              onChange={(e) => setGranelInput(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <div className="rounded-md border bg-muted/20 px-3 py-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Cantidad</span>
+              <span className="tabular-nums">
+                {qtyFmt.format(granelCantidad)} {granelProd?.unidad_medida ?? ''}
+              </span>
+            </div>
+            <div className="mt-0.5 flex justify-between border-t pt-0.5 font-medium">
+              <span>Total</span>
+              <span className="tabular-nums">{clp.format(granelTotal)}</span>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => setGranelId(null)}>
+              Cancelar
+            </Button>
+            <Button type="button" size="sm" disabled={!(granelCantidad > 0)} onClick={confirmarGranel}>
+              Agregar al carrito
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -24,6 +24,7 @@ type Producto = {
   precio_total: number | null;
   tasa_iva: number | null;
   stock_minimo: number | null;
+  granel: boolean;
   activo: boolean;
 };
 
@@ -43,6 +44,8 @@ export function ProductoRowActions({
   const [editar, setEditar] = useState(false);
   const [categorias, setCategorias] = useState<Cat[]>(categoriasIniciales);
   const [categoriaId, setCategoriaId] = useState(producto.categoria_id ?? '');
+  const [granel, setGranel] = useState(producto.granel);
+  const [unidad, setUnidad] = useState(producto.unidad_medida ?? 'unidad');
 
   // Modo IVA derivado de la tasa guardada (0 = exento, default del negocio = afecto, otro = personalizado).
   const tasaActual = producto.tasa_iva ?? tasaDefault;
@@ -168,7 +171,8 @@ export function ProductoRowActions({
                 id={`unidad-${producto.id}`}
                 name="unidad_medida"
                 className={selectCls}
-                defaultValue={producto.unidad_medida ?? 'unidad'}
+                value={unidad}
+                onChange={(e) => setUnidad(e.target.value)}
               >
                 {UNIDADES.map((u) => (
                   <option key={u} value={u}>
@@ -177,6 +181,24 @@ export function ProductoRowActions({
                 ))}
               </select>
             </div>
+          </div>
+
+          {/* Se vende a granel / por peso */}
+          <div className="col-span-2 flex items-start gap-2 rounded-md border bg-muted/10 p-3">
+            <input
+              id={`granel-${producto.id}`}
+              name="granel"
+              type="checkbox"
+              checked={granel}
+              onChange={(e) => setGranel(e.target.checked)}
+              className="mt-0.5 size-4 accent-primary"
+            />
+            <label htmlFor={`granel-${producto.id}`} className="text-sm">
+              <span className="font-medium">Se vende a granel / por peso</span>
+              <span className="block text-xs text-muted-foreground">
+                El precio será <strong>por {unidad === 'unidad' ? 'unidad de medida (elige kg, g, L…)' : unidad}</strong>. En el POS se cobra por peso o por monto.
+              </span>
+            </label>
           </div>
 
           {/* IVA: Afecto / Exento / Personalizado */}
@@ -206,7 +228,11 @@ export function ProductoRowActions({
 
           <div className="space-y-1.5">
             <Label htmlFor={`precio-${producto.id}`}>
-              {ivaMode === 'exento' ? 'Precio (sin IVA)' : 'Precio (c/IVA)'}
+              {granel
+                ? `Precio por ${unidad === 'unidad' ? 'unidad' : unidad}${ivaMode === 'exento' ? ' (sin IVA)' : ' (c/IVA)'}`
+                : ivaMode === 'exento'
+                  ? 'Precio (sin IVA)'
+                  : 'Precio (c/IVA)'}
             </Label>
             <Input
               id={`precio-${producto.id}`}

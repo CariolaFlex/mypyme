@@ -43,6 +43,7 @@ export function ProductoForm({
     contenido: '',
     ivaMode: 'afecto' as 'afecto' | 'exento' | 'custom',
     tasa_iva: String(tasaDefault),
+    granel: false,
     precio_total: '',
     stock_inicial: '',
     stock_minimo: '',
@@ -214,6 +215,25 @@ export function ProductoForm({
         <p className="text-xs text-muted-foreground">Tamaño del producto: ej. 1,5 L · 500 g · 1 unidad. Opcional.</p>
       </div>
 
+      {/* Se vende a granel / por peso */}
+      <div className="col-span-2 flex items-start gap-2 rounded-md border bg-muted/10 p-3">
+        <input
+          id="granel"
+          name="granel"
+          type="checkbox"
+          checked={f.granel}
+          onChange={(e) => set('granel', e.target.checked)}
+          className="mt-0.5 size-4 accent-primary"
+        />
+        <label htmlFor="granel" className="text-sm">
+          <span className="font-medium">Se vende a granel / por peso</span>
+          <span className="block text-xs text-muted-foreground">
+            El precio de abajo será <strong>por {f.unidad_medida === 'unidad' ? 'unidad de medida (elige kg, g, L…)' : f.unidad_medida}</strong>.
+            En el POS se cobra por peso o por monto (ej. $1.000 de queso).
+          </span>
+        </label>
+      </div>
+
       {/* IVA: Exento / 19% / Personalizado */}
       <div className="space-y-1.5">
         <Label htmlFor="ivaMode">IVA</Label>
@@ -241,7 +261,11 @@ export function ProductoForm({
 
       <div className="space-y-1.5">
         <Label htmlFor="precio_total">
-          {f.ivaMode === 'exento' ? 'Precio (sin IVA)' : 'Precio (c/IVA)'}
+          {f.granel
+            ? `Precio por ${f.unidad_medida === 'unidad' ? 'unidad' : f.unidad_medida}${f.ivaMode === 'exento' ? ' (sin IVA)' : ' (c/IVA)'}`
+            : f.ivaMode === 'exento'
+              ? 'Precio (sin IVA)'
+              : 'Precio (c/IVA)'}
         </Label>
         <Input
           id="precio_total"

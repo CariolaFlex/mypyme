@@ -46,6 +46,7 @@ export async function crearProducto(formData: FormData) {
   const stockInicial = stockInicialRaw ? Number(stockInicialRaw) : 0;
   const contenidoRaw = formData.get('contenido');
   const contenido = contenidoRaw && String(contenidoRaw).trim() ? Number(contenidoRaw) : null;
+  const granel = formData.get('granel') === 'on';
 
   const { data: prod, error } = await supabase
     .from('productos')
@@ -57,6 +58,7 @@ export async function crearProducto(formData: FormData) {
       categoria_id: categoriaId || null,
       unidad_medida: unidadMedida,
       contenido,
+      granel,
       precio_total: precioTotal,
       precio_neto: precioNeto,
       tasa_iva: tasaIva,
@@ -214,6 +216,7 @@ export async function editarProducto(formData: FormData) {
   const unidadMedida = String(formData.get('unidad_medida') ?? '').trim() || 'unidad';
   const contenidoRaw = formData.get('contenido');
   const contenido = contenidoRaw && String(contenidoRaw).trim() ? Number(contenidoRaw) : null;
+  const granel = formData.get('granel') === 'on';
 
   const { error } = await supabase
     .from('productos')
@@ -223,6 +226,7 @@ export async function editarProducto(formData: FormData) {
       codigo_barras: codigoBarras || null,
       unidad_medida: unidadMedida,
       contenido,
+      granel,
       categoria_id: categoriaId || null,
       precio_total: precioTotal,
       precio_neto: precioNeto,

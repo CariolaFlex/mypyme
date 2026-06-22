@@ -16,7 +16,7 @@ export default async function PosPage() {
   ] = await Promise.all([
     supabase
       .from('productos')
-      .select('id, nombre, precio_total, categoria_id')
+      .select('id, nombre, precio_total, categoria_id, codigo_barras, granel, unidad_medida')
       .eq('activo', true)
       .order('nombre'),
     supabase.from('metodos_pago').select('id, nombre, tipo').eq('activo', true).order('nombre'),

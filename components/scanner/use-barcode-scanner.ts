@@ -27,7 +27,10 @@ interface BarcodeDetectorCtor {
   getSupportedFormats?(): Promise<string[]>;
 }
 
-export function useBarcodeScanner(onDetected: (code: string) => void) {
+export function useBarcodeScanner(
+  onDetected: (code: string) => void,
+  opts?: { continuo?: boolean }
+) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [state, setState] = useState<ScannerState>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +40,13 @@ export function useBarcodeScanner(onDetected: (code: string) => void) {
   useEffect(() => {
     onDetectedRef.current = onDetected;
   }, [onDetected]);
+
+  // Modo continuo: no frena tras la 1ª lectura (escanea varios seguidos). Se lee
+  // por ref para no reiniciar la cámara al alternarlo.
+  const continuoRef = useRef(!!opts?.continuo);
+  useEffect(() => {
+    continuoRef.current = !!opts?.continuo;
+  }, [opts?.continuo]);
 
   // Limpieza activa (se reasigna en cada start).
   const cleanupRef = useRef<() => void>(() => {});
@@ -68,12 +78,25 @@ export function useBarcodeScanner(onDetected: (code: string) => void) {
     };
     cleanupRef.current = cleanup;
 
+    let lastCode = '';
+    let lastAt = 0;
     const emit = (code: string) => {
-      if (doneRef.current || cancelled) return;
+      if (cancelled) return;
       const clean = code.trim();
       if (!clean) return;
-      doneRef.current = true;
-      onDetectedRef.current(clean);
+      if (continuoRef.current) {
+        // Sigue escaneando; ignora el MISMO código repetido dentro de ~1,5s
+        // (la cámara lee el mismo frame muchas veces).
+        const now = Date.now();
+        if (clean === lastCode && now - lastAt < 1500) return;
+        lastCode = clean;
+        lastAt = now;
+        onDetectedRef.current(clean);
+      } else {
+        if (doneRef.current) return;
+        doneRef.current = true;
+        onDetectedRef.current(clean);
+      }
     };
 
     try {
@@ -99,13 +122,12 @@ export function useBarcodeScanner(onDetected: (code: string) => void) {
           if (cancelled || doneRef.current) return;
           try {
             const codes = await detector.detect(video);
-            if (codes.length) {
-              emit(codes[0].rawValue);
-              return;
-            }
+            if (codes.length) emit(codes[0].rawValue);
           } catch {
             /* frame ilegible: seguir */
           }
+          // En modo continuo doneRef nunca se marca → el loop sigue vivo.
+          if (cancelled || doneRef.current) return;
           rafId = requestAnimationFrame(tick);
         };
         rafId = requestAnimationFrame(tick);

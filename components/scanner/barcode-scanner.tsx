@@ -13,13 +13,16 @@ import { useBarcodeScanner } from './use-barcode-scanner';
 export function BarcodeScanner({
   onScan,
   onCancel,
+  continuo = false,
 }: {
   onScan: (code: string) => void;
   onCancel: () => void;
+  /** Si true, no frena tras la 1ª lectura (escanea varios seguidos). */
+  continuo?: boolean;
 }) {
   // Al escanear, el padre cierra el modal → este componente se desmonta → el
   // cleanup del effect apaga la cámara. No hace falta llamar stop() acá.
-  const { videoRef, state, error, start, stop } = useBarcodeScanner(onScan);
+  const { videoRef, state, error, start, stop } = useBarcodeScanner(onScan, { continuo });
 
   useEffect(() => {
     start();

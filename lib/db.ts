@@ -22,6 +22,9 @@ export interface ProductoCache {
   nombre: string;
   precio_total: number | null;
   categoria_id: string | null;
+  codigo_barras: string | null; // para escanear → carrito (lookup offline en memoria)
+  granel: boolean; // true = se vende por peso/medida (cantidad decimal, precio por unidad)
+  unidad_medida: string | null; // ej. 'kg' (rótulo en el modal de granel)
 }
 
 class MyPymeDB extends Dexie {
