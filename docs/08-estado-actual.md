@@ -317,6 +317,12 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   - **✅ Reabrir borrador del historial** (`3b0f9df`). Scans no-importados → «Reabrir» →
     `?scan=<id>`; `EscanearFactura` arranca en el review precargado (prop `inicial`). Guardar actualiza el
     mismo registro; registrar lo marca importado.
+  - **✅ Botón «Empezar de cero» en alta de producto** (`9ebdea3`). Al escanear, OFF prerellena
+    nombre/imagen solo si están vacíos + autosave del borrador en sessionStorage → re-escanear
+    cambiaba solo el código y dejaba nombre/imagen del producto anterior (borrar a mano no bastaba).
+    Botón bajo el escáner (`producto-form.tsx`) + modal de confirmación que `setF(vacio)`, limpia
+    `sessionStorage` (`borrador-producto`) y cierra secciones auxiliares. No toca la lógica de
+    `enriquecer` (intencional «no pisar lo tipeado»). escaneo-rápido/edición no lo necesitan.
   - **Próximo (lista):** afinar RUT proveedor (vs cliente)/folio/razón social — **bloqueado: necesita el texto
     OCR real de más facturas** (pegar del visor); POS responsive (layout 2 paneles fijo, rework con navegador);
     pintar baja confianza OCR (hoy solo hay confianza global, no por campo). **GOTCHA: tras cada deploy, la PWA
