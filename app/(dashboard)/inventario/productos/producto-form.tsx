@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus, Boxes } from 'lucide-react';
+import { Plus, Boxes, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -95,6 +95,26 @@ export function ProductoForm({
   const [catNombre, setCatNombre] = useState('');
   const [catBusy, setCatBusy] = useState(false);
 
+  // ── Empezar de cero ─────────────────────────────────────────────────────
+  // Deja el form limpio para escanear otro producto: resetea TODOS los campos,
+  // borra el borrador en sessionStorage (si no, el autosave repuebla nombre/
+  // imagen del anterior) y cierra las secciones auxiliares.
+  const [resetModal, setResetModal] = useState(false);
+
+  function reiniciar() {
+    setF(vacio);
+    setLote({ tipo: 'Pack', unidades: '', precioPack: '' });
+    setLoteOpen(false);
+    setCatNombre('');
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
+    setResetModal(false);
+    toast.success('Formulario reiniciado: escanea otro producto');
+  }
+
   async function crearCat() {
     setCatBusy(true);
     const res = await crearCategoriaRapida(catNombre);
@@ -152,6 +172,18 @@ export function ProductoForm({
           onValueChange={(v) => set('codigo_barras', v)}
           onScanned={enriquecer}
         />
+      </div>
+
+      <div className="col-span-2 flex justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-1.5"
+          onClick={() => setResetModal(true)}
+        >
+          <RotateCcw className="size-4" /> Empezar de cero
+        </Button>
       </div>
 
       {/* Categoría + crear inline */}
@@ -403,6 +435,25 @@ export function ProductoForm({
             </Button>
             <Button type="button" size="sm" disabled={catBusy} onClick={crearCat}>
               {catBusy ? 'Creando…' : 'Crear'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal: confirmar reinicio del formulario */}
+      <Modal open={resetModal} onClose={() => setResetModal(false)} title="¿Empezar de cero?">
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Se borrará el producto escaneado y todos los campos que hayas rellenado
+            (nombre, imagen, código, precio, stock…). El formulario queda limpio para
+            escanear otro producto.
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => setResetModal(false)}>
+              Cancelar
+            </Button>
+            <Button type="button" size="sm" onClick={reiniciar}>
+              Sí, empezar de cero
             </Button>
           </div>
         </div>
