@@ -45,7 +45,9 @@ export default function PrivacidadPage() {
           </li>
           <li>
             <strong>Operacionales:</strong> productos, ventas, movimientos de caja, inventario,
-            compras y gastos que registras. Son principalmente datos de tu negocio.
+            compras y gastos que registras, incluidas las imágenes de productos y documentos que
+            cargas (por ejemplo, fotos de facturas para su lectura). Son principalmente datos de tu
+            negocio.
           </li>
           <li>
             <strong>Técnicos:</strong> registros de actividad y auditoría, dirección IP y datos de
@@ -184,10 +186,13 @@ export default function PrivacidadPage() {
   );
 }
 
+const slug = (s: string) =>
+  s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
 function Section({ n, titulo, children }: { n: string; titulo: string; children: React.ReactNode }) {
   return (
     <section className="space-y-2">
-      <h2 className="text-base font-semibold">
+      <h2 id={slug(titulo)} className="scroll-mt-6 text-base font-semibold">
         {n}. {titulo}
       </h2>
       {children}

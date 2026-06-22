@@ -27,9 +27,12 @@ export default function TerminosPage() {
       <Section n="1" titulo="Descripción del Servicio">
         <p>
           {LEGAL.marca} permite registrar ventas (punto de venta), administrar caja con cuadratura,
-          controlar inventario, gestionar compras, proveedores y gastos, y generar reportes. Algunas
-          funciones operan sin conexión a internet y se sincronizan al reconectar. El Servicio se
-          ofrece «tal cual» y puede evolucionar con nuevas funcionalidades, mejoras o ajustes.
+          controlar inventario (incluida la venta a granel o por peso), gestionar compras, proveedores
+          y gastos, y generar reportes. Incluye además herramientas de captura por cámara —escáner de
+          códigos de barras y lectura de facturas mediante reconocimiento de texto (OCR)— que operan
+          como apoyo y cuyos resultados el Cliente debe revisar antes de confirmarlos. Algunas funciones
+          operan sin conexión a internet y se sincronizan al reconectar. El Servicio se ofrece «tal cual»
+          y puede evolucionar con nuevas funcionalidades, mejoras o ajustes.
         </p>
       </Section>
 
@@ -179,10 +182,13 @@ export default function TerminosPage() {
   );
 }
 
+const slug = (s: string) =>
+  s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
 function Section({ n, titulo, children }: { n: string; titulo: string; children: React.ReactNode }) {
   return (
     <section className="space-y-2">
-      <h2 className="text-base font-semibold">
+      <h2 id={slug(titulo)} className="scroll-mt-6 text-base font-semibold">
         {n}. {titulo}
       </h2>
       {children}
