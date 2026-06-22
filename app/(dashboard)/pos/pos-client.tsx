@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState, useTransition } from 'react';
 import { toast } from 'sonner';
-import { ScanLine } from 'lucide-react';
+import { ScanLine, ShoppingCart, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -135,6 +135,8 @@ export function PosClient({
   // ── Escáner de códigos en el POS ────────────────────────────────────────
   const [scanOpen, setScanOpen] = useState(false);
   const [continuo, setContinuo] = useState(false);
+  // Carrito como bottom sheet en móvil (en desktop es panel lateral fijo).
+  const [carritoOpen, setCarritoOpen] = useState(false);
   // Lookup por código de barras (en memoria → funciona offline).
   const productoByCode = useMemo(() => {
     const m = new Map<string, ProductoCache>();
@@ -254,6 +256,7 @@ export function PosClient({
         setRecibido('');
         setPagos([{ key: 'p0', metodoId: metodos[0]?.id ?? '' }]);
         setMontos({});
+        setCarritoOpen(false);
       };
       try {
         if (!navigator.onLine) throw new Error('offline');
@@ -287,6 +290,143 @@ export function PosClient({
     });
   }
 
+  // Contenido del carrito reutilizado en el panel lateral (desktop) y en el
+  // bottom sheet (móvil): la lista de ítems y el footer de cobro.
+  const listaCarrito = items.length ? (
+    <ul className="space-y-2">
+      {items.map(([id, qty]) => {
+        const p = productosById.get(id)!;
+        return (
+          <li key={id} className="flex items-center justify-between gap-2 text-sm">
+            <span className="flex-1 truncate">{p.nombre}</span>
+            {p.granel ? (
+              <button
+                type="button"
+                onClick={() => abrirGranel(id)}
+                className="rounded-md border px-2 py-1 text-xs tabular-nums hover:bg-muted"
+              >
+                {qtyFmt.format(qty)} {p.unidad_medida ?? ''} ✎
+              </button>
+            ) : (
+              <div className="flex items-center gap-1">
+                <Button type="button" variant="outline" size="icon-sm" onClick={() => dec(id)}>
+                  −
+                </Button>
+                <span className="w-6 text-center">{qty}</span>
+                <Button type="button" variant="outline" size="icon-sm" onClick={() => add(id)}>
+                  +
+                </Button>
+              </div>
+            )}
+            <span className="w-20 text-right tabular-nums">
+              {clp.format((p.precio_total ?? 0) * qty)}
+            </span>
+          </li>
+        );
+      })}
+    </ul>
+  ) : (
+    <p className="py-10 text-center text-sm text-muted-foreground">
+      Toca un producto para agregarlo.
+    </p>
+  );
+
+  const footerCarrito = (
+    <>
+      <div className="flex items-center justify-between text-lg font-bold">
+        <span>Total</span>
+        <span className="tabular-nums">{clp.format(total)}</span>
+      </div>
+      {/* Filas de pago (1 método o varios) */}
+      <div className="space-y-2">
+        {pagos.map((p) => (
+          <div key={p.key} className="flex items-center gap-2">
+            <select
+              value={p.metodoId}
+              onChange={(e) =>
+                setPagos((prev) =>
+                  prev.map((x) => (x.key === p.key ? { ...x, metodoId: e.target.value } : x))
+                )
+              }
+              className="min-w-0 flex-1 rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs"
+            >
+              {metodos.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.nombre}
+                </option>
+              ))}
+            </select>
+            {multi && (
+              <>
+                <Input
+                  type="number"
+                  min="0"
+                  inputMode="numeric"
+                  placeholder="Monto"
+                  value={montos[p.key] ?? ''}
+                  onChange={(e) => setMontos((m) => ({ ...m, [p.key]: e.target.value }))}
+                  className="w-24"
+                />
+                <Button type="button" variant="outline" size="icon-sm" onClick={() => quitarPago(p.key)}>
+                  ×
+                </Button>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {metodos.length > 1 && (
+        <button
+          type="button"
+          onClick={agregarPago}
+          className="text-xs text-muted-foreground underline-offset-2 hover:underline"
+        >
+          + Agregar pago (dividir)
+        </button>
+      )}
+
+      {multi && (
+        <div
+          className={`flex justify-between text-sm ${
+            Math.abs(resto) < 1 ? 'text-muted-foreground' : 'text-destructive'
+          }`}
+        >
+          <span>{resto > 0 ? 'Falta' : resto < 0 ? 'Sobra' : 'Cuadrado'}</span>
+          <span className="tabular-nums">{clp.format(Math.abs(resto))}</span>
+        </div>
+      )}
+
+      {esEfectivoSimple && (
+        <div className="space-y-1">
+          <Input
+            type="number"
+            min="0"
+            inputMode="numeric"
+            placeholder="Efectivo recibido"
+            value={recibido}
+            onChange={(e) => setRecibido(e.target.value)}
+          />
+          {vuelto > 0 && (
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>Vuelto</span>
+              <span className="tabular-nums">{clp.format(vuelto)}</span>
+            </div>
+          )}
+        </div>
+      )}
+      <Button
+        type="button"
+        size="lg"
+        className="grad-brand-vivid w-full border-0 text-white shadow-lg shadow-primary/30 transition-transform hover:scale-[1.01] disabled:opacity-50"
+        disabled={!items.length || pending || !sesionCajaId || !pagosValidos}
+        onClick={onCobrar}
+      >
+        {pending ? 'Procesando…' : `Cobrar ${clp.format(total)}`}
+      </Button>
+    </>
+  );
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
@@ -311,10 +451,10 @@ export function PosClient({
         </div>
       </div>
 
-      <div className="grid h-[calc(100vh-8rem)] grid-cols-[1fr_20rem] gap-4">
+      <div className="md:grid md:h-[calc(100vh-8rem)] md:grid-cols-[1fr_20rem] md:gap-4">
         {/* Catálogo */}
-        <div className="flex flex-col gap-3 overflow-hidden">
-          <div className="flex gap-2">
+        <div className="flex flex-col gap-3 pb-20 md:overflow-hidden md:pb-0">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Input
               placeholder="Buscar producto…"
               value={busqueda}
@@ -354,7 +494,7 @@ export function PosClient({
               ))}
             </div>
           )}
-          <div className="overflow-y-auto">
+          <div className="md:overflow-y-auto">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {productosFiltrados.map((p) => (
                 <button
@@ -380,145 +520,56 @@ export function PosClient({
           </div>
         </div>
 
-        {/* Carrito */}
-        <div className="flex flex-col rounded-lg border bg-card">
+        {/* Carrito — panel lateral (solo desktop ≥ md) */}
+        <div className="hidden rounded-lg border bg-card md:flex md:flex-col">
           <div className="border-b p-3 font-medium">Carrito</div>
-          <div className="flex-1 overflow-y-auto p-3">
-            {items.length ? (
-              <ul className="space-y-2">
-                {items.map(([id, qty]) => {
-                  const p = productosById.get(id)!;
-                  return (
-                    <li key={id} className="flex items-center justify-between gap-2 text-sm">
-                      <span className="flex-1 truncate">{p.nombre}</span>
-                      {p.granel ? (
-                        // Granel: el peso se edita en el modal (tocar el chip).
-                        <button
-                          type="button"
-                          onClick={() => abrirGranel(id)}
-                          className="rounded-md border px-2 py-1 text-xs tabular-nums hover:bg-muted"
-                        >
-                          {qtyFmt.format(qty)} {p.unidad_medida ?? ''} ✎
-                        </button>
-                      ) : (
-                        <div className="flex items-center gap-1">
-                          <Button type="button" variant="outline" size="icon-sm" onClick={() => dec(id)}>
-                            −
-                          </Button>
-                          <span className="w-6 text-center">{qty}</span>
-                          <Button type="button" variant="outline" size="icon-sm" onClick={() => add(id)}>
-                            +
-                          </Button>
-                        </div>
-                      )}
-                      <span className="w-20 text-right tabular-nums">
-                        {clp.format((p.precio_total ?? 0) * qty)}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <p className="py-10 text-center text-sm text-muted-foreground">
-                Toca un producto para agregarlo.
-              </p>
-            )}
-          </div>
-          <div className="space-y-3 border-t p-3">
-            <div className="flex items-center justify-between text-lg font-bold">
-              <span>Total</span>
-              <span className="tabular-nums">{clp.format(total)}</span>
-            </div>
-            {/* Filas de pago (1 método o varios) */}
-            <div className="space-y-2">
-              {pagos.map((p) => (
-                <div key={p.key} className="flex items-center gap-2">
-                  <select
-                    value={p.metodoId}
-                    onChange={(e) =>
-                      setPagos((prev) =>
-                        prev.map((x) => (x.key === p.key ? { ...x, metodoId: e.target.value } : x))
-                      )
-                    }
-                    className="min-w-0 flex-1 rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs"
-                  >
-                    {metodos.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.nombre}
-                      </option>
-                    ))}
-                  </select>
-                  {multi && (
-                    <>
-                      <Input
-                        type="number"
-                        min="0"
-                        inputMode="numeric"
-                        placeholder="Monto"
-                        value={montos[p.key] ?? ''}
-                        onChange={(e) => setMontos((m) => ({ ...m, [p.key]: e.target.value }))}
-                        className="w-24"
-                      />
-                      <Button type="button" variant="outline" size="icon-sm" onClick={() => quitarPago(p.key)}>
-                        ×
-                      </Button>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {metodos.length > 1 && (
-              <button
-                type="button"
-                onClick={agregarPago}
-                className="text-xs text-muted-foreground underline-offset-2 hover:underline"
-              >
-                + Agregar pago (dividir)
-              </button>
-            )}
-
-            {multi && (
-              <div
-                className={`flex justify-between text-sm ${
-                  Math.abs(resto) < 1 ? 'text-muted-foreground' : 'text-destructive'
-                }`}
-              >
-                <span>{resto > 0 ? 'Falta' : resto < 0 ? 'Sobra' : 'Cuadrado'}</span>
-                <span className="tabular-nums">{clp.format(Math.abs(resto))}</span>
-              </div>
-            )}
-
-            {esEfectivoSimple && (
-              <div className="space-y-1">
-                <Input
-                  type="number"
-                  min="0"
-                  inputMode="numeric"
-                  placeholder="Efectivo recibido"
-                  value={recibido}
-                  onChange={(e) => setRecibido(e.target.value)}
-                />
-                {vuelto > 0 && (
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Vuelto</span>
-                    <span className="tabular-nums">{clp.format(vuelto)}</span>
-                  </div>
-                )}
-              </div>
-            )}
-            <Button
-              type="button"
-              size="lg"
-              className="grad-brand-vivid w-full border-0 text-white shadow-lg shadow-primary/30 transition-transform hover:scale-[1.01] disabled:opacity-50"
-              disabled={!items.length || pending || !sesionCajaId || !pagosValidos}
-              onClick={onCobrar}
-            >
-              {pending ? 'Procesando…' : `Cobrar ${clp.format(total)}`}
-            </Button>
-          </div>
+          <div className="flex-1 overflow-y-auto p-3">{listaCarrito}</div>
+          <div className="space-y-3 border-t p-3">{footerCarrito}</div>
         </div>
       </div>
+
+      {/* Móvil (< md): botón flotante con el total → abre el carrito como panel inferior */}
+      <button
+        type="button"
+        onClick={() => setCarritoOpen(true)}
+        className="grad-brand-vivid fixed inset-x-3 bottom-3 z-30 flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-white shadow-lg shadow-primary/30 md:hidden"
+      >
+        <span className="flex items-center gap-2 text-sm font-medium">
+          <ShoppingCart className="size-4" />
+          {items.length ? `${items.length} ítem(s)` : 'Carrito'}
+        </span>
+        <span className="text-sm font-bold tabular-nums">{clp.format(total)}</span>
+      </button>
+
+      {carritoOpen && (
+        <div className="fixed inset-0 z-40 md:hidden">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setCarritoOpen(false)}
+            aria-hidden
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Carrito"
+            className="absolute inset-x-0 bottom-0 flex max-h-[88vh] flex-col rounded-t-2xl border-t bg-card shadow-xl duration-200 animate-in slide-in-from-bottom"
+          >
+            <div className="flex items-center justify-between border-b p-3">
+              <span className="font-medium">Carrito{items.length ? ` · ${items.length}` : ''}</span>
+              <button
+                type="button"
+                onClick={() => setCarritoOpen(false)}
+                aria-label="Cerrar"
+                className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3">{listaCarrito}</div>
+            <div className="space-y-3 border-t p-3">{footerCarrito}</div>
+          </div>
+        </div>
+      )}
 
       {/* Escáner de códigos → al carrito (offline, busca en el catálogo) */}
       <BarcodeScannerModal

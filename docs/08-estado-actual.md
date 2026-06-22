@@ -379,6 +379,16 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   vez. **Solo en móvil** (`sm:hidden`); montado en `app/(dashboard)/layout.tsx` arriba del contenido.
   Reusa el estilo de `aviso-herramienta.tsx`. setState diferido con rAF (regla `set-state-in-effect`).
   tsc/lint/build OK. Sin migraciones.
+- **POS responsive** ✅ (commit). El ofensor #1: `pos-client.tsx` usaba `grid-cols-[1fr_20rem]` +
+  `h-[calc(100vh-8rem)]` FIJOS → en celular el carrito de 20rem aplastaba el catálogo. Rework
+  (sin tocar lógica de venta/cobro/offline/granel): el split de 2 paneles ahora es **solo `md:`+**
+  (idéntico en desktop); en **móvil (<md)** el catálogo ocupa todo el ancho y el carrito pasa a un
+  **botón flotante con el total (FAB `fixed`) → abre el carrito como panel inferior (bottom sheet)**.
+  El contenido del carrito (lista de ítems + footer de pagos/cobro) se extrajo a 2 variables
+  (`listaCarrito`/`footerCarrito`) y se reusa en el panel lateral (`hidden md:flex`) y en el sheet
+  (`md:hidden`) → cero duplicación. Nuevo estado `carritoOpen` (se cierra solo al cobrar, en `limpiar()`).
+  Buscador+Escanear pasó a `flex-col sm:flex-row`. Iconos `ShoppingCart`/`X` de lucide. tsc/lint/build OK.
+  Sin migraciones. **Falta verificación en celular de Andrés** (cámara/cobro/granel/sheet; PWA: reabrir ×2).
   - **Próximo (lista):** afinar RUT proveedor (vs cliente)/folio/razón social — **bloqueado: necesita el texto
     OCR real de más facturas** (pegar del visor); POS responsive (layout 2 paneles fijo, rework con navegador);
     pintar baja confianza OCR (hoy solo hay confianza global, no por campo). **GOTCHA: tras cada deploy, la PWA
