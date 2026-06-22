@@ -116,7 +116,10 @@ function montoTrasEtiqueta(lines: { text: string }[], etiqueta: RegExp, folio: s
     // que un entero sin separador pegado a "TOTAL"/"NETO" es válido). Salta la tasa
     // ("IVA 19% 5.700" → ignora 19, toma 5.700).
     const resto = t.slice((m.index ?? 0) + m[0].length);
-    for (const nm of resto.matchAll(/\$?\s*(\d{1,3}(?:[.,]\d{3})+|\d{2,9})/g)) {
+    // [.,\s] como separador de miles: algunas facturas pierden el punto y el OCR
+    // deja un espacio ("TOTAL FACTURA 11 901" → 11901). Anclado a la etiqueta, así
+    // que es seguro (no merge-ea números sueltos del resto de la hoja).
+    for (const nm of resto.matchAll(/\$?\s*(\d{1,3}(?:[.,\s]\d{3})+|\d{2,9})/g)) {
       const v = parseMonto(nm[1]);
       if (v >= 100) return v;
     }
@@ -281,8 +284,10 @@ export function extraerFactura(raw: OCRRaw, tipo: TipoDocOCR = 'factura'): Factu
   // Folio / N° de factura. OJO: el "factura" suelto agarraba "TOTAL FACTURA 11881"
   // (el total) como folio → exigir un marcador de número (N°/Nº/No/Nro/Folio/#),
   // o "factura N°". Sin marcador legible, mejor folio vacío que tomar el total.
+  // \b antes de cada marcador de palabra: si no, el "no" de "teléfoNo" agarraba el
+  // teléfono como folio (ABC). El "*" cubre el OCR de "Nº" como "N*" (Andina).
   const folioM = fullText.match(
-    /(?:folio|nro\.?|n[°ºo]\.?|#|factura\s*(?:electr[oó]nica\s*)?n[°ºo]\.?)\s*[:.\-]?\s*(\d{3,})/i
+    /(?:\bfolio|\bnro\.?|\bn[°ºo*]\.?|#|\bfactura\s*(?:electr[oó]nica\s*)?n[°ºo*]\.?)\s*[:.\-]?\s*(\d{3,})/i
   );
   const folio = folioM?.[1] ?? '';
 
@@ -314,8 +319,8 @@ export function extraerFactura(raw: OCRRaw, tipo: TipoDocOCR = 'factura'): Factu
     (sumaItems >= 1000 ? sumaItems : 0) ||
     maxMonto(abajo, folio);
   let neto =
-    montoTrasEtiqueta(abajo, /\bneto\b|afecto/i, folio) ||
-    montoTrasEtiqueta(lines, /\bneto\b|afecto/i, folio);
+    montoTrasEtiqueta(abajo, /monto\s*neto|\bneto\b|afecto/i, folio) ||
+    montoTrasEtiqueta(lines, /monto\s*neto|\bneto\b|afecto/i, folio);
   let iva =
     montoTrasEtiqueta(abajo, /i\.?v\.?a(?!\s*adicional)/i, folio) ||
     montoTrasEtiqueta(lines, /i\.?v\.?a(?!\s*adicional)/i, folio);
