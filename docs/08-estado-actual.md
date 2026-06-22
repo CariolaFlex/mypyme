@@ -373,6 +373,12 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   36→29px, `text-wrap:balance` aplicado) y a 1280px (máximos intactos). **Falta verificar en celular las
   pantallas tras auth (forms/OCR/tablas del dashboard)** — el CSS es global así que aplica igual; lo
   confirma Andrés (PWA: cerrar/reabrir ×2). Sin migraciones.
+- **Aviso de zoom en móvil** ✅ (commit). Andrés: en celular el zoom del navegador ayuda mucho; recordárselo
+  al usuario. `components/aviso-zoom.tsx` (client) = banner suave «¿Se ve apretado? Baja el zoom de tu
+  navegador…» con botón cerrar que guarda en `localStorage` (`aviso-zoom-descartado`) → se muestra una sola
+  vez. **Solo en móvil** (`sm:hidden`); montado en `app/(dashboard)/layout.tsx` arriba del contenido.
+  Reusa el estilo de `aviso-herramienta.tsx`. setState diferido con rAF (regla `set-state-in-effect`).
+  tsc/lint/build OK. Sin migraciones.
   - **Próximo (lista):** afinar RUT proveedor (vs cliente)/folio/razón social — **bloqueado: necesita el texto
     OCR real de más facturas** (pegar del visor); POS responsive (layout 2 paneles fijo, rework con navegador);
     pintar baja confianza OCR (hoy solo hay confianza global, no por campo). **GOTCHA: tras cada deploy, la PWA

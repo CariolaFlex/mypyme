@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { AppSidebar } from '@/components/app-sidebar';
+import { AvisoZoom } from '@/components/aviso-zoom';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -32,6 +33,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <AppSidebar empresaNombre={empresa?.razon_social ?? 'Tu negocio'} stockBajo={stockBajo} esAdmin={esAdmin} />
       <main className="flex-1 overflow-x-hidden">
         <div className="mx-auto max-w-6xl animate-in fade-in-50 slide-in-from-bottom-1 p-6 duration-300 sm:p-8">
+          <AvisoZoom />
           {children}
         </div>
       </main>
