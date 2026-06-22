@@ -8,7 +8,7 @@ import {
 import { PLANES, PLAN_BENEFICIOS, COMPARATIVA, type CeldaComparativa } from '@/lib/planes';
 import { LEGAL } from '@/lib/legal';
 import { clp } from '@/lib/reportes';
-import { PosFigura, ReportesFigura, EscanerFigura } from '@/components/help/ilustraciones';
+import { PosFigura, ReportesFigura, EscanerFigura, CajaFigura, InventarioFigura } from '@/components/help/ilustraciones';
 
 export const metadata: Metadata = {
   title: { absolute: 'Gestionala — POS, caja e inventario para tu negocio' },
@@ -65,6 +65,18 @@ const DEMOS: { Figura: React.ComponentType; titulo: string; desc: string; bullet
     titulo: 'Tus números claros, tu IVA listo',
     desc: 'Sabe cómo va tu negocio sin planillas. El IVA del mes calculado como insumo para tu F29.',
     bullets: ['Ventas por día, método, producto y cajero', 'IVA débito y crédito por mes', 'Exporta todo a Excel'],
+  },
+  {
+    Figura: CajaFigura,
+    titulo: 'Cuadra la caja sin dolores de cabeza',
+    desc: 'Abre con tu efectivo inicial y cierra contando: el sistema te dice al instante si cuadra.',
+    bullets: ['Arqueo automático del efectivo', 'Registra entradas y salidas del día', 'Detecta diferencias al cerrar'],
+  },
+  {
+    Figura: InventarioFigura,
+    titulo: 'Nunca te quedes sin stock',
+    desc: 'El inventario se actualiza solo con tus ventas y compras, y te avisa antes de que se agote algo.',
+    bullets: ['Stock en tiempo real', 'Alertas de stock bajo', 'Entradas, mermas y ajustes'],
   },
   {
     Figura: EscanerFigura,
