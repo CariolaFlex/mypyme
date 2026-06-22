@@ -343,6 +343,13 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     lee `h2[id]` del artículo — sirve T&C y privacidad sin duplicar) + link Inicio; secciones con anclas;
     descripción del servicio (T&C) y datos operacionales (privacidad) mencionan escáner/OCR/granel. Fondo
     legal NO reescrito.
+  - **Refinamiento de ilustraciones** (`5cb3321`): feedback de Andrés = las figuras se veían tipo
+    esqueleto (barras grises). Reescritas a **mini-pantallas con datos reales** (nombres de producto +
+    precios + carrito/total en POS, balance + «Cuadrada» + movimientos en Caja, stock + badge «stock
+    bajo» en Inventario, gráfico con meses + tarjeta F29 en Reportes, proveedores + montos + badges
+    pendiente/pagada en Compras, roles en Usuarios, planes con checks en Suscripción) al nivel del
+    mockup del hero. Nueva `GranelFigura`. Landing «Míralo en acción» pasó a **5 esquemas** (sumó Caja
+    e Inventario). Verificado visualmente en navegador (preview).
   - Todo verificado tsc/lint/build webpack. Sin migraciones/RPCs (solo presentación). Decisiones de Andrés:
     ilustraciones SVG (no screenshots) · hub+página por módulo · refresco legal ligero.
   - **Próximo (lista):** afinar RUT proveedor (vs cliente)/folio/razón social — **bloqueado: necesita el texto
