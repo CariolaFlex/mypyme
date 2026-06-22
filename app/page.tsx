@@ -9,6 +9,7 @@ import { PLANES, PLAN_BENEFICIOS, COMPARATIVA, type CeldaComparativa } from '@/l
 import { LEGAL } from '@/lib/legal';
 import { clp } from '@/lib/reportes';
 import { PosFigura, ReportesFigura, EscanerFigura, CajaFigura, InventarioFigura } from '@/components/help/ilustraciones';
+import { MiniPos, MiniOffline, MiniCaja, MiniInventario, MiniCompras, MiniReportes } from '@/components/help/mini-esquemas';
 
 export const metadata: Metadata = {
   title: { absolute: 'Gestionala — POS, caja e inventario para tu negocio' },
@@ -44,13 +45,13 @@ const PASOS: { icon: LucideIcon; titulo: string; desc: string }[] = [
   { icon: ShoppingCart, titulo: '3. Vende y controla', desc: 'Cobra en el POS, cuadra la caja y mira tus reportes e IVA del mes.' },
 ];
 
-const FEATURES: { icon: LucideIcon; titulo: string; desc: string }[] = [
-  { icon: ShoppingCart, titulo: 'POS táctil y rápido', desc: 'Cobra en segundos con buscador, categorías, multi-pago y vuelto. Imprime comprobante térmico al instante.' },
-  { icon: WifiOff, titulo: 'Funciona sin internet', desc: 'Si se cae la conexión, sigues vendiendo. Las ventas se sincronizan solas al volver la señal.' },
-  { icon: Wallet, titulo: 'Caja con cuadratura', desc: 'Abre y cierra caja con arqueo automático. Detecta diferencias y registra cada movimiento.' },
-  { icon: Boxes, titulo: 'Inventario y stock', desc: 'Stock en tiempo real, alertas de bajo stock, venta a granel e importación masiva del catálogo.' },
-  { icon: Truck, titulo: 'Compras y proveedores', desc: 'Órdenes de compra, recepción de mercadería, cuentas por pagar y registro de gastos.' },
-  { icon: BarChart3, titulo: 'Reportes e IVA (F29)', desc: 'Ventas por día, método y producto. Débito y crédito de IVA listos para tu F29. Exporta a Excel.' },
+const FEATURES: { icon: LucideIcon; titulo: string; desc: string; mini: React.ComponentType }[] = [
+  { icon: ShoppingCart, titulo: 'POS táctil y rápido', desc: 'Cobra en segundos con buscador, categorías, multi-pago y vuelto. Imprime comprobante térmico al instante.', mini: MiniPos },
+  { icon: WifiOff, titulo: 'Funciona sin internet', desc: 'Si se cae la conexión, sigues vendiendo. Las ventas se sincronizan solas al volver la señal.', mini: MiniOffline },
+  { icon: Wallet, titulo: 'Caja con cuadratura', desc: 'Abre y cierra caja con arqueo automático. Detecta diferencias y registra cada movimiento.', mini: MiniCaja },
+  { icon: Boxes, titulo: 'Inventario y stock', desc: 'Stock en tiempo real, alertas de bajo stock, venta a granel e importación masiva del catálogo.', mini: MiniInventario },
+  { icon: Truck, titulo: 'Compras y proveedores', desc: 'Órdenes de compra, recepción de mercadería, cuentas por pagar y registro de gastos.', mini: MiniCompras },
+  { icon: BarChart3, titulo: 'Reportes e IVA (F29)', desc: 'Ventas por día, método y producto. Débito y crédito de IVA listos para tu F29. Exporta a Excel.', mini: MiniReportes },
 ];
 
 const DEMOS: { Figura: React.ComponentType; titulo: string; desc: string; bullets: string[] }[] = [
@@ -225,13 +226,16 @@ export default function LandingPage() {
             </p>
           </div>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map(({ icon: Icon, titulo, desc }) => (
-              <div key={titulo} className="shine-card group rounded-2xl glass p-6 shadow-sm transition-transform duration-200 hover:-translate-y-1">
-                <div className="mb-4 inline-flex rounded-xl grad-brand-vivid p-3 text-white shadow-lg shadow-primary/30">
+            {FEATURES.map(({ icon: Icon, titulo, desc, mini: Mini }) => (
+              <div key={titulo} className="shine-card group flex flex-col rounded-2xl glass p-6 shadow-sm transition-transform duration-200 hover:-translate-y-1">
+                <div className="mb-4 inline-flex w-fit rounded-xl grad-brand-vivid p-3 text-white shadow-lg shadow-primary/30">
                   <Icon className="size-5" />
                 </div>
                 <h3 className="text-lg font-bold">{titulo}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">{desc}</p>
+                <div className="mt-4 rounded-xl border border-border/60 bg-muted/20 p-3">
+                  <Mini />
+                </div>
               </div>
             ))}
           </div>
