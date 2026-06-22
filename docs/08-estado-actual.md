@@ -295,6 +295,21 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     tsc/lint/build; **falta verificar interacción en navegador (Andrés)**. **PENDIENTE: replicar el selector
     con/sin IVA a factura manual (`/compras/facturas/nueva`) y gastos (`/gastos`)** — ya tienen tasa% vía
     `DocTributario`, falta el toggle con/sin; son forms de server action (requieren island, hacer tras OK de Andrés).
+- **Escáner en el POS + venta a granel/por peso** ✅ (`7382c33`, **migración #35 `20260621020000_producto_granel.sql`
+  aplicada en cloud = 35 migraciones**). Plan aprobado (3 fases). *(1)* **Producto a granel**: nueva columna
+  `productos.granel BOOLEAN`; checkbox «Se vende a granel / por peso» en alta (`producto-form.tsx`) y edición
+  (`row-actions.tsx`), con etiqueta de precio dinámica («Precio por kg»); `crear/editarProducto` guardan `granel`.
+  Semántica: si `granel`, `precio_total` = precio por `unidad_medida`. *(2)* **Escáner en el POS**: botón
+  «Escanear» junto al buscador → busca el código en el catálogo cacheado **en memoria (offline)**; encontrado→
+  carrito, no→aviso. **Modo continuo** (toggle en el modal): varios seguidos, ignora repetidos ~1,5s.
+  `useBarcodeScanner` ganó opción `{ continuo }`; `BarcodeScanner`/`BarcodeScannerModal` lo propagan. `ProductoCache`
+  (Dexie) ganó `codigo_barras/granel/unidad_medida` (el POS `page.tsx` los trae; sin subir versión de Dexie).
+  *(3)* **Venta a granel en el POS**: tocar/escanear un producto granel abre modal con **toggle Peso↔Monto**
+  («$1.000 de queso» calcula el peso, o se ingresa kg); el carrito muestra «0,350 kg ✎» (tocar para corregir),
+  unitarios con +/−. **`process_sale` NO cambió** (`ventas_lineas.cantidad` ya es `NUMERIC(14,3)`; calcula
+  `precio_total × cantidad`). e2e `scripts/verify-granel.mjs` **5/5** (venta 0,350 kg → línea $2.800, stock
+  4,650 kg). tsc/lint/build OK. **Falta verificación en navegador (cámara/continuo/granel) de Andrés** (cerrar/
+  reabrir PWA ×2 para el bundle nuevo). Fuera de alcance: API de pago de códigos, balanza por hardware, EAN-13 de balanza con peso embebido.
   - **Próximo:** replicar selector IVA a factura-manual/gastos; afinar RUT proveedor (vs cliente), folio y
     razón social con validación real. Otros: «reabrir borrador» desde el historial (lista/borra); POS responsive;
     pintar en rojo campos de baja confianza del OCR. **GOTCHA: tras cada deploy, la PWA (Serwist) sirve el JS
