@@ -323,6 +323,28 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     Botón bajo el escáner (`producto-form.tsx`) + modal de confirmación que `setF(vacio)`, limpia
     `sessionStorage` (`borrador-producto`) y cierra secciones auxiliares. No toca la lógica de
     `enriquecer` (intencional «no pisar lo tipeado»). escaneo-rápido/edición no lo necesitan.
+- **Presentación / marketing / centro de ayuda** ✅ (4 commits: `37ac181`, `afc32d3`, `6d22d66`, `d0e81c0`).
+  Rework de la capa de presentación, por fases:
+  - **Fase A** (`37ac181`): `lib/planes.ts` = **fuente única de marketing** (`PLAN_BENEFICIOS` +
+    `COMPARATIVA`, precio/nombre re-exportados de `subscription.ts`). La página `/configuracion/suscripcion`
+    ahora lista beneficios por plan (antes solo precio). Fecha legal → 22-jun.
+  - **Fase B** (`afc32d3`): **centro de ayuda moderno**. `/ayuda` reescrita = hub (flujo recomendado de 6
+    pasos para nuevos + grid de manual por módulo + glosario + FAQ). **Manual detallado por módulo** en
+    `/ayuda/[slug]` (10: productos, inventario, pos, caja, escaner-ocr, compras, gastos, reportes-iva,
+    usuarios, suscripcion) con paso a paso, tips, FAQ y términos relacionados. Registro único
+    `lib/ayuda/manual.tsx` (type-safe). Primitivas `components/help/primitives.tsx` (HelpFigure, Pasos,
+    Callout, ModuleCard) + **10 ilustraciones SVG theme-aware** `components/help/ilustraciones.tsx`
+    (mini-pantallas con CSS vars de la marca, sirven también a la landing). NO screenshots reales (Andrés
+    puede sustituir después).
+  - **Fase C** (`6d22d66`): **landing rework** (`app/page.tsx`). Tira de confianza, «Empieza en 3 pasos»,
+    sección «Míralo en acción» con ilustraciones SVG (POS/reportes/escáner), planes con beneficios +
+    **tabla comparativa** (de `lib/planes`) + FAQ de planes. Verificado visualmente en navegador (preview).
+  - **Fase D** (`d0e81c0`): **refresco ligero de legales**. Layout con **TOC lateral sticky** (`app/legal/toc.tsx`,
+    lee `h2[id]` del artículo — sirve T&C y privacidad sin duplicar) + link Inicio; secciones con anclas;
+    descripción del servicio (T&C) y datos operacionales (privacidad) mencionan escáner/OCR/granel. Fondo
+    legal NO reescrito.
+  - Todo verificado tsc/lint/build webpack. Sin migraciones/RPCs (solo presentación). Decisiones de Andrés:
+    ilustraciones SVG (no screenshots) · hub+página por módulo · refresco legal ligero.
   - **Próximo (lista):** afinar RUT proveedor (vs cliente)/folio/razón social — **bloqueado: necesita el texto
     OCR real de más facturas** (pegar del visor); POS responsive (layout 2 paneles fijo, rework con navegador);
     pintar baja confianza OCR (hoy solo hay confianza global, no por campo). **GOTCHA: tras cada deploy, la PWA
