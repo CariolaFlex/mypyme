@@ -64,6 +64,14 @@ export default async function HistorialScansPage() {
                     )}
                   </TableCell>
                   <TableCell className="text-right">
+                    {s.estado !== 'importado' && (
+                      <Link
+                        href={`/compras/escanear-factura?scan=${s.id}`}
+                        className="mr-3 text-xs underline-offset-2 hover:underline"
+                      >
+                        Reabrir
+                      </Link>
+                    )}
                     <BorrarScan scanId={s.id} />
                   </TableCell>
                 </TableRow>

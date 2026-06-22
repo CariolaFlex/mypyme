@@ -3,10 +3,16 @@ import { ScanText, History, PencilLine } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { createClient } from '@/lib/supabase/server';
 import { EscanearFactura } from './escanear-factura';
+import type { FacturaExtraida } from '@/lib/ocr/types';
 
 export const dynamic = 'force-dynamic';
 
-export default async function EscanearFacturaPage() {
+export default async function EscanearFacturaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ scan?: string }>;
+}) {
+  const { scan } = await searchParams;
   const supabase = await createClient();
   const [{ data: proveedores }, { data: productos }, { data: cfg }] = await Promise.all([
     supabase.from('proveedores').select('id, nombre, rut').eq('activo', true).order('nombre'),
@@ -14,6 +20,24 @@ export default async function EscanearFacturaPage() {
     supabase.from('configuracion_negocio').select('usa_iva, tasa_iva_default').maybeSingle(),
   ]);
   const tasaDefault = cfg?.usa_iva ? Number(cfg.tasa_iva_default ?? 19) : 0;
+
+  // Reabrir un borrador/revisado del historial: precarga el review con sus datos.
+  let inicial: { scanId: string; datos: FacturaExtraida; textoPlano: string; confianza: number } | undefined;
+  if (scan) {
+    const { data: row } = await supabase
+      .from('ocr_scans')
+      .select('id, datos, texto_plano, confianza, estado')
+      .eq('id', scan)
+      .maybeSingle();
+    if (row && row.estado !== 'importado') {
+      inicial = {
+        scanId: row.id,
+        datos: row.datos as FacturaExtraida,
+        textoPlano: row.texto_plano ?? '',
+        confianza: Number(row.confianza ?? 0),
+      };
+    }
+  }
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -43,7 +67,12 @@ export default async function EscanearFacturaPage() {
           <History className="size-4" /> Ver historial de escaneos
         </Link>
       </div>
-      <EscanearFactura proveedores={proveedores ?? []} productos={productos ?? []} tasaDefault={tasaDefault} />
+      <EscanearFactura
+        proveedores={proveedores ?? []}
+        productos={productos ?? []}
+        tasaDefault={tasaDefault}
+        inicial={inicial}
+      />
     </div>
   );
 }

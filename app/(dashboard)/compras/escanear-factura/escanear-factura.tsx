@@ -50,17 +50,22 @@ export function EscanearFactura({
   proveedores,
   productos,
   tasaDefault,
+  inicial,
 }: {
   proveedores: Proveedor[];
   productos: Producto[];
   tasaDefault: number;
+  /** Reabrir un borrador del historial: precarga el review con sus datos. */
+  inicial?: { scanId: string; datos: FacturaExtraida; textoPlano: string; confianza: number };
 }) {
   const router = useRouter();
-  const [fase, setFase] = useState<'idle' | 'procesando' | 'review'>('idle');
+  const [fase, setFase] = useState<'idle' | 'procesando' | 'review'>(inicial ? 'review' : 'idle');
   const [progress, setProgress] = useState<OCRProgress | null>(null);
-  const [d, setD] = useState<FacturaExtraida>(VACIO);
-  const [meta, setMeta] = useState<{ textoPlano: string; confianza: number }>({ textoPlano: '', confianza: 0 });
-  const [scanId, setScanId] = useState<string | undefined>();
+  const [d, setD] = useState<FacturaExtraida>(inicial?.datos ?? VACIO);
+  const [meta, setMeta] = useState<{ textoPlano: string; confianza: number }>(
+    inicial ? { textoPlano: inicial.textoPlano, confianza: inicial.confianza } : { textoPlano: '', confianza: 0 }
+  );
+  const [scanId, setScanId] = useState<string | undefined>(inicial?.scanId);
   const [busy, setBusy] = useState(false);
   const [tipo, setTipo] = useState<TipoDocOCR>('factura');
   const [proveedorId, setProveedorId] = useState(''); // '' = crear nuevo
@@ -71,7 +76,7 @@ export function EscanearFactura({
   const [ivaManual, setIvaManual] = useState(false);
   // Mapeo ítem→destino de inventario, paralelo a d.items: '' = no cargar,
   // 'NEW' = crear producto, o el id de un producto existente.
-  const [cargarSel, setCargarSel] = useState<string[]>([]);
+  const [cargarSel, setCargarSel] = useState<string[]>(inicial?.datos.items.map(() => '') ?? []);
 
   async function onFile(file: File) {
     setFase('procesando');
