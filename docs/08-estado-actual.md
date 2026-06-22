@@ -310,10 +310,17 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   `precio_total × cantidad`). e2e `scripts/verify-granel.mjs` **5/5** (venta 0,350 kg → línea $2.800, stock
   4,650 kg). tsc/lint/build OK. **Falta verificación en navegador (cámara/continuo/granel) de Andrés** (cerrar/
   reabrir PWA ×2 para el bundle nuevo). Fuera de alcance: API de pago de códigos, balanza por hardware, EAN-13 de balanza con peso embebido.
-  - **Próximo:** replicar selector IVA a factura-manual/gastos; afinar RUT proveedor (vs cliente), folio y
-    razón social con validación real. Otros: «reabrir borrador» desde el historial (lista/borra); POS responsive;
-    pintar en rojo campos de baja confianza del OCR. **GOTCHA: tras cada deploy, la PWA (Serwist) sirve el JS
-    cacheado → cerrar/reabrir la PWA 2 veces para ver el código nuevo (pasó con el Coca-Cola «seguía en 135.760»).**
+  - **✅ Selector con/sin IVA en factura manual + gastos** (`279df43`). Island `components/monto-tributario.tsx`
+    (tipo doc + Incluye IVA/Sin IVA neto/Exento + tasa% default + desglose en vivo) que emite los hidden que ya
+    leen las actions (`monto_total` bruto, `tasa_iva`, `tipo_documento`) → drop-in. Reemplaza «Monto total» +
+    `DocTributario` en `/compras/facturas/nueva` y `/gastos` (DocTributario queda para `TIPOS_DOC`/`esExento` + edición).
+  - **✅ Reabrir borrador del historial** (`3b0f9df`). Scans no-importados → «Reabrir» →
+    `?scan=<id>`; `EscanearFactura` arranca en el review precargado (prop `inicial`). Guardar actualiza el
+    mismo registro; registrar lo marca importado.
+  - **Próximo (lista):** afinar RUT proveedor (vs cliente)/folio/razón social — **bloqueado: necesita el texto
+    OCR real de más facturas** (pegar del visor); POS responsive (layout 2 paneles fijo, rework con navegador);
+    pintar baja confianza OCR (hoy solo hay confianza global, no por campo). **GOTCHA: tras cada deploy, la PWA
+    (Serwist) sirve el JS cacheado → cerrar/reabrir la PWA 2 veces para ver el código nuevo.**
 
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
