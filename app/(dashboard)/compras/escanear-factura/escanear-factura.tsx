@@ -407,7 +407,7 @@ export function EscanearFactura({
           <div className="divide-y">
             {d.items.map((it, i) => (
               <div key={i} className="space-y-1.5 px-3 py-2">
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-12 sm:items-end">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-12 sm:items-end">
                   <div className="col-span-2 sm:col-span-5">
                     <span className="mb-0.5 block text-[10px] text-muted-foreground sm:hidden">Descripción</span>
                     <Input className="w-full" placeholder="Descripción" value={it.descripcion} onChange={(e) => setItem(i, 'descripcion', e.target.value)} />

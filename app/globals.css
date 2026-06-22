@@ -48,6 +48,24 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* === Tipografía fluida (clamp) — escala suave 320px → desktop ===
+   Redefine los escalones de Tailwind v4: cada text-sm…text-6xl del repo se
+   adapta solo en celular SIN tocar componentes. El MAX de cada clamp = el
+   tamaño desktop por defecto de Tailwind → cero regresión en pantallas grandes;
+   solo encoge en angosto (ataca la superposición de letras). Las line-heights
+   pareadas (--text-*--line-height) quedan en su default. */
+@theme {
+  --text-sm:   clamp(0.8125rem, 0.79rem + 0.15vw, 0.875rem);
+  --text-base: clamp(0.9rem,   0.86rem + 0.20vw, 1rem);
+  --text-lg:   clamp(1rem,     0.95rem + 0.30vw, 1.125rem);
+  --text-xl:   clamp(1.1rem,   1.02rem + 0.40vw, 1.25rem);
+  --text-2xl:  clamp(1.3rem,   1.10rem + 0.90vw, 1.5rem);
+  --text-3xl:  clamp(1.5rem,   1.20rem + 1.50vw, 1.875rem);
+  --text-4xl:  clamp(1.75rem,  1.30rem + 2.20vw, 2.25rem);
+  --text-5xl:  clamp(2.1rem,   1.40rem + 3.40vw, 3rem);
+  --text-6xl:  clamp(2.4rem,   1.50rem + 4.40vw, 3.75rem);
+}
+
 /* Paleta Gestionala (navy / azul real / slate). Ver docs/10-marca-gestionala.md */
 :root {
   --background: #ffffff;
@@ -146,6 +164,14 @@
   }
   html {
     @apply font-sans;
+  }
+  /* Balanceo de texto: títulos sin orfandades feas + párrafos sin viuda final.
+     Soporte degradado en navegadores viejos (ignoran la propiedad). */
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
   }
   /* Foco visible para campos nativos (selects/inputs/textarea sin clases de foco
      propias). Los componentes base <Input>/<Select> ya traen su anillo y ganan

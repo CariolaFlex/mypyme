@@ -330,7 +330,7 @@ export function ProductoForm({
               Si compras por pack (ej. «Confort 12 mangas»), calcula el costo por unidad y tu margen.
               Esto NO se guarda: solo te ayuda a fijar el precio de venta de arriba.
             </p>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               <div className="space-y-1.5">
                 <Label htmlFor="lote-tipo">Tipo</Label>
                 <select

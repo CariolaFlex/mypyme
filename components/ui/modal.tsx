@@ -37,7 +37,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="relative z-10 w-full max-w-md rounded-xl border bg-card p-5 shadow-xl duration-150 animate-in fade-in zoom-in-95"
+        className="relative z-10 max-h-[90vh] w-full max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-xl border bg-card p-5 shadow-xl duration-150 animate-in fade-in zoom-in-95 sm:max-w-md"
       >
         <div className="mb-4 flex items-center justify-between gap-4">
           <h2 className="text-base font-semibold">{title}</h2>

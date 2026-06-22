@@ -352,6 +352,27 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     e Inventario). Verificado visualmente en navegador (preview).
   - Todo verificado tsc/lint/build webpack. Sin migraciones/RPCs (solo presentación). Decisiones de Andrés:
     ilustraciones SVG (no screenshots) · hub+página por módulo · refresco legal ligero.
+- **Dimensionamiento responsive global (foco celular)** ✅ (commit). Andrés: en celular las letras se
+  superponían/no cabían; pidió "incorporar una tecnología que mejore la presentación en celular".
+  Diagnóstico real: NO existía tipografía/spacing fluido (`clamp`/`text-balance`/`@container` = 0 en el
+  repo) + grids fijos sin breakpoint móvil. **Tecnología elegida (decisión de Andrés): tipografía fluida
+  con `clamp()` redefiniendo los tokens de texto de Tailwind v4** → cada `text-sm…text-6xl` del repo
+  escala suave en angosto SIN tocar componentes. **Capa A (sistémica, núcleo):** en `app/globals.css`
+  bloque `@theme` con `--text-sm…--text-6xl` en `clamp(min, fluido-vw, MAX)` donde **MAX = el tamaño
+  desktop por defecto de Tailwind → CERO regresión en desktop** (verificado: h1 lg:text-6xl=60px,
+  text-2xl=24px, text-4xl=36px exactos); `@layer base` con `text-wrap: balance` en h1/h2/h3 y `pretty`
+  en p. **Capa A componentes:** `input.tsx` h-8→`h-9 sm:h-8` (tap más cómodo en móvil), `select.tsx`
+  trigger igual, `modal.tsx` `max-w-md`→`max-w-[calc(100vw-1.5rem)] sm:max-w-md`+`max-h-[90vh] overflow-y-auto`,
+  `page-header.tsx` icono `size-9 sm:size-11`+`min-w-0`, `stat-card.tsx` monto `text-[1.7rem]`→
+  `text-[clamp(1.25rem,6vw,1.7rem)] break-words`. **Capa B (grids fijos, cero-riesgo desktop):**
+  `producto-form.tsx` calculadora lotes `grid-cols-2`→`grid-cols-1 sm:grid-cols-3`; `escanear-factura.tsx`
+  ítems OCR `grid-cols-2`→`grid-cols-1 sm:grid-cols-12` (apilan en móvil, idénticos en `sm:`+). Los
+  toggles de texto corto (tipo doc, modo IVA, monto-tributario) se dejaron (caben, apilarlos empeora).
+  **POS responsive (layout 2 paneles → drawer) NO entró** (decisión de Andrés = sesión dedicada después).
+  Verificado: tsc/lint/build webpack OK + DOM en navegador a 375px (landing sin scroll horizontal, h1
+  36→29px, `text-wrap:balance` aplicado) y a 1280px (máximos intactos). **Falta verificar en celular las
+  pantallas tras auth (forms/OCR/tablas del dashboard)** — el CSS es global así que aplica igual; lo
+  confirma Andrés (PWA: cerrar/reabrir ×2). Sin migraciones.
   - **Próximo (lista):** afinar RUT proveedor (vs cliente)/folio/razón social — **bloqueado: necesita el texto
     OCR real de más facturas** (pegar del visor); POS responsive (layout 2 paneles fijo, rework con navegador);
     pintar baja confianza OCR (hoy solo hay confianza global, no por campo). **GOTCHA: tras cada deploy, la PWA

@@ -72,7 +72,7 @@ export function StatCard({
         <div className={`mb-3 inline-flex rounded-xl bg-gradient-to-br p-2.5 text-white shadow-lg [&_svg]:size-[18px] ${ICON_GRAD[accent]}`}>
           {icon}
         </div>
-        <div className="text-[1.7rem] font-black leading-none tracking-tight tabular-nums">{shown}</div>
+        <div className="text-[clamp(1.25rem,6vw,1.7rem)] font-black leading-none tracking-tight tabular-nums break-words">{shown}</div>
         <div className="mt-1.5 text-sm font-semibold">{label}</div>
         {sub != null && <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>}
       </div>
