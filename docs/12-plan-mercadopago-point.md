@@ -137,6 +137,14 @@
   Panel para Andrés: TPV por comerciante, comisiones estimadas, estado de devices. Si MP confirmó
   `application_fee` presencial (#4), cablearlo; si no, el revenue share (#2) se concilia con el
   reporte de MP.
+  - **Incremento 1 ✅ (2026-06-22) — Reporte MP por comerciante** (independiente del acuerdo):
+    migración `20260622010000_reporte_mp.sql` (RPCs `reporte_mp_resumen` + `reporte_mp_por_dia`,
+    SECURITY INVOKER, RLS por tenant); página `/reportes/mercadopago` (KPIs total/aprobados/rechazados/
+    ticket + gráfico por día + estado de terminales + historial); link en sidebar. Reusa
+    `lib/reportes.ts` + `VentasPorDiaChart`. e2e verify-mp 17/17.
+  - **Pendiente (espera el acuerdo + varios comercios):** panel cross-tenant para Andrés (TPV de todos
+    + comisión con % configurable; acceso = allowlist de emails en env o AdminVectium) y
+    `application_fee`/split presencial (sin confirmar por MP).
 - **Fase 3 — Pulido.**
   Reembolsos/anulaciones desde el POS, manejo de disputas, multi-terminal por caja, alertas de device
   desconectado.

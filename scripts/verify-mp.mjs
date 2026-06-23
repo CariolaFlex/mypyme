@@ -91,6 +91,23 @@ try {
   const { count } = await admin.from('ventas').select('id', { count: 'exact', head: true }).eq('id', ventaId);
   check('registrar_venta_mp es idempotente (1 venta)', count === 1, `count=${count}`);
 
+  // ── Reporte MP por comerciante (RPCs SECURITY INVOKER, RLS por tenant) ────
+  await admin.from('mp_cobros').insert({
+    empresa_id: A.empresaId, venta_id: randomUUID(), payment_intent_id: 'INTENT-A-REJ',
+    device_id: 'DEVICE-A', monto: 500, estado: 'rejected',
+    payload: { lineas: [], pagos: [], sesion_caja_id: null },
+  });
+  const rDesde = new Date(Date.now() - 86_400_000).toISOString();
+  const rHasta = new Date(Date.now() + 60_000).toISOString();
+  const { data: resumen, error: rese } = await A.sb.rpc('reporte_mp_resumen', { p_desde: rDesde, p_hasta: rHasta });
+  const RM = resumen?.[0];
+  check('reporte_mp_resumen: 1 aprobado', !rese && Number(RM?.num_aprobados) === 1, rese?.message || JSON.stringify(RM));
+  check('reporte_mp_resumen: 1 rechazado', Number(RM?.num_rechazados) === 1, JSON.stringify(RM));
+  check('reporte_mp_resumen: total aprobado $2.000', Math.abs(Number(RM?.total_aprobado) - 2000) <= 1, JSON.stringify(RM));
+  const { data: porDia } = await A.sb.rpc('reporte_mp_por_dia', { p_desde: rDesde, p_hasta: rHasta });
+  const totDia = (porDia ?? []).reduce((s, d) => s + Number(d.total), 0);
+  check('reporte_mp_por_dia: total aprobado $2.000', Math.abs(totDia - 2000) <= 1, JSON.stringify(porDia));
+
   // ── Regresión: process_sale (wrapper) sigue registrando con el JWT ───────
   const { data: cash } = await A.sb.from('metodos_pago').select('id').eq('tipo', 'cash').limit(1).single();
   const ventaCash = randomUUID();

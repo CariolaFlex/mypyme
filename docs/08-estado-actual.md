@@ -426,6 +426,14 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   `MP_TOKEN_ENC_KEY`, `MP_WEBHOOK_SECRET`) + app en MP (redirect + webhook URL); cobro físico se
   confirma con un Point Smart real. Detalle: `docs/12-plan-mercadopago-point.md`.
 
+- **Mercado Pago Point — Fase 2 inc.1 (reporte por comerciante)** ✅ código + DB (2026-06-22).
+  Migración `20260622010000_reporte_mp.sql` (RPCs `reporte_mp_resumen`/`reporte_mp_por_dia`, INVOKER,
+  RLS por tenant, **aplicada en cloud**). Página `/reportes/mercadopago` (KPIs total cobrado/aprobados/
+  rechazados/ticket + gráfico por día reusando `VentasPorDiaChart` + estado de terminales + historial;
+  empty state con link a conectar). Link en sidebar (grupo Operación). e2e `verify-mp` 17/17. **Sin
+  comisión/revenue-share** (espera el acuerdo MP) ni panel cross-tenant (Fase 2 inc.2). Verificado
+  lint/typecheck/build webpack.
+
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
    Domicilio fijado a El Trovador 4280 Of 307, RM (jurisdicción Santiago).
