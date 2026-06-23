@@ -407,12 +407,13 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     pintar baja confianza OCR (hoy solo hay confianza global, no por campo). **GOTCHA: tras cada deploy, la PWA
     (Serwist) sirve el JS cacheado → cerrar/reabrir la PWA 2 veces para ver el código nuevo.**
 
-- **Mercado Pago Point — Fase 1 (add-on POS)** ✅ código (2026-06-22, plan mode; plan file
-  `ethereal-hatching-biscuit.md`). Cobro con tarjeta disparado desde el POS, registrado en la
-  plataforma. **Gateado e inerte como Flow** (`mpConfigurado()` → sin credenciales la app queda
-  idéntica). **Sin split/fee** (acuerdo comercial pendiente). Migración
-  `20260622000000_mercadopago_point.sql` (**NO aplicada aún**): tablas `mp_conexiones` (tokens
-  AES-256-GCM, cols de token con REVOKE SELECT a authenticated), `mp_dispositivos`, `mp_cobros`
+- **Mercado Pago Point — Fase 1 (add-on POS)** ✅ código + DB (2026-06-22, plan mode; plan file
+  `ethereal-hatching-biscuit.md`; migración aplicada en cloud 2026-06-23). Cobro con tarjeta disparado
+  desde el POS, registrado en la plataforma. **Gateado e inerte como Flow** (`mpConfigurado()` → sin
+  credenciales la app queda idéntica). **Sin split/fee** (acuerdo comercial pendiente). Migraciones
+  `20260622000000_mercadopago_point.sql` + `20260622000100_mp_token_cols_fix.sql` (**aplicadas en
+  cloud, 37 migraciones**): tablas `mp_conexiones` (tokens AES-256-GCM; columnas de token con
+  `REVOKE SELECT` a `authenticated`, solo `service_role` las lee), `mp_dispositivos`, `mp_cobros`
   (guarda el payload de la venta); **refactor `process_sale` → wrapper sobre `process_sale_core`
   (DEFINER, empresa por parámetro)** para que el webhook (service_role, sin JWT) pueda registrar la
   venta vía `registrar_venta_mp`. Backend `lib/mp/` (espeja `lib/flow/`: config/crypto/oauth/tokens/
@@ -420,11 +421,13 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
   **`POST /api/webhooks/mp`** (bajo `/api/webhooks/*` → excluido de sesión por el middleware).
   UI `/configuracion/mercadopago` (conectar OAuth + vincular terminal + desconectar; siembra el método
   `metodos_pago` tipo `mercadopago_point` ≠ cash → no toca caja); en el POS ese método abre el flujo
-  (modal «Esperando pago…», poll de `mp_cobros`, gateado a online). e2e `scripts/verify-mp.mjs`.
-  Verificado tsc/lint/build webpack. **PENDIENTE:** aplicar la migración con DB password → correr
-  `verify-mp` + regresión `verify-3b`/`verify-granel`; env en Vercel (`MP_CLIENT_ID/SECRET`,
-  `MP_TOKEN_ENC_KEY`, `MP_WEBHOOK_SECRET`) + app en MP (redirect + webhook URL); cobro físico se
-  confirma con un Point Smart real. Detalle: `docs/12-plan-mercadopago-point.md`.
+  (modal «Esperando pago…», poll de `mp_cobros`, gateado a online). **Verificado e2e (2026-06-23):**
+  `verify-mp.mjs` **17/17** (tablas, RLS, idempotencia, aislamiento de tokens, reporte, regresión en
+  `process_sale`) + regresión `verify-3b` 5/5 y `verify-granel` 5/5 sin breakage. tsc/lint/build
+  webpack OK. **PENDIENTE (manual de Andrés, fuera del código):** crear la app en el portal de
+  developers de MP (client_id/secret, redirect URL, webhook URL), env en Vercel (`MP_CLIENT_ID/SECRET`,
+  `MP_TOKEN_ENC_KEY`, `MP_WEBHOOK_SECRET`), probar con un Point Smart real. Detalle:
+  `docs/12-plan-mercadopago-point.md`.
 
 - **Mercado Pago Point — Fase 2 inc.1 (reporte por comerciante)** ✅ código + DB (2026-06-22).
   Migración `20260622010000_reporte_mp.sql` (RPCs `reporte_mp_resumen`/`reporte_mp_por_dia`, INVOKER,

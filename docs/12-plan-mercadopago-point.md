@@ -1,7 +1,8 @@
 # Plan / Factibilidad — Mercado Pago Point integrado a Gestionala
 
-> **Estado:** **Fase 1 implementada** (2026-06-22), gateada e inerte como Flow; pendiente de aplicar la
-> migración en cloud + prueba con hardware real. Fase 0 (acuerdo comercial) e ingresos #2/#4 siguen pendientes.
+> **Estado:** **Fase 1 implementada y migrada** (2026-06-22 código, 2026-06-23 migración aplicada en
+> cloud + e2e 17/17 verde), gateada e inerte como Flow; pendiente la app en el portal MP + env en
+> Vercel + prueba con hardware real. Fase 0 (acuerdo comercial) e ingresos #2/#4 siguen pendientes.
 > **Autor del análisis:** sesión Claude Code (investigación + diseño + implementación Fase 1).
 > **Resumen en una frase:** ofrecer la maquinita **Mercado Pago Point** como add-on del plan de
 > Gestionala, que el cobro con tarjeta se dispare **desde el POS** y quede registrado en la
@@ -125,14 +126,16 @@
   - **UI:** `/configuracion/mercadopago` (conectar + vincular terminal + desconectar); en el POS, el
     método `mercadopago_point` dispara el flujo (modal "Esperando pago…", poll de `mp_cobros`,
     gateado a online). El método ≠ `cash` → no afecta la cuadratura de caja.
-  - **Pendiente para activar:** env vars en Vercel (`MP_CLIENT_ID/SECRET`, `MP_TOKEN_ENC_KEY`,
-    `MP_WEBHOOK_SECRET`), app en MP (redirect + webhook URL), aplicar la migración, terminal Point real.
+  - **Migración aplicada en cloud (2026-06-23).** e2e `scripts/verify-mp.mjs` **17/17** + regresión
+    `verify-3b`/`verify-granel` sin breakage. **Pendiente para activar (manual, fuera del código):**
+    env vars en Vercel (`MP_CLIENT_ID/SECRET`, `MP_TOKEN_ENC_KEY`, `MP_WEBHOOK_SECRET`), app en MP
+    (redirect + webhook URL), terminal Point real.
   - **Las 3 vías de adquisición convergen en el mismo OAuth:** (1) negocio que YA tiene su Point la
     conecta; (2) sin maquinita → botón "Consigue tu Point" (gateado por `MP_AFFILIATE_URL`, tu link de
     referido); (3) se la vendes tú → conectan igual. Multi-marca (Transbank/otras) = integración
     distinta (POS Integrado local + certificación), proyecto aparte, NO construido.
-  - **Verificación:** lint/typecheck/build webpack ✅; e2e `scripts/verify-mp.mjs` (corre al aplicar la
-    migración); regresión con `verify-3b`/`verify-granel`; cobro físico se confirma en el device.
+  - **Verificación:** lint/typecheck/build webpack ✅; e2e `scripts/verify-mp.mjs` 17/17; regresión con
+    `verify-3b`/`verify-granel` ✅; cobro físico se confirma en el device.
 - **Fase 2 — Revenue Share / reporting.**
   Panel para Andrés: TPV por comerciante, comisiones estimadas, estado de devices. Si MP confirmó
   `application_fee` presencial (#4), cablearlo; si no, el revenue share (#2) se concilia con el
