@@ -13,6 +13,7 @@ export default async function PosPage() {
     { data: sesion },
     { data: empresa },
     { data: config },
+    { data: mpDevice },
   ] = await Promise.all([
     supabase
       .from('productos')
@@ -24,7 +25,12 @@ export default async function PosPage() {
     supabase.from('sesiones_caja').select('id').eq('estado', 'abierta').maybeSingle(),
     supabase.from('empresas').select('rut, razon_social, giro, telefono, direccion').single(),
     supabase.from('configuracion_negocio').select('usa_iva, tasa_iva_default').maybeSingle(),
+    supabase.from('mp_dispositivos').select('device_id').eq('estado', 'activo').maybeSingle(),
   ]);
+
+  // El cobro con Mercado Pago Point está disponible si hay una terminal activa
+  // vinculada (y el método de pago 'mercadopago_point' aparece en `metodos`).
+  const mpHabilitado = !!mpDevice;
 
   const negocio = {
     razonSocial: empresa?.razon_social ?? 'Mi negocio',
@@ -43,6 +49,7 @@ export default async function PosPage() {
       categorias={categorias ?? []}
       sesionCajaId={sesion?.id ?? null}
       negocio={negocio}
+      mpHabilitado={mpHabilitado}
     />
   );
 }

@@ -407,6 +407,25 @@ Dexie DB, Flow plan IDs `mypyme_emprende`/`mypyme_pyme`) — NO cambiar eso.
     pintar baja confianza OCR (hoy solo hay confianza global, no por campo). **GOTCHA: tras cada deploy, la PWA
     (Serwist) sirve el JS cacheado → cerrar/reabrir la PWA 2 veces para ver el código nuevo.**
 
+- **Mercado Pago Point — Fase 1 (add-on POS)** ✅ código (2026-06-22, plan mode; plan file
+  `ethereal-hatching-biscuit.md`). Cobro con tarjeta disparado desde el POS, registrado en la
+  plataforma. **Gateado e inerte como Flow** (`mpConfigurado()` → sin credenciales la app queda
+  idéntica). **Sin split/fee** (acuerdo comercial pendiente). Migración
+  `20260622000000_mercadopago_point.sql` (**NO aplicada aún**): tablas `mp_conexiones` (tokens
+  AES-256-GCM, cols de token con REVOKE SELECT a authenticated), `mp_dispositivos`, `mp_cobros`
+  (guarda el payload de la venta); **refactor `process_sale` → wrapper sobre `process_sale_core`
+  (DEFINER, empresa por parámetro)** para que el webhook (service_role, sin JWT) pueda registrar la
+  venta vía `registrar_venta_mp`. Backend `lib/mp/` (espeja `lib/flow/`: config/crypto/oauth/tokens/
+  client/signature). Rutas: `GET /api/mp/oauth/callback`, `POST|DELETE /api/mp/cobro`,
+  **`POST /api/webhooks/mp`** (bajo `/api/webhooks/*` → excluido de sesión por el middleware).
+  UI `/configuracion/mercadopago` (conectar OAuth + vincular terminal + desconectar; siembra el método
+  `metodos_pago` tipo `mercadopago_point` ≠ cash → no toca caja); en el POS ese método abre el flujo
+  (modal «Esperando pago…», poll de `mp_cobros`, gateado a online). e2e `scripts/verify-mp.mjs`.
+  Verificado tsc/lint/build webpack. **PENDIENTE:** aplicar la migración con DB password → correr
+  `verify-mp` + regresión `verify-3b`/`verify-granel`; env en Vercel (`MP_CLIENT_ID/SECRET`,
+  `MP_TOKEN_ENC_KEY`, `MP_WEBHOOK_SECRET`) + app en MP (redirect + webhook URL); cobro físico se
+  confirma con un Point Smart real. Detalle: `docs/12-plan-mercadopago-point.md`.
+
 ### Pendiente (manual de Andrés, NO bloquea el uso)
 1. ~~Confirmar RUT legal~~ ✅ confirmado 78.312.836-5 (publicado en la página legal de Farmateca, misma SpA).
    Domicilio fijado a El Trovador 4280 Of 307, RM (jurisdicción Santiago).

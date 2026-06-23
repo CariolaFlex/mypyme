@@ -7,7 +7,7 @@ import {
   LayoutDashboard, ShoppingCart, Wallet, Package, Boxes, Tags, Upload,
   Truck, ClipboardList, ReceiptText, TrendingDown, BarChart3, FileText,
   Building2, CreditCard, Users, Sparkles, LogOut, History, Menu, X,
-  LifeBuoy, BookOpen, ScanLine, ScanText,
+  LifeBuoy, BookOpen, ScanLine, ScanText, Nfc,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -61,6 +61,7 @@ export function AppSidebar({
       items: [
         { href: '/configuracion/negocio', label: 'Negocio', icon: Building2 },
         { href: '/configuracion/metodos-pago', label: 'Métodos de pago', icon: CreditCard },
+        { href: '/configuracion/mercadopago', label: 'Mercado Pago', icon: Nfc },
         { href: '/configuracion/usuarios', label: 'Usuarios', icon: Users },
         { href: '/configuracion/auditoria', label: 'Bitácora', icon: History },
         { href: '/configuracion/suscripcion', label: 'Suscripción', icon: Sparkles },

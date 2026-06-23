@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState, useTransition } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { toast } from 'sonner';
-import { ScanLine, ShoppingCart, X } from 'lucide-react';
+import { Nfc, ScanLine, ShoppingCart, X } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -31,12 +32,14 @@ export function PosClient({
   categorias,
   sesionCajaId,
   negocio,
+  mpHabilitado = false,
 }: {
   productos: ProductoCache[];
   metodos: Metodo[];
   categorias: Categoria[];
   sesionCajaId: string | null;
   negocio: NegocioBoleta;
+  mpHabilitado?: boolean;
 }) {
   const [productos, setProductos] = useState<ProductoCache[]>(productosIniciales);
   const [cart, setCart] = useState<Record<string, number>>({});
@@ -207,8 +210,71 @@ export function PosClient({
   const quitarPago = (key: string) =>
     setPagos((prev) => (prev.length > 1 ? prev.filter((p) => p.key !== key) : prev));
 
+  // ── Cobro con Mercado Pago Point (online-only) ──────────────────────────
+  const [mpEsperando, setMpEsperando] = useState(false);
+  const mpVentaRef = useRef<string | null>(null);
+  const mpCancelRef = useRef(false);
+  const mpSeleccionado = pagos.some((p) => tipoDe(p.metodoId) === 'mercadopago_point');
+
+  // Deja el carrito y los pagos en limpio tras una venta.
+  const limpiar = () => {
+    setCart({});
+    setRecibido('');
+    setPagos([{ key: 'p0', metodoId: metodos[0]?.id ?? '' }]);
+    setMontos({});
+    setCarritoOpen(false);
+  };
+
+  // Poll de mp_cobros (RLS, browser client) hasta que el webhook resuelva el pago.
+  const pollCobro = async (ventaId: string): Promise<string> => {
+    const supabase = createClient();
+    const MAX_INTENTOS = 72; // 72 × 2,5s ≈ 3 min
+    for (let i = 0; i < MAX_INTENTOS; i++) {
+      if (mpCancelRef.current) return 'canceled';
+      const { data } = await supabase
+        .from('mp_cobros')
+        .select('estado')
+        .eq('venta_id', ventaId)
+        .order('creado_en', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const estado = data?.estado;
+      if (estado === 'approved' || estado === 'rejected' || estado === 'canceled') return estado;
+      await new Promise((r) => setTimeout(r, 2500));
+    }
+    return 'timeout';
+  };
+
+  // Aborta el cobro en curso (best-effort: cancela el intent en MP).
+  const cancelarMP = () => {
+    mpCancelRef.current = true;
+    const ventaId = mpVentaRef.current;
+    if (ventaId) {
+      fetch('/api/mp/cobro', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ventaId }),
+      }).catch(() => {});
+    }
+    setMpEsperando(false);
+    mpVentaRef.current = null;
+  };
+
   function onCobrar() {
     if (!items.length || !sesionCajaId || !pagosValidos) return;
+    const usaMP = pagos.some((p) => tipoDe(p.metodoId) === 'mercadopago_point');
+    if (usaMP && multi) {
+      toast.error('El cobro con Mercado Pago no se puede dividir por ahora.');
+      return;
+    }
+    if (usaMP && !navigator.onLine) {
+      toast.error('El cobro con Mercado Pago necesita internet.');
+      return;
+    }
+    if (usaMP && !mpHabilitado) {
+      toast.error('Vincula tu terminal Point en Configuración → Mercado Pago.');
+      return;
+    }
     const pagosPayload = multi
       ? pagos.map((p) => {
           const monto = montoDe(p.key);
@@ -250,14 +316,52 @@ export function PosClient({
       onClick: () => imprimirBoleta(boletaData),
     };
 
+    // Rama Mercado Pago Point: el cobro va a la maquinita; el webhook registra
+    // la venta. El POS espera el resultado por poll.
+    if (usaMP) {
+      mpCancelRef.current = false;
+      mpVentaRef.current = payload.ventaId;
+      setMpEsperando(true);
+      (async () => {
+        try {
+          const res = await fetch('/api/mp/cobro', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ventaId: payload.ventaId,
+              lineas: payload.lineas,
+              pagos: payload.pagos,
+              sesionCajaId: payload.sesionCajaId,
+              total: totalVenta,
+            }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data.ok) throw new Error(data.error || 'No se pudo iniciar el cobro');
+          const estado = await pollCobro(payload.ventaId);
+          if (estado === 'approved') {
+            toast.success(`Venta registrada · ${clp.format(totalVenta)}`, {
+              action: accionImprimir,
+              duration: 8000,
+            });
+            limpiar();
+          } else if (estado === 'rejected') {
+            toast.error('El pago fue rechazado.');
+          } else if (estado === 'canceled') {
+            toast.error('El cobro se canceló.');
+          } else {
+            toast.error('No se confirmó el pago a tiempo. Revisa la maquinita.');
+          }
+        } catch (e) {
+          toast.error((e as Error).message || 'No se pudo cobrar con Mercado Pago');
+        } finally {
+          setMpEsperando(false);
+          mpVentaRef.current = null;
+        }
+      })();
+      return;
+    }
+
     startTransition(async () => {
-      const limpiar = () => {
-        setCart({});
-        setRecibido('');
-        setPagos([{ key: 'p0', metodoId: metodos[0]?.id ?? '' }]);
-        setMontos({});
-        setCarritoOpen(false);
-      };
       try {
         if (!navigator.onLine) throw new Error('offline');
         await enviarVenta(payload);
@@ -415,14 +519,32 @@ export function PosClient({
           )}
         </div>
       )}
+      {mpSeleccionado && !online && (
+        <p className="text-xs text-amber-600">
+          El cobro con Mercado Pago necesita internet. El efectivo sigue funcionando sin conexión.
+        </p>
+      )}
       <Button
         type="button"
         size="lg"
         className="grad-brand-vivid w-full border-0 text-white shadow-lg shadow-primary/30 transition-transform hover:scale-[1.01] disabled:opacity-50"
-        disabled={!items.length || pending || !sesionCajaId || !pagosValidos}
+        disabled={
+          !items.length ||
+          pending ||
+          mpEsperando ||
+          !sesionCajaId ||
+          !pagosValidos ||
+          (mpSeleccionado && !online)
+        }
         onClick={onCobrar}
       >
-        {pending ? 'Procesando…' : `Cobrar ${clp.format(total)}`}
+        {mpEsperando
+          ? 'Esperando pago…'
+          : pending
+            ? 'Procesando…'
+            : mpSeleccionado
+              ? `Cobrar con MP ${clp.format(total)}`
+              : `Cobrar ${clp.format(total)}`}
       </Button>
     </>
   );
@@ -641,6 +763,23 @@ export function PosClient({
               Agregar al carrito
             </Button>
           </div>
+        </div>
+      </Modal>
+
+      {/* Esperando el pago en la maquinita Point */}
+      <Modal open={mpEsperando} onClose={cancelarMP} title="Cobro con Mercado Pago">
+        <div className="space-y-4 text-center">
+          <Nfc className="mx-auto size-10 animate-pulse text-primary" />
+          <p className="text-sm">
+            Monto enviado a la maquinita: <strong>{clp.format(total)}</strong>.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Pídele al cliente que pase o inserte la tarjeta en la terminal. La venta se registra sola al
+            aprobarse el pago.
+          </p>
+          <Button type="button" variant="outline" size="sm" onClick={cancelarMP}>
+            Cancelar cobro
+          </Button>
         </div>
       </Modal>
     </div>
