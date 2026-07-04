@@ -20,7 +20,12 @@ Validación por fase: `npm run lint && npm run typecheck && npm run build` — t
 ## ⚠ Pendiente manual
 
 - **Aplicar la migración** `supabase/migrations/20260704000000_tipo_negocio.sql`
-  en Supabase antes de deployar (columna `configuracion_negocio.tipo_negocio`).
+  (columna `configuracion_negocio.tipo_negocio`). El repo YA está linkeado al
+  proyecto Supabase `mypyme` (ref `igpplasotoshtuwbdzmf`) y el token de acceso
+  quedó en la env var de usuario `SUPABASE_ACCESS_TOKEN`. El `db push` fue
+  confirmado por dry-run (única migración pendiente) pero el guardián de Claude
+  Code bloquea aplicar migraciones a producción en modo auto → correr a mano:
+  `npx supabase db push`  (o agregar la regla de permiso `Bash(npx supabase db push:*)`).
 - Probar en terreno con las fotos reales de facturas que ya funcionaban
   (retrocompatibilidad garantizada por diseño, pero conviene verificar) y con
   un ticket de restaurante / presupuesto para las estrategias nuevas.
