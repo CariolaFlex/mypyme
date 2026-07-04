@@ -3,7 +3,7 @@ import { ScanText, History, PencilLine } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { createClient } from '@/lib/supabase/server';
 import { EscanearFactura } from './escanear-factura';
-import type { FacturaExtraida } from '@/lib/ocr/types';
+import type { FacturaExtraida, TipoNegocio } from '@/lib/ocr/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,9 +17,10 @@ export default async function EscanearFacturaPage({
   const [{ data: proveedores }, { data: productos }, { data: cfg }] = await Promise.all([
     supabase.from('proveedores').select('id, nombre, rut').eq('activo', true).order('nombre'),
     supabase.from('productos').select('id, nombre').eq('activo', true).order('nombre'),
-    supabase.from('configuracion_negocio').select('usa_iva, tasa_iva_default').maybeSingle(),
+    supabase.from('configuracion_negocio').select('usa_iva, tasa_iva_default, tipo_negocio').maybeSingle(),
   ]);
   const tasaDefault = cfg?.usa_iva ? Number(cfg.tasa_iva_default ?? 19) : 0;
+  const tipoNegocio = (cfg?.tipo_negocio ?? undefined) as TipoNegocio | undefined;
 
   // Reabrir un borrador/revisado del historial: precarga el review con sus datos.
   let inicial: { scanId: string; datos: FacturaExtraida; textoPlano: string; confianza: number } | undefined;
@@ -71,6 +72,7 @@ export default async function EscanearFacturaPage({
         proveedores={proveedores ?? []}
         productos={productos ?? []}
         tasaDefault={tasaDefault}
+        tipoNegocio={tipoNegocio}
         inicial={inicial}
       />
     </div>

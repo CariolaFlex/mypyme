@@ -9,8 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AvisoHerramienta } from '@/components/aviso-herramienta';
 import { runOCRInBrowser } from '@/lib/ocr/engine';
-import { extraerFactura } from '@/lib/ocr/factura';
-import type { FacturaExtraida, OCRProgress, TipoDocOCR } from '@/lib/ocr/types';
+import { parseDocument, aFacturaExtraida } from '@/lib/ocr/parser';
+import type { DocumentoExtraido, FacturaExtraida, OCRProgress, TipoDocOCR, TipoNegocio } from '@/lib/ocr/types';
 import { guardarScan, registrarFactura, cargarInventario } from './actions';
 
 const VACIO: FacturaExtraida = {
@@ -50,11 +50,14 @@ export function EscanearFactura({
   proveedores,
   productos,
   tasaDefault,
+  tipoNegocio,
   inicial,
 }: {
   proveedores: Proveedor[];
   productos: Producto[];
   tasaDefault: number;
+  /** Perfil declarado del negocio: contexto del parser (IVA, unidades, rubro). */
+  tipoNegocio?: TipoNegocio;
   /** Reabrir un borrador del historial: precarga el review con sus datos. */
   inicial?: { scanId: string; datos: FacturaExtraida; textoPlano: string; confianza: number };
 }) {
@@ -66,6 +69,9 @@ export function EscanearFactura({
     inicial ? { textoPlano: inicial.textoPlano, confianza: inicial.confianza } : { textoPlano: '', confianza: 0 }
   );
   const [scanId, setScanId] = useState<string | undefined>(inicial?.scanId);
+  // Documento con confianza por campo (solo tras un escaneo fresco; los
+  // borradores reabiertos no lo traen). La UI resalta lo dudoso.
+  const [doc, setDoc] = useState<DocumentoExtraido | null>(null);
   const [busy, setBusy] = useState(false);
   const [tipo, setTipo] = useState<TipoDocOCR>('factura');
   const [proveedorId, setProveedorId] = useState(''); // '' = crear nuevo
@@ -83,7 +89,16 @@ export function EscanearFactura({
     setProgress({ step: 'loading', message: 'Preparando…', percent: 0 });
     try {
       const raw = await runOCRInBrowser(file, setProgress);
-      const extra = extraerFactura(raw, tipo);
+      // DocumentParser universal: clasifica el tipo, delega a la estrategia y
+      // entrega confianza por campo. El perfil del negocio ajusta IVA/unidades.
+      const documento = parseDocument(raw, {
+        tipoNegocio,
+        usaIva: tasaDefault > 0,
+        tasaIva: tasaDefault,
+        tipoDocumento: tipo,
+      });
+      const extra = aFacturaExtraida(documento);
+      setDoc(documento);
       setD(extra);
       // El OCR entrega el total con IVA → arranca en 'con'. Si detectó tasa real
       // (iva/neto) la usa; si no, la del negocio. El usuario puede cambiarlo.
@@ -271,12 +286,37 @@ export function EscanearFactura({
   const cuadraItems = sumaItems > 0 && d.total > 0 && Math.abs(sumaItems - d.total) <= 2;
   const nCargar = cargarSel.filter((s) => s !== '').length;
 
+  // Resaltado de campos dudosos: bajo este umbral de confianza el campo se
+  // marca en ámbar para que el usuario lo mire primero. Solo con escaneo
+  // fresco (los borradores reabiertos no traen confianzas).
+  const UMBRAL_DUDA = 0.6;
+  const clsDuda = (c?: number) =>
+    doc && c !== undefined && c < UMBRAL_DUDA
+      ? 'border-amber-400 dark:border-amber-500 bg-amber-500/5'
+      : '';
+  const TIPO_LABEL: Record<string, string> = {
+    factura: 'Factura', boleta: 'Boleta', ticket: 'Ticket de caja', guia: 'Guía / remisión',
+    presupuesto: 'Presupuesto', cotizacion: 'Cotización', recibo: 'Recibo',
+    nota_credito: 'Nota de crédito', otro: 'Documento',
+  };
+
   return (
     <div className="space-y-5">
       <AvisoHerramienta variante="ocr" />
       <p className="-mt-3 text-xs text-muted-foreground">
         Confianza del reconocimiento: <strong>{Math.round(meta.confianza * 100)}%</strong>.
+        {doc && doc.tipoConfianza > 0 && (
+          <>
+            {' '}Detectado: <strong>{TIPO_LABEL[doc.tipo] ?? doc.tipo}</strong>
+            {doc.moneda !== 'CLP' ? ` · moneda ${doc.moneda}` : ''}.
+          </>
+        )}
       </p>
+      {doc && (
+        <p className="-mt-3 text-xs text-amber-600 dark:text-amber-400">
+          Los campos en ámbar tienen baja confianza: revísalos primero.
+        </p>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2 rounded-lg border p-4">
         {/* Proveedor: elegir existente o crear nuevo (prerellenado del OCR) */}
@@ -301,11 +341,11 @@ export function EscanearFactura({
           <>
             <div className="col-span-2 space-y-1.5">
               <Label htmlFor="prov">Razón social (nuevo proveedor)</Label>
-              <Input id="prov" value={d.razonSocial} onChange={(e) => setCampo('razonSocial', e.target.value)} />
+              <Input id="prov" className={clsDuda(doc?.emisor.confianza)} value={d.razonSocial} onChange={(e) => setCampo('razonSocial', e.target.value)} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="rut">RUT</Label>
-              <Input id="rut" value={d.rut} onChange={(e) => setCampo('rut', e.target.value)} />
+              <Input id="rut" className={clsDuda(doc?.taxId.confianza)} value={d.rut} onChange={(e) => setCampo('rut', e.target.value)} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="vendedor">Vendedor / contacto (opcional)</Label>
@@ -315,11 +355,11 @@ export function EscanearFactura({
         )}
         <div className="space-y-1.5">
           <Label htmlFor="folio">N° factura</Label>
-          <Input id="folio" value={d.folio} onChange={(e) => setCampo('folio', e.target.value)} />
+          <Input id="folio" className={clsDuda(doc?.folio.confianza)} value={d.folio} onChange={(e) => setCampo('folio', e.target.value)} />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="fecha">Fecha</Label>
-          <Input id="fecha" type="date" value={d.fecha} onChange={(e) => setCampo('fecha', e.target.value)} />
+          <Input id="fecha" type="date" className={clsDuda(doc?.fecha.confianza)} value={d.fecha} onChange={(e) => setCampo('fecha', e.target.value)} />
         </div>
         {/* Monto + IVA: el usuario elige si el valor incluye IVA, es neto o exento */}
         <div className="col-span-2 space-y-2 rounded-md border bg-muted/10 p-3">
@@ -349,7 +389,7 @@ export function EscanearFactura({
               <Label htmlFor="monto">
                 {ivaModo === 'sin' ? 'Monto neto' : ivaModo === 'exento' ? 'Monto (exento)' : 'Total (con IVA)'}
               </Label>
-              <Input id="monto" type="number" min="0" value={montoVisible} onChange={(e) => setMonto(Number(e.target.value) || 0)} />
+              <Input id="monto" type="number" min="0" className={clsDuda(doc?.total.confianza)} value={montoVisible} onChange={(e) => setMonto(Number(e.target.value) || 0)} />
             </div>
             {ivaModo !== 'exento' && (
               <div className="space-y-1.5">
@@ -510,7 +550,7 @@ export function EscanearFactura({
       )}
 
       <div className="flex flex-wrap justify-end gap-2">
-        <Button type="button" variant="outline" onClick={() => { setFase('idle'); setD(VACIO); setCargarSel([]); }}>
+        <Button type="button" variant="outline" onClick={() => { setFase('idle'); setD(VACIO); setCargarSel([]); setDoc(null); }}>
           Escanear otra
         </Button>
         <Button type="button" variant="outline" disabled={busy} onClick={guardarBorrador} className="gap-2">
