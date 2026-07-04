@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createClient } from '@/lib/supabase/client';
+import { parsearQR } from '@/lib/scanner/qr-parse';
 import { BarcodeScannerModal } from './barcode-scanner-modal';
 
 /**
@@ -62,11 +63,15 @@ export function CodigoConEscaner({
   }
 
   function handleScan(code: string) {
-    setValue(code);
+    // QR inteligente: si el QR envuelve un GTIN en una URL o un JSON, usar ese
+    // código (no la URL cruda). Un EAN escaneado normal pasa tal cual.
+    const q = parsearQR(code);
+    const codigo = q.codigoProducto ?? code;
+    setValue(codigo);
     setOpen(false);
-    toast.success(`Código escaneado: ${code}`);
-    void lookup(code);
-    onScanned?.(code);
+    toast.success(`Código escaneado: ${codigo}`);
+    void lookup(codigo);
+    onScanned?.(codigo);
   }
 
   return (

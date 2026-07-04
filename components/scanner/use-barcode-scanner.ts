@@ -16,8 +16,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 export type ScannerState = 'idle' | 'starting' | 'scanning' | 'error';
 
-// Formatos típicos de retail chileno (EAN/UPC) + Code128/39 + QR.
-const FORMATS = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code'];
+// Formatos de retail (EAN/UPC) + Code128/39 + QR + industriales/logísticos:
+// Data Matrix (farmacia/electrónica), PDF417 (documentos/carnets), Aztec
+// (tickets) e ITF (cajas máster de distribuidores). El fallback ZXing los
+// decodifica por defecto; esta lista solo aplica al detector nativo.
+const FORMATS = [
+  'ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code',
+  'data_matrix', 'pdf417', 'aztec', 'itf',
+];
 
 interface BarcodeDetectorLike {
   detect(source: CanvasImageSource): Promise<{ rawValue: string }[]>;
@@ -29,7 +35,12 @@ interface BarcodeDetectorCtor {
 
 export function useBarcodeScanner(
   onDetected: (code: string) => void,
-  opts?: { continuo?: boolean }
+  opts?: {
+    continuo?: boolean;
+    /** En modo continuo: no re-emitir un código YA emitido en esta sesión de
+     *  cámara (deduplicación para carga masiva de inventario). */
+    dedupeSesion?: boolean;
+  }
 ) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [state, setState] = useState<ScannerState>('idle');
@@ -47,6 +58,10 @@ export function useBarcodeScanner(
   useEffect(() => {
     continuoRef.current = !!opts?.continuo;
   }, [opts?.continuo]);
+  const dedupeSesionRef = useRef(!!opts?.dedupeSesion);
+  useEffect(() => {
+    dedupeSesionRef.current = !!opts?.dedupeSesion;
+  }, [opts?.dedupeSesion]);
 
   // Limpieza activa (se reasigna en cada start).
   const cleanupRef = useRef<() => void>(() => {});
@@ -80,17 +95,22 @@ export function useBarcodeScanner(
 
     let lastCode = '';
     let lastAt = 0;
+    const vistos = new Set<string>();
     const emit = (code: string) => {
       if (cancelled) return;
       const clean = code.trim();
       if (!clean) return;
       if (continuoRef.current) {
         // Sigue escaneando; ignora el MISMO código repetido dentro de ~1,5s
-        // (la cámara lee el mismo frame muchas veces).
+        // (la cámara lee el mismo frame muchas veces). Con dedupeSesion, un
+        // código ya emitido no se repite en toda la sesión de cámara (carga
+        // masiva: pasar dos veces por el mismo producto no duplica).
+        if (dedupeSesionRef.current && vistos.has(clean)) return;
         const now = Date.now();
         if (clean === lastCode && now - lastAt < 1500) return;
         lastCode = clean;
         lastAt = now;
+        vistos.add(clean);
         onDetectedRef.current(clean);
       } else {
         if (doneRef.current) return;
