@@ -2,6 +2,7 @@ import { crearEmpresa, cancelarRegistro } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { TIPOS_NEGOCIO } from '@/lib/tipos-negocio';
 
 export default async function OnboardingPage({
   searchParams,
@@ -59,6 +60,24 @@ export default async function OnboardingPage({
                 </Label>
                 <Input id="direccion" name="direccion" />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tipo_negocio">
+                ¿Qué tipo de negocio es? <span className="text-muted-foreground">(opcional)</span>
+              </Label>
+              <select
+                id="tipo_negocio"
+                name="tipo_negocio"
+                defaultValue=""
+                className="w-full rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs"
+              >
+                <option value="">— Elegir después —</option>
+                {TIPOS_NEGOCIO.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
             </div>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" name="usa_iva" defaultChecked className="size-4 accent-primary" />

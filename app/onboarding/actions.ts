@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { esTipoNegocio } from '@/lib/tipos-negocio';
 
 function mensajeError(code: string | undefined, raw: string): string {
   switch (code) {
@@ -57,5 +58,23 @@ export async function crearEmpresa(formData: FormData) {
   // Si el refresh falla acá (carrera de rotación del refresh-token), no importa:
   // el middleware autocura el claim en la primera request a /inicio.
   await supabase.auth.refreshSession();
+
+  // Tipo de negocio (perfil para el parser OCR): se guarda DESPUÉS del refresh
+  // porque el RLS de configuracion_negocio exige el claim empresa_id. Best-effort
+  // (no toca la firma del RPC de alta): si falla, se declara en Configuración.
+  const tipoNegocio = String(formData.get('tipo_negocio') ?? '').trim();
+  if (esTipoNegocio(tipoNegocio)) {
+    const { data: claims } = await supabase.auth.getClaims();
+    const empresaId = (claims?.claims as Record<string, unknown> | undefined)?.empresa_id as
+      | string
+      | undefined;
+    if (empresaId) {
+      await supabase
+        .from('configuracion_negocio')
+        .update({ tipo_negocio: tipoNegocio, actualizado_en: new Date().toISOString() })
+        .eq('empresa_id', empresaId);
+    }
+  }
+
   redirect('/inicio');
 }

@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { esTipoNegocio } from '@/lib/tipos-negocio';
 
 export async function guardarNegocio(formData: FormData) {
   const supabase = await createClient();
@@ -33,6 +34,7 @@ export async function guardarNegocio(formData: FormData) {
     redirect(`/configuracion/negocio?error=${encodeURIComponent(errEmpresa.message)}`);
   }
 
+  const tipoNegocio = String(formData.get('tipo_negocio') ?? '').trim();
   const { error: errConfig } = await supabase
     .from('configuracion_negocio')
     .update({
@@ -40,6 +42,7 @@ export async function guardarNegocio(formData: FormData) {
       precios_con_iva: formData.get('precios_con_iva') === 'on',
       tasa_iva_default: Number(formData.get('tasa_iva_default') ?? 19),
       umbral_stock_bajo: Number(formData.get('umbral_stock_bajo') ?? 5),
+      tipo_negocio: esTipoNegocio(tipoNegocio) ? tipoNegocio : null,
       actualizado_en: ahora,
     })
     .eq('empresa_id', empresaId);

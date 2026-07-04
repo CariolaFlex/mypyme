@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { TIPOS_NEGOCIO } from '@/lib/tipos-negocio';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +22,7 @@ export default async function NegocioPage({
     supabase.from('empresas').select('rut, razon_social, giro, telefono, direccion').single(),
     supabase
       .from('configuracion_negocio')
-      .select('usa_iva, precios_con_iva, tasa_iva_default, umbral_stock_bajo')
+      .select('usa_iva, precios_con_iva, tasa_iva_default, umbral_stock_bajo, tipo_negocio')
       .single(),
   ]);
 
@@ -73,6 +74,26 @@ export default async function NegocioPage({
             <Label htmlFor="direccion">Dirección</Label>
             <Input id="direccion" name="direccion" defaultValue={empresa?.direccion ?? ''} />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="tipo_negocio">Tipo de negocio</Label>
+          <select
+            id="tipo_negocio"
+            name="tipo_negocio"
+            defaultValue={config?.tipo_negocio ?? ''}
+            className="w-full rounded-md border border-input bg-input/50 backdrop-blur-sm px-2 py-2 text-sm shadow-xs"
+          >
+            <option value="">— Sin especificar —</option>
+            {TIPOS_NEGOCIO.map((t) => (
+              <option key={t.value} value={t.value}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-muted-foreground">
+            Ajusta el escáner de documentos a tu rubro (unidades, IVA, tipos de comprobante).
+          </p>
         </div>
 
         <Separator />
