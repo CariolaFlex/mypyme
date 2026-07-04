@@ -4,203 +4,23 @@
  * HEURÍSTICO y BEST-EFFORT: Tesseract devuelve texto plano, no una tabla. Lo que
  * sale de acá es un punto de partida que el usuario SIEMPRE revisa y corrige en la
  * UI antes de guardar. No prometer precisión en facturas de layout complejo.
+ *
+ * Es la estrategia "factura formal" del DocumentParser (lib/ocr/parser). Los
+ * helpers de montos/fechas viven en parser/comun.ts (movidos verbatim); acá
+ * queda la cascada de decisión y el parser de ítems. `extraerFactura` conserva
+ * su firma histórica; `extraerFacturaDetallada` agrega la FUENTE de cada monto
+ * para que el parser derive confianza por campo.
  */
 
-import type { OCRRaw, FacturaExtraida, ItemFactura, OCREntity, TipoDocOCR } from './types';
-
-/** "$1.234.567" / "1.234.567" → 1234567 (CLP entero). */
-function parseMonto(s: string): number {
-  return Number(s.replace(/[^\d]/g, '')) || 0;
-}
-
-const MESES: Record<string, string> = {
-  enero: '01', febrero: '02', marzo: '03', abril: '04', mayo: '05', junio: '06',
-  julio: '07', agosto: '08', septiembre: '09', setiembre: '09', octubre: '10',
-  noviembre: '11', diciembre: '12',
-};
-
-/** "15/01/2024" / "15.01.24" / "22 de Enero del 2024" → "2024-01-15". '' si no parsea. */
-function fechaISO(s?: string): string {
-  if (!s) return '';
-  // Numérica: dd/mm/yyyy · dd-mm-yy · dd.mm.yyyy
-  const m = s.match(/(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})/);
-  if (m) {
-    const d = m[1].padStart(2, '0');
-    const mo = m[2].padStart(2, '0');
-    let y = m[3];
-    if (y.length === 2) y = Number(y) > 50 ? `19${y}` : `20${y}`;
-    return `${y}-${mo}-${d}`;
-  }
-  // Escrita: "22 de Enero del 2024" · "01 de octubre de 2009" (DTE chilenas).
-  const w = s
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .match(/(\d{1,2})\s+de\s+([a-z]+)\s+(?:del?\s+)?(\d{4})/);
-  if (w && MESES[w[2]]) return `${w[3]}-${MESES[w[2]]}-${w[1].padStart(2, '0')}`;
-  return '';
-}
-
-/** Fecha de EMISIÓN: prioriza la fecha pegada a una etiqueta de emisión/factura
- *  (evita tomar fechas de tránsito/vigencia/vencimiento), luego la 1ª fecha del doc. */
-function fechaFactura(lines: { text: string }[], entities: OCREntity[]): string {
-  const lbl = /fecha\s*(?:de\s*)?(?:emisi[oó]n|factura|documento)|emisi[oó]n/i;
-  for (const { text } of lines) {
-    const m = text.match(lbl);
-    if (!m) continue;
-    const f = fechaISO(text.slice(m.index ?? 0));
-    if (f) return f;
-  }
-  for (const e of entities) if (e.label === 'DATE') {
-    const f = fechaISO(e.text);
-    if (f) return f;
-  }
-  return '';
-}
-
-function first(entities: OCREntity[], label: OCREntity['label']): OCREntity | undefined {
-  return entities.find((e) => e.label === label);
-}
-
-// Un RUT (99.554.560-8) "parece" un monto grande → hay que sacarlo antes de
-// extraer montos, o se cuela como total/neto. También se quitan el folio y las
-// fechas (que tampoco son plata).
-const RUT_RE = /\d{1,2}\.\d{3}\.\d{3}\s*-?\s*[\dkK]\b/g;
-const DATE_RE = /\b\d{1,2}[/\-.]\d{1,2}[/\-.]\d{2,4}\b/g;
-// Acepta montos CON separador (30.000) o con $, Y enteros PLANOS de ≥4 dígitos:
-// las fotos de celular a menudo pierden el separador de miles (lee "35700").
-const MONEY_RE = /\$?\s*\d{1,3}(?:[.,]\d{3})+|\$\s*\d+|\b\d{4,9}\b/g;
-
-function quitarNoMontos(text: string, folio?: string): string {
-  let t = text.replace(RUT_RE, ' ').replace(DATE_RE, ' ');
-  if (folio && folio.length >= 4) t = t.split(folio).join(' ');
-  return t;
-}
-
-/** Montos de un texto (sin RUT/folio/fecha). Separados ≥100; planos ≥1000 (para
- *  no confundir cantidades/porcentajes con plata cuando NO hay etiqueta cerca). */
-function montosDeTexto(text: string, folio?: string): number[] {
-  const out: number[] = [];
-  for (const m of quitarNoMontos(text, folio).matchAll(MONEY_RE)) {
-    const v = parseMonto(m[0]);
-    const conSeparador = /[.,$]/.test(m[0]);
-    if (conSeparador ? v >= 100 : v >= 1000) out.push(v);
-  }
-  return out;
-}
-
-/** Mayor monto en líneas que contengan `palabras` (y no `excluir`). */
-function montoEnLineas(lines: { text: string }[], palabras: RegExp, excluir: RegExp | undefined, folio: string): number {
-  let best = 0;
-  for (const { text } of lines) {
-    if (!palabras.test(text)) continue;
-    if (excluir && excluir.test(text)) continue;
-    const max = Math.max(0, ...montosDeTexto(text, folio));
-    if (max > best) best = max;
-  }
-  return best;
-}
-
-/**
- * Primer monto que aparece JUSTO DESPUÉS de la etiqueta en la línea. Clave para
- * facturas donde el OCR junta "TOTAL NETO 9.146 IVA 1.646 …" en una sola línea:
- * tomar el máximo de la línea (montoEnLineas) confundiría neto con iva, pero el
- * valor pegado a cada etiqueta sí es el correcto.
- */
-function montoTrasEtiqueta(lines: { text: string }[], etiqueta: RegExp, folio: string): number {
-  for (const { text } of lines) {
-    const t = quitarNoMontos(text, folio);
-    const m = t.match(etiqueta);
-    if (!m) continue;
-    // Primer número ≥100 tras la etiqueta (acepta plano: la etiqueta lo ancla, así
-    // que un entero sin separador pegado a "TOTAL"/"NETO" es válido). Salta la tasa
-    // ("IVA 19% 5.700" → ignora 19, toma 5.700).
-    const resto = t.slice((m.index ?? 0) + m[0].length);
-    // [.,\s] como separador de miles: algunas facturas pierden el punto y el OCR
-    // deja un espacio ("TOTAL FACTURA 11 901" → 11901). Anclado a la etiqueta, así
-    // que es seguro (no merge-ea números sueltos del resto de la hoja).
-    for (const nm of resto.matchAll(/\$?\s*(\d{1,3}(?:[.,\s]\d{3})+|\d{2,9})/g)) {
-      const v = parseMonto(nm[1]);
-      if (v >= 100) return v;
-    }
-  }
-  return 0;
-}
-
-// ── Monto escrito en palabras ("SON: CIENTO QUINCE MIL PESOS") ───────────────
-// Señal MUY robusta: las palabras no pierden separadores de miles ni se confunden
-// con códigos de producto, a diferencia de los números cuando el OCR es pobre.
-// Las facturas chilenas casi siempre traen "SON: … PESOS"; este soporte de Coca-Cola
-// trae "CIENTO QUINCE MIL PESOS". Sirve para recuperar el total cuando el OCR perdió
-// la cifra (acá la caja "VALOR TOTAL" no quedó en el texto).
-const NUM_PALABRA: Record<string, number> = {
-  cero: 0, un: 1, uno: 1, una: 1, dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6,
-  siete: 7, ocho: 8, nueve: 9, diez: 10, once: 11, doce: 12, trece: 13, catorce: 14,
-  quince: 15, dieciseis: 16, diecisiete: 17, dieciocho: 18, diecinueve: 19, veinte: 20,
-  veintiun: 21, veintiuno: 21, veintidos: 22, veintitres: 23, veinticuatro: 24,
-  veinticinco: 25, veintiseis: 26, veintisiete: 27, veintiocho: 28, veintinueve: 29,
-  treinta: 30, cuarenta: 40, cincuenta: 50, sesenta: 60, setenta: 70, ochenta: 80,
-  noventa: 90, cien: 100, ciento: 100, doscientos: 200, trescientos: 300,
-  cuatrocientos: 400, quinientos: 500, seiscientos: 600, setecientos: 700,
-  ochocientos: 800, novecientos: 900,
-};
-
-/** "ciento quince mil" → 115000. 0 si no hay palabras-número. */
-function palabrasANumero(texto: string): number {
-  const words = texto
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^a-z\s]/g, ' ')
-    .split(/\s+/)
-    .filter(Boolean);
-  let total = 0;
-  let chunk = 0;
-  let vistos = false;
-  for (const w of words) {
-    if (w === 'y') continue;
-    if (w === 'mil') { chunk = (chunk || 1) * 1000; total += chunk; chunk = 0; vistos = true; continue; }
-    if (w === 'millon' || w === 'millones') { chunk = (chunk || 1) * 1_000_000; total += chunk; chunk = 0; vistos = true; continue; }
-    const v = NUM_PALABRA[w];
-    if (v !== undefined) { chunk += v; vistos = true; }
-    // palabras desconocidas se ignoran (toleran "SON", "IMPORTE", "PESOS", prosa)
-  }
-  return vistos ? total + chunk : 0;
-}
-
-/** Primer monto-en-letra antes de "PESOS" en alguna línea. ≥1000 para evitar
- *  falsos positivos ("un", "dos" sueltos en prosa). */
-function montoEnLetra(lines: { text: string }[]): number {
-  for (const { text } of lines) {
-    const norm = text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-    const idx = norm.indexOf('peso');
-    if (idx < 0) continue;
-    const n = palabrasANumero(norm.slice(0, idx));
-    if (n >= 1000) return n;
-  }
-  return 0;
-}
-
-/** Mayor monto del bloque dado, ignorando líneas que NO son plata: RUT, números de
- *  cuenta/banco, teléfono/fax, folios con N°. Fallback del total (último recurso). */
-function maxMonto(lines: { text: string }[], folio: string): number {
-  const noEsPlata =
-    /rut|banco|scotiabank|cta\.?\s*cte|cuenta|dep[oó]sito|transferencia|fono|tel[eé]fono|fax|n[°º*]\s*[:.\-]?\s*\d/i;
-  let best = 0;
-  for (const { text } of lines) {
-    if (noEsPlata.test(text)) continue;
-    for (const m of quitarNoMontos(text, folio).matchAll(MONEY_RE)) {
-      const v = parseMonto(m[0]);
-      const conSeparador = /[.,$]/.test(m[0]);
-      // Un entero PLANO en rango de año (1900–2099) casi siempre es un año
-      // ("MAYO 2022"), no plata: un total chico real viene con separador
-      // ("2.022") o $. Solo en este último recurso → no inventar un año como total.
-      if (!conSeparador && v >= 1900 && v <= 2099) continue;
-      if (conSeparador ? v >= 100 : v >= 1000) { if (v > best) best = v; }
-    }
-  }
-  return best;
-}
+import type { OCRRaw, FacturaExtraida, ItemFactura, TipoDocOCR } from './types';
+import {
+  fechaDocumento,
+  first,
+  maxMonto,
+  montoEnLetra,
+  montoEnLineas,
+  montoTrasEtiqueta,
+} from './parser/comun';
 
 /**
  * Ítems de línea (best-effort). Tesseract da texto plano, no tabla → heurística:
@@ -209,7 +29,7 @@ function maxMonto(lines: { text: string }[], folio: string): number {
  * cantidad. Más recall que el regex estricto anterior (que exigía exactamente
  * "desc cant precio total"). Siempre editable; el usuario borra los falsos.
  */
-function parseItems(lines: { text: string }[]): ItemFactura[] {
+export function parseItems(lines: { text: string }[]): ItemFactura[] {
   const items: ItemFactura[] = [];
   const saltar =
     /total|neto|i\.?v\.?a|sub\s*-?\s*total|rut|n[°ºo]\s*factura|fecha|se[ñn]or|cliente|giro|direcci[oó]n|tel[eé]fono|email|correo|importe|c[oó]digo|descripci[oó]n|cantidad|precio|unitario|p[aá]gina|despacho|consecutivo|ruta/i;
@@ -221,6 +41,8 @@ function parseItems(lines: { text: string }[]): ItemFactura[] {
   // quedar antes de la unidad ("... 10 BOT"), fuera de la cola de montos.
   const UNIDAD =
     /^(bot|un|unid|und|ud|kg|kgs|gr|grs|lt|lts|cc|ml|cj|caja|cajas|doc|docena|pack|saco|sacos|bid[oó]n|tarro|tarros|tira|tiras|bulto|bultos|kilo|kilos|kls?|pza|pzas|rollo|rollos|barra|barras|lata|latas|frasco|frascos|paq|pqt|sobre|sobres|display)$/i;
+
+  const parseMonto = (s: string) => Number(s.replace(/[^\d]/g, '')) || 0;
 
   for (const { text } of lines) {
     const linea = text.trim();
@@ -282,12 +104,26 @@ function parseItems(lines: { text: string }[]): ItemFactura[] {
   return items;
 }
 
-export function extraerFactura(raw: OCRRaw, tipo: TipoDocOCR = 'factura'): FacturaExtraida {
+/** De dónde salió cada monto (para derivar confianza por campo en el parser). */
+export interface FuentesFactura {
+  total: 'etiqueta' | 'letra' | 'suma_items' | 'derivado' | 'fallback' | '';
+  neto: 'etiqueta' | 'derivado' | '';
+  iva: 'etiqueta' | 'derivado' | '';
+}
+
+export interface FacturaDetallada {
+  factura: FacturaExtraida;
+  fuentes: FuentesFactura;
+}
+
+/** Igual que `extraerFactura` pero reporta la fuente de total/neto/iva.
+ *  La cascada y los valores son EXACTAMENTE los históricos. */
+export function extraerFacturaDetallada(raw: OCRRaw, tipo: TipoDocOCR = 'factura'): FacturaDetallada {
   const { entities, lines, fullText } = raw;
 
   const rut = first(entities, 'TAX_ID')?.normalized ?? '';
   const razonSocial = first(entities, 'ORGANIZATION')?.text ?? lines[0]?.text.slice(0, 80) ?? '';
-  const fecha = fechaFactura(lines, entities);
+  const fecha = fechaDocumento(lines, entities);
 
   // Folio / N° de factura. OJO: el "factura" suelto agarraba "TOTAL FACTURA 11881"
   // (el total) como folio → exigir un marcador de número (N°/Nº/No/Nro/Folio/#),
@@ -315,29 +151,47 @@ export function extraerFactura(raw: OCRRaw, tipo: TipoDocOCR = 'factura'): Factu
   const exclTotal =
     /neto|i\.?v\.?a|sub\s*-?\s*total|exento|afecto|descuento|anticipo|garant[ií]a|env\s*ase|unitari|precio/i;
 
+  const fuentes: FuentesFactura = { total: '', neto: '', iva: '' };
+
   // Etiquetas fuertes primero (los 4 docs chilenos resuelven acá → sin regresión).
   // Si fallan, el monto-en-letra y la suma de ítems son mejores que "el mayor
   // número de la hoja" (que agarra códigos de material, como el 135760 de Coca-Cola).
-  let total =
-    montoTrasEtiqueta(abajo, lblTotal, folio) ||
-    montoTrasEtiqueta(lines, lblTotal, folio) ||
-    montoEnLineas(abajo, /total/i, exclTotal, folio) ||
-    montoEnLineas(lines, /total/i, exclTotal, folio) ||
-    montoEnLetra(lines) ||
-    (sumaItems >= 1000 ? sumaItems : 0) ||
-    maxMonto(abajo, folio);
+  // Cascada explícita (en vez de ||) para registrar la fuente ganadora.
+  let total = 0;
+  const candidatosTotal: [number, FuentesFactura['total']][] = [
+    [montoTrasEtiqueta(abajo, lblTotal, folio), 'etiqueta'],
+    [montoTrasEtiqueta(lines, lblTotal, folio), 'etiqueta'],
+    [montoEnLineas(abajo, /total/i, exclTotal, folio), 'etiqueta'],
+    [montoEnLineas(lines, /total/i, exclTotal, folio), 'etiqueta'],
+    [montoEnLetra(lines), 'letra'],
+    [sumaItems >= 1000 ? sumaItems : 0, 'suma_items'],
+    [maxMonto(abajo, folio), 'fallback'],
+  ];
+  for (const [v, f] of candidatosTotal) {
+    if (v) {
+      total = v;
+      fuentes.total = f;
+      break;
+    }
+  }
+
   let neto =
     montoTrasEtiqueta(abajo, /monto\s*neto|\bneto\b|afecto/i, folio) ||
     montoTrasEtiqueta(lines, /monto\s*neto|\bneto\b|afecto/i, folio);
+  if (neto) fuentes.neto = 'etiqueta';
   let iva =
     montoTrasEtiqueta(abajo, /i\.?v\.?a(?!\s*adicional)/i, folio) ||
     montoTrasEtiqueta(lines, /i\.?v\.?a(?!\s*adicional)/i, folio);
+  if (iva) fuentes.iva = 'etiqueta';
 
   if (total && !neto && !iva) {
     neto = Math.round(total / 1.19);
     iva = total - neto;
+    fuentes.neto = 'derivado';
+    fuentes.iva = 'derivado';
   } else if (!total && neto) {
     total = neto + iva;
+    fuentes.total = 'derivado';
   }
 
   // Boletas/guías/otros normalmente NO desglosan neto/IVA: si solo hay total
@@ -345,7 +199,13 @@ export function extraerFactura(raw: OCRRaw, tipo: TipoDocOCR = 'factura'): Factu
   if (tipo !== 'factura' && total && (!neto || !iva || Math.abs(neto + iva - total) > 2)) {
     neto = Math.round(total / 1.19);
     iva = total - neto;
+    fuentes.neto = 'derivado';
+    fuentes.iva = 'derivado';
   }
 
-  return { rut, razonSocial, folio, fecha, neto, iva, total, items };
+  return { factura: { rut, razonSocial, folio, fecha, neto, iva, total, items }, fuentes };
+}
+
+export function extraerFactura(raw: OCRRaw, tipo: TipoDocOCR = 'factura'): FacturaExtraida {
+  return extraerFacturaDetallada(raw, tipo).factura;
 }
