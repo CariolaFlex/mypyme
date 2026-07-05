@@ -145,9 +145,13 @@
     SECURITY INVOKER, RLS por tenant); página `/reportes/mercadopago` (KPIs total/aprobados/rechazados/
     ticket + gráfico por día + estado de terminales + historial); link en sidebar. Reusa
     `lib/reportes.ts` + `VentasPorDiaChart`. e2e verify-mp 17/17.
-  - **Pendiente (espera el acuerdo + varios comercios):** panel cross-tenant para Andrés (TPV de todos
-    + comisión con % configurable; acceso = allowlist de emails en env o AdminVectium) y
-    `application_fee`/split presencial (sin confirmar por MP).
+  - **Incremento 2 ✅ (2026-07-04) — Panel cross-tenant para Andrés:** página `/admin/mercadopago`
+    (TPV mes/90d por comerciante, comisión proyectada con % configurable vía `?pct=` o env
+    `MP_REVSHARE_PCT`, estado de conexiones y terminales). Lectura service-role gateada por
+    `PLATFORM_ADMIN_EMAILS` (env, emails separados por coma; sin el email → 404). Sin link en el
+    sidebar: acceso directo por URL. **Setear `PLATFORM_ADMIN_EMAILS` en Vercel** (en `.env.local` ya
+    quedó con vectiumspa@gmail.com).
+  - **Pendiente (espera el acuerdo con MP):** `application_fee`/split presencial (sin confirmar por MP).
 - **Fase 3 — Pulido.**
   Reembolsos/anulaciones desde el POS, manejo de disputas, multi-terminal por caja, alertas de device
   desconectado.
