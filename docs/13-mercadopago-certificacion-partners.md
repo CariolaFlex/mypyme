@@ -173,18 +173,33 @@ Concretamente:
 **Estado (2026-07-05): ya se descartó Point como certificación (no existe) y se avanzó a la etapa 1
 "Bienvenida" de Checkout Pro.** Siguiente paso de Andrés en el portal:
 
-1. Click "Próximo" y avanzar las etapas **2) Contexto del desafío, 3) Prepara tu ambiente, 4) Configura
-   tu integración** — pegar el contenido de esas pantallas para tener las credenciales de prueba, el
-   Integrator ID del desafío, y la especificación exacta del producto/flujo a simular.
-2. Con eso confirmado (no antes, para no inventar specs), Claude Code construye la integración
-   aislada (`app/mp-cert-checkout-pro/`, ver Fase 1 arriba) en este repo.
-3. Etapa 5: simular el pago con la tarjeta de prueba → obtener el Payment ID.
-4. Etapa 6: enviar el Payment ID → esperar el resultado de la certificación.
-5. Al aprobar → se emite el **Integrator ID real del programa** → con eso, buscar el canal de contacto
-   con Partners y llevar las preguntas de la Fase 3.
-
-Hasta el punto 1 (pegar etapas 2–4) no hay código que escribir — inventar specs de credenciales o
-producto violaría la regla de "no inventar datos no confirmados".
+**Estado (2026-07-05, actualizado):**
+1. ✅ Documentación pública de Checkout Pro revisada completa (crear app, SDK, preferencia,
+   back_urls, frontend, webhooks, tarjetas de prueba) — traída con el navegador (el fetch directo da
+   403, el sitio bloquea bots).
+2. ✅ **Scaffold de código construido y pusheado** (commit `be19dc4`): `app/mp-cert-checkout-pro/`
+   (tienda de prueba de un producto + página de retorno compartida), `lib/mp-cert/client.ts` (crear
+   preferencia + consultar pago), `app/api/mp-cert/preference/route.ts`, `app/api/webhooks/mp-cert/route.ts`.
+   Inerte sin `MP_CERT_ACCESS_TOKEN` (mismo patrón que Flow/MP Point). tsc/lint/build OK.
+3. **Bloqueado en la etapa 3/6 del wizard ("Prepara tu ambiente"):** el checklist (Crear cuentas de
+   prueba → Crear aplicación → Crear sitio e-commerce → Instalar SDK) tiene los pasos 2–4 con
+   candado hasta completar "Crear cuentas de prueba". **Ese paso lo hace Andrés manualmente** (crea
+   cuentas reales de prueba vendedor/comprador en su cuenta MP, puede pedir verificación de
+   identidad/2FA — no es algo que se automatice).
+4. **Pendiente de Andrés:** completar "Crear cuentas de prueba" → "Concluir tarea", avanzar el
+   checklist de la etapa 3, y llegar a la **etapa 4 "Configura tu integración"** — ahí debería
+   aparecer el **Integrator ID específico del desafío** y el mecanismo exacto para incluirlo (header
+   o atributo de la preferencia). Está marcado como `TODO` en `lib/mp-cert/client.ts` — no se inventó
+   para no violar la regla de "no inventar datos no confirmados". En cuanto Andrés pegue el contenido
+   de la etapa 4, se completa ese dato y el código queda listo para simular el pago (etapa 5).
+5. Con las credenciales de prueba (Access Token/Public Key de la app que cree en el paso 3) puestas
+   en `.env.local` como `MP_CERT_ACCESS_TOKEN`, la tienda de prueba en `/mp-cert-checkout-pro` ya
+   queda operativa para probar localmente o en Vercel.
+6. Etapa 5: simular el pago con una tarjeta de prueba (tabla completa ya documentada en §... de la
+   doc pública) → obtener el Payment ID.
+7. Etapa 6: enviar el Payment ID → esperar el resultado de la certificación.
+8. Al aprobar → se emite el **Integrator ID real del programa** → con eso, buscar el canal de
+   contacto con Partners y llevar las preguntas de la Fase 3.
 
 ---
 
