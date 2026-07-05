@@ -7,6 +7,16 @@
 
 ## ⭐ Punto de continuación (2026-07-05)
 
+**Fix warnings de `<script>` en consola (dev) + se quita next-themes.** El warning de React 19
+«Encountered a script tag while rendering React component» venía de **next-themes**: su
+`ThemeProvider` (componente cliente) renderiza un `<script>` anti-flash, y React 19 avisa cuando un
+componente cliente renderiza `<script>` en CSR. Como la app solo usa light/dark (sin «system»), se
+reemplazó next-themes por un **provider propio mínimo** (`components/theme-provider.tsx`: contexto +
+`useTheme` compatible `theme/resolvedTheme/setTheme`) y el anti-flash pasó a un **script inline
+server-side en `<head>`** (no dispara el warning). `theme-toggle` y `ui/sonner` ahora importan el
+`useTheme` propio; `next-themes` **desinstalado** (0 vulns). Verificado en navegador: consola limpia
+(solo HMR), anti-flash aplica el tema antes del paint, y el toggle cambia + persiste. Build/tsc/lint ✅.
+
 **Historial y detalle de ventas.** Cierra la propagación de descuento/nota/líneas manuales:
 - **`/ventas`** (sidebar Operación): lista de boletas por período con fecha/hora, N°, ítems, método,
   total, e íconos de descuento/nota. Fila → detalle.
