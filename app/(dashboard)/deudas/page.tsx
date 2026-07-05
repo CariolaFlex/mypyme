@@ -1,4 +1,4 @@
-import { HandCoins } from 'lucide-react';
+import { HandCoins, Download, Search, AlertTriangle } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ type DeudaRow = {
   fecha: string;
   fecha_vencimiento: string | null;
   estado: string;
+  proveedor_id: string | null;
   proveedores: { nombre: string } | null;
 };
 
@@ -37,34 +38,53 @@ const selectCls = 'w-full rounded-md border border-input bg-input/50 backdrop-bl
 export default async function DeudasPage({
   searchParams,
 }: {
-  searchParams: Promise<{ ok?: string; error?: string; ver?: string }>;
+  searchParams: Promise<{ ok?: string; error?: string; ver?: string; q?: string }>;
 }) {
-  const { error, ver } = await searchParams;
+  const { ok, error, ver, q } = await searchParams;
   const supabase = await createClient();
 
   const [{ data: deudas }, { data: proveedores }] = await Promise.all([
     supabase
       .from('deudas')
       .select(
-        'id, tipo, categoria, contraparte, descripcion, monto_total, saldo, fecha, fecha_vencimiento, estado, proveedores(nombre)'
+        'id, tipo, categoria, contraparte, descripcion, monto_total, saldo, fecha, fecha_vencimiento, estado, proveedor_id, proveedores(nombre)'
       )
       .order('estado', { ascending: true }) // pendientes primero
       .order('fecha', { ascending: false })
-      .limit(200),
+      .limit(500),
     supabase.from('proveedores').select('id, nombre').eq('activo', true).order('nombre'),
   ]);
 
   const rows = (deudas as unknown as DeudaRow[] | null) ?? [];
+  const proveedoresList = (proveedores as { id: string; nombre: string }[] | null) ?? [];
+  const hoy = new Date().toISOString().slice(0, 10);
+
   const pendientes = rows.filter((d) => d.estado === 'pendiente');
   const porCobrar = pendientes.filter((d) => d.tipo === 'por_cobrar').reduce((s, d) => s + Number(d.saldo), 0);
   const porPagar = pendientes.filter((d) => d.tipo === 'por_pagar').reduce((s, d) => s + Number(d.saldo), 0);
-  // Filtro simple por query param (?ver=cobrar|pagar|pagadas).
-  const visibles =
-    ver === 'cobrar' ? rows.filter((d) => d.tipo === 'por_cobrar' && d.estado === 'pendiente')
-    : ver === 'pagar' ? rows.filter((d) => d.tipo === 'por_pagar' && d.estado === 'pendiente')
-    : ver === 'pagadas' ? rows.filter((d) => d.estado === 'pagada')
-    : rows;
-  const hoy = new Date().toISOString().slice(0, 10);
+  const vencidas = pendientes.filter((d) => d.fecha_vencimiento && d.fecha_vencimiento < hoy);
+  const saldoVencido = vencidas.reduce((s, d) => s + Number(d.saldo), 0);
+
+  // Filtro por estado/tipo (?ver=cobrar|pagar|pagadas|vencidas) + búsqueda (?q=).
+  const term = (q ?? '').trim().toLowerCase();
+  const visibles = rows
+    .filter((d) =>
+      ver === 'cobrar' ? d.tipo === 'por_cobrar' && d.estado === 'pendiente'
+      : ver === 'pagar' ? d.tipo === 'por_pagar' && d.estado === 'pendiente'
+      : ver === 'pagadas' ? d.estado === 'pagada'
+      : ver === 'vencidas' ? d.estado === 'pendiente' && !!d.fecha_vencimiento && d.fecha_vencimiento < hoy
+      : true
+    )
+    .filter((d) =>
+      !term ||
+      d.contraparte.toLowerCase().includes(term) ||
+      (d.descripcion ?? '').toLowerCase().includes(term)
+    );
+
+  const exportQs = new URLSearchParams();
+  if (ver) exportQs.set('ver', ver);
+  if (term) exportQs.set('q', term);
+  const exportHref = `/deudas/export${exportQs.toString() ? `?${exportQs}` : ''}`;
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -86,6 +106,22 @@ export default async function DeudasPage({
         <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {error}
         </p>
+      )}
+      {ok && !error && (
+        <p className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
+          Listo, cambios guardados.
+        </p>
+      )}
+      {vencidas.length > 0 && (
+        <a
+          href="/deudas?ver=vencidas"
+          className="flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 transition-colors hover:bg-amber-500/20 dark:text-amber-400"
+        >
+          <AlertTriangle className="size-4 shrink-0" />
+          <span>
+            {vencidas.length} {vencidas.length === 1 ? 'deuda vencida' : 'deudas vencidas'} — {clp.format(saldoVencido)} en total. Toca para verlas.
+          </span>
+        </a>
       )}
 
       {/* Resumen */}
@@ -162,22 +198,44 @@ export default async function DeudasPage({
 
       {/* Filtros + listado */}
       <div>
-        <div className="mb-2 flex flex-wrap items-center gap-2 text-sm">
-          {([['', 'Todas'], ['cobrar', 'Por cobrar'], ['pagar', 'Por pagar'], ['pagadas', 'Pagadas']] as const).map(
-            ([v, l]) => (
-              <a
-                key={v}
-                href={v ? `/deudas?ver=${v}` : '/deudas'}
-                className={`rounded-full border px-3 py-1 text-xs transition-colors ${
-                  (ver ?? '') === v
-                    ? 'border-primary bg-primary/10 font-medium text-primary'
-                    : 'border-input hover:bg-muted'
-                }`}
-              >
-                {l}
-              </a>
-            )
+        <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+          {([['', 'Todas'], ['cobrar', 'Por cobrar'], ['pagar', 'Por pagar'], ['vencidas', 'Vencidas'], ['pagadas', 'Pagadas']] as const).map(
+            ([v, l]) => {
+              const params = new URLSearchParams();
+              if (v) params.set('ver', v);
+              if (term) params.set('q', term);
+              const href = params.toString() ? `/deudas?${params}` : '/deudas';
+              return (
+                <a
+                  key={v}
+                  href={href}
+                  className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                    (ver ?? '') === v
+                      ? 'border-primary bg-primary/10 font-medium text-primary'
+                      : 'border-input hover:bg-muted'
+                  }`}
+                >
+                  {l}
+                </a>
+              );
+            }
           )}
+          <form action="/deudas" className="relative ml-auto">
+            {ver && <input type="hidden" name="ver" value={ver} />}
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              name="q"
+              defaultValue={q ?? ''}
+              placeholder="Buscar nombre…"
+              className="h-8 w-44 pl-8 text-xs"
+            />
+          </form>
+          <a
+            href={exportHref}
+            className="inline-flex items-center gap-1.5 rounded-full border border-input px-3 py-1 text-xs transition-colors hover:bg-muted"
+          >
+            <Download className="size-3.5" /> Exportar
+          </a>
         </div>
         <Table>
           <TableHeader>
@@ -233,7 +291,20 @@ export default async function DeudasPage({
                     </TableCell>
                     <TableCell className="text-right">
                       <DeudaRowActions
-                        deuda={{ id: d.id, contraparte: d.contraparte, saldo: Number(d.saldo), estado: d.estado }}
+                        deuda={{
+                          id: d.id,
+                          tipo: d.tipo,
+                          categoria: d.categoria,
+                          contraparte: d.contraparte,
+                          descripcion: d.descripcion,
+                          monto_total: Number(d.monto_total),
+                          saldo: Number(d.saldo),
+                          fecha: d.fecha,
+                          fecha_vencimiento: d.fecha_vencimiento,
+                          estado: d.estado,
+                          proveedor_id: d.proveedor_id,
+                        }}
+                        proveedores={proveedoresList}
                       />
                     </TableCell>
                   </TableRow>

@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/table';
 import {
   Sun, CalendarDays, CalendarRange, Receipt, AlertTriangle, BarChart3,
-  ArrowRight, type LucideIcon,
+  ArrowRight, HandCoins, type LucideIcon,
 } from 'lucide-react';
 import { clp, inicioDiaSantiago, inicioHaceDias, inicioMesSantiago } from '@/lib/reportes';
 import { diasRestantesTrial } from '@/lib/flow/subscription';
@@ -45,6 +45,7 @@ export default async function DashboardPage() {
     { data: productos },
     { data: stockRows },
     { count: numVentasTotal },
+    { data: deudasPend },
   ] = await Promise.all([
     supabase.from('empresas').select('razon_social, rut, plan, estado_suscripcion, trial_termina_en').single(),
     supabase.rpc('reporte_ventas_resumen', { p_desde: hoy, p_hasta: hasta }),
@@ -55,6 +56,7 @@ export default async function DashboardPage() {
     supabase.from('productos').select('id, stock_minimo').eq('activo', true),
     supabase.from('vw_stock_actual').select('producto_id, stock'),
     supabase.from('ventas').select('id', { count: 'exact', head: true }),
+    supabase.from('deudas').select('tipo, saldo, fecha_vencimiento').eq('estado', 'pendiente'),
   ]);
 
   const { data: accesos } = await supabase
@@ -74,6 +76,13 @@ export default async function DashboardPage() {
   const stockBajo = (productos ?? []).filter(
     (p) => p.stock_minimo != null && (stockPorProducto.get(p.id) ?? 0) <= Number(p.stock_minimo)
   ).length;
+
+  // Deudas pendientes (saldo vivo por cobrar / por pagar + vencidas).
+  const hoyStr = new Date().toISOString().slice(0, 10);
+  const deudasRows = (deudasPend as { tipo: string; saldo: number; fecha_vencimiento: string | null }[] | null) ?? [];
+  const deudaPorCobrar = deudasRows.filter((d) => d.tipo === 'por_cobrar').reduce((s, d) => s + Number(d.saldo), 0);
+  const deudaPorPagar = deudasRows.filter((d) => d.tipo === 'por_pagar').reduce((s, d) => s + Number(d.saldo), 0);
+  const deudasVencidas = deudasRows.filter((d) => d.fecha_vencimiento && d.fecha_vencimiento < hoyStr).length;
 
   const periodos: { label: string; r: Resumen | null; icon: LucideIcon }[] = [
     { label: 'Hoy', r: hoyR, icon: Sun },
@@ -201,8 +210,8 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      {/* IVA del mes + stock bajo + reportes */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      {/* IVA del mes + deudas + stock bajo + reportes */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="IVA débito del mes"
           value={Number(mesR?.iva ?? 0)}
@@ -213,11 +222,26 @@ export default async function DashboardPage() {
           sub={<>Neto {clp.format(Number(mesR?.neto ?? 0))}</>}
         />
         <StatCard
+          label="Te deben (por cobrar)"
+          value={deudaPorCobrar}
+          format="clp"
+          icon={<HandCoins />}
+          index={4}
+          accent={deudasVencidas > 0 ? 'amber' : 'emerald'}
+          sub={
+            <Link href={deudasVencidas > 0 ? '/deudas?ver=vencidas' : '/deudas'} className="underline-offset-2 hover:underline">
+              {deudasVencidas > 0
+                ? `${deudasVencidas} ${deudasVencidas === 1 ? 'vencida' : 'vencidas'} · debes ${clp.format(deudaPorPagar)}`
+                : `Debes ${clp.format(deudaPorPagar)}`}
+            </Link>
+          }
+        />
+        <StatCard
           label="Stock bajo"
           value={stockBajo}
           format="int"
           icon={<AlertTriangle />}
-          index={4}
+          index={5}
           accent={stockBajo > 0 ? 'amber' : 'emerald'}
           sub={
             <Link href="/inventario/stock" className="underline-offset-2 hover:underline">

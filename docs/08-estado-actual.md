@@ -5,6 +5,21 @@
 > Documento de handoff. Resume qué está hecho, cómo funciona y qué sigue.
 > Verificado: build OK, ESLint 0 errores, TypeScript OK, deploy Vercel sano, npm audit 0 vulns.
 
+## ⭐ Punto de continuación (2026-07-05)
+
+**Módulo de Deudas cerrado.** `/deudas` pasó de MVP (crear/abonar/borrar) a módulo maduro,
+a la par de Gastos/Compras:
+- **Editar deuda** (`editarDeuda` en `actions.ts`) con reconciliación de saldo: el monto total
+  no puede bajar de lo ya abonado (`abonado = monto_total − saldo`); recalcula saldo y estado.
+- **Exportar CSV** (`/deudas/export/route.ts`, patrón `lib/csv.ts` con BOM es-CL) — honra los
+  filtros `?ver=` y la búsqueda `?q=`, con columnas Monto/Abonado/Saldo y totales al pie.
+- **Buscador** por nombre/descripción (`?q=`) y **filtro «Vencidas»** en la barra de filtros.
+- **Alerta de vencidas** en la página + **banner de éxito** al guardar.
+- **KPI de Deudas en el Dashboard** (`/inicio`): «Te deben» (por cobrar), «Debes» (por pagar) y
+  conteo de vencidas, con enlace directo a `/deudas?ver=vencidas`.
+- Sin migración nueva: la edición usa el grant UPDATE de la RLS `deudas_write` ya existente.
+- Build ✅, TypeScript ✅.
+
 ## ⭐ Punto de continuación (2026-06-18)
 
 **El producto ahora se llama "Gestionala"** (antes "mypyme"; ver `docs/10-marca-gestionala.md`).

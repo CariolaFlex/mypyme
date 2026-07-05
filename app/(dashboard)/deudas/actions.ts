@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { clp } from '@/lib/reportes';
 
 const TIPOS = ['por_cobrar', 'por_pagar'] as const;
 const CATEGORIAS = ['cliente', 'empleado', 'personal', 'proveedor', 'servicio', 'otro'] as const;
@@ -48,6 +49,63 @@ export async function crearDeuda(formData: FormData) {
     fecha_vencimiento: vencimiento,
     usuario_id: usuarioId ?? null,
   });
+  if (error) redirect(`/deudas?error=${encodeURIComponent(error.message)}`);
+  revalidatePath('/deudas');
+  redirect('/deudas?ok=1');
+}
+
+export async function editarDeuda(formData: FormData) {
+  const { supabase, empresaId } = await getCtx();
+  if (!empresaId) redirect('/onboarding');
+
+  const id = String(formData.get('id') ?? '');
+  const tipo = String(formData.get('tipo') ?? '');
+  const categoria = String(formData.get('categoria') ?? 'otro');
+  const contraparte = String(formData.get('contraparte') ?? '').trim();
+  const descripcion = String(formData.get('descripcion') ?? '').trim();
+  const monto = Number(formData.get('monto') ?? 0);
+  const fecha = String(formData.get('fecha') ?? '') || null;
+  const vencimiento = String(formData.get('fecha_vencimiento') ?? '') || null;
+  const proveedorId = String(formData.get('proveedor_id') ?? '') || null;
+
+  if (!id || !TIPOS.includes(tipo as (typeof TIPOS)[number]) || !contraparte || !(monto > 0)) {
+    redirect('/deudas?error=' + encodeURIComponent('Completa tipo, nombre y un monto mayor a 0'));
+  }
+
+  // Reconciliar con lo ya abonado: el monto total no puede bajar de lo pagado.
+  // abonado = monto_total - saldo (invariante del RPC de abonos).
+  const { data: actual } = await supabase
+    .from('deudas')
+    .select('monto_total, saldo')
+    .eq('id', id)
+    .maybeSingle();
+  if (!actual) redirect('/deudas?error=' + encodeURIComponent('Deuda no encontrada'));
+
+  const abonado = Number(actual!.monto_total) - Number(actual!.saldo);
+  if (monto < abonado) {
+    redirect(
+      '/deudas?error=' +
+        encodeURIComponent(`El monto no puede ser menor a lo ya abonado (${clp.format(abonado)})`)
+    );
+  }
+  const nuevoSaldo = Math.round((monto - abonado) * 100) / 100;
+
+  const { error } = await supabase
+    .from('deudas')
+    .update({
+      tipo,
+      categoria: CATEGORIAS.includes(categoria as (typeof CATEGORIAS)[number]) ? categoria : 'otro',
+      contraparte,
+      proveedor_id: proveedorId,
+      descripcion: descripcion || null,
+      monto_total: monto,
+      saldo: nuevoSaldo,
+      estado: nuevoSaldo === 0 ? 'pagada' : 'pendiente',
+      ...(fecha ? { fecha } : {}),
+      fecha_vencimiento: vencimiento,
+      actualizado_en: new Date().toISOString(),
+    })
+    .eq('id', id);
   if (error) redirect(`/deudas?error=${encodeURIComponent(error.message)}`);
   revalidatePath('/deudas');
   redirect('/deudas?ok=1');
