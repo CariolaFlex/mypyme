@@ -8,6 +8,7 @@ import {
   Truck, ClipboardList, ReceiptText, TrendingDown, BarChart3, FileText,
   Building2, CreditCard, Users, Sparkles, LogOut, History, Menu, X,
   LifeBuoy, BookOpen, ScanLine, ScanText, Nfc, HandCoins, ChevronDown, Search,
+  Activity,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -72,6 +73,7 @@ export function AppSidebar({
         { href: '/inicio', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/pos', label: 'Punto de venta', icon: ShoppingCart },
         { href: '/caja', label: 'Caja', icon: Wallet },
+        { href: '/flujo-caja', label: 'Flujo de caja', icon: Activity },
         { href: '/reportes/ventas', label: 'Reportes de ventas', icon: BarChart3 },
         { href: '/reportes/gastos', label: 'Reporte de gastos', icon: TrendingDown },
         { href: '/reportes/iva', label: 'Reporte IVA (F29)', icon: FileText },

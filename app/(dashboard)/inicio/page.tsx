@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { clp, inicioDiaSantiago, inicioHaceDias, inicioMesSantiago } from '@/lib/reportes';
 import { diasRestantesTrial } from '@/lib/flow/subscription';
-import { VentasPorDiaChart } from '@/components/charts/dynamic';
+import { VentasChartCard } from '@/components/charts/ventas-chart-card';
 import { StatCard } from '@/components/dashboard/stat-card';
 import { AccesosRapidos } from '@/components/dashboard/accesos-rapidos';
 import type { AccesoRapido } from '@/lib/accesos';
@@ -271,15 +271,8 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Tendencia de ventas (7 días) */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Ventas — últimos 7 días</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <VentasPorDiaChart data={(porDia7 ?? []) as { dia: string; num_ventas: number; total: number }[]} />
-        </CardContent>
-      </Card>
+      {/* Tendencia de ventas (7 días) — con selector de tipo de gráfico */}
+      <VentasChartCard data={(porDia7 ?? []) as { dia: string; num_ventas: number; total: number }[]} />
 
       {/* Top productos del mes */}
       <Card>

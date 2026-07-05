@@ -7,6 +7,20 @@
 
 ## ⭐ Punto de continuación (2026-07-05)
 
+**Flujo de Caja + gráficos configurables + fix dark mode.**
+- **Nueva pestaña `/flujo-caja`** (sidebar Operación + accesos rápidos): centraliza TODO el dinero —
+  ingresos (ventas), egresos (gastos), resultado, por cobrar/por pagar, efectivo en caja (sesión
+  abierta), IVA a pagar del período. Gráficos: ingresos vs egresos por día, resultado acumulado,
+  egresos por categoría (dona), y feed unificado de últimos movimientos (ventas + gastos + abonos).
+  Enlaces a los reportes detallados. Todo con datos existentes (sin migración, RLS por sesión).
+- **Gráficos configurables**: el gráfico de ventas del dashboard tiene selector de tipo
+  (barras/línea/área) persistido por usuario en localStorage, con degradados de marca
+  (`components/charts/ventas-chart-card.tsx` + `sales-charts.tsx` con prop `variante`). Nuevos
+  gráficos de flujo en `components/charts/flujo-charts.tsx` (colores fijos legibles en claro/oscuro).
+- **Fix dark mode**: faltaba `color-scheme` en `:root`/`.dark` → los dropdowns nativos de `<select>` y
+  los `<input type=date>` abrían con fondo blanco y texto ilegible en modo oscuro. Agregado
+  `color-scheme: light/dark`. Verificado en navegador (claro + oscuro con datos reales sembrados).
+
 **Rubros de servicio + Kit inicial por rubro.** Cierra el círculo del "POS para servicios":
 - **Rubros ampliados**: `TIPOS_NEGOCIO` ahora incluye barbería, salud/kine, dental, estética,
   mascotas, transporte/taxi, educación (además de los de producto). Migración #43 amplía el CHECK de

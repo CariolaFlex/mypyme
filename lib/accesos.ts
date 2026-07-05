@@ -8,7 +8,7 @@ import {
   Zap, ShoppingCart, Wallet, Package, Boxes, Tags, Truck, ClipboardList,
   ReceiptText, TrendingDown, HandCoins, BarChart3, FileText, ScanLine,
   ScanText, Users, CreditCard, Building2, Star, Bell, CalendarDays, Box,
-  DollarSign, PiggyBank, Percent, Store, Coffee, Wrench,
+  DollarSign, PiggyBank, Percent, Store, Coffee, Wrench, Activity,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -18,7 +18,7 @@ export const ICONOS: Record<string, LucideIcon> = {
   Zap, ShoppingCart, Wallet, Package, Boxes, Tags, Truck, ClipboardList,
   ReceiptText, TrendingDown, HandCoins, BarChart3, FileText, ScanLine,
   ScanText, Users, CreditCard, Building2, Star, Bell, CalendarDays, Box,
-  DollarSign, PiggyBank, Percent, Store, Coffee, Wrench,
+  DollarSign, PiggyBank, Percent, Store, Coffee, Wrench, Activity,
 };
 
 export function iconoDe(nombre: string): LucideIcon {
@@ -51,6 +51,7 @@ export function colorDe(nombre: string) {
 export const DESTINOS_SUGERIDOS: { destino: string; label: string; icono: string }[] = [
   { destino: '/pos', label: 'Punto de venta', icono: 'ShoppingCart' },
   { destino: '/caja', label: 'Caja', icono: 'Wallet' },
+  { destino: '/flujo-caja', label: 'Flujo de caja', icono: 'Activity' },
   { destino: '/inventario/stock', label: 'Inventario', icono: 'Boxes' },
   { destino: '/inventario/productos', label: 'Productos', icono: 'Package' },
   { destino: '/inventario/escaneo-rapido', label: 'Escaneo rápido', icono: 'ScanLine' },

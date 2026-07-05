@@ -15,3 +15,18 @@ export const VentasPorMetodoChart = dynamic(
   () => import('./sales-charts').then((m) => m.VentasPorMetodoChart),
   { ssr: false, loading: Skeleton }
 );
+
+export const IngresosEgresosChart = dynamic(
+  () => import('./flujo-charts').then((m) => m.IngresosEgresosChart),
+  { ssr: false, loading: Skeleton }
+);
+
+export const ResultadoAcumuladoChart = dynamic(
+  () => import('./flujo-charts').then((m) => m.ResultadoAcumuladoChart),
+  { ssr: false, loading: Skeleton }
+);
+
+export const EgresosPorCategoriaChart = dynamic(
+  () => import('./flujo-charts').then((m) => m.EgresosPorCategoriaChart),
+  { ssr: false, loading: Skeleton }
+);

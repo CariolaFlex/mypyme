@@ -68,6 +68,10 @@
 
 /* Paleta Gestionala (navy / azul real / slate). Ver docs/10-marca-gestionala.md */
 :root {
+  /* Hace que los controles nativos (dropdowns de <select>, <input type=date>,
+     scrollbars) rendericen en el esquema correcto. Sin esto, en modo oscuro la
+     lista de opciones sale con fondo blanco y texto casi ilegible. */
+  color-scheme: light;
   --background: #ffffff;
   --foreground: #0d1b2a;        /* azul marino */
   --card: #ffffff;
@@ -103,6 +107,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: #0b1220;        /* negro azulado */
   --foreground: #f1f5f9;
   --card: #1f2937;             /* negro suave */
