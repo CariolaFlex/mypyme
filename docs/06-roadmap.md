@@ -88,6 +88,9 @@
 - [x] **POS para servicios** (2026-07-05): «Cobro manual» (línea de monto libre sin producto) para
   taxi/servicios variables + productos de servicio (`controla_stock=false`, toggle en el form).
   Migración #41 `pos_servicios` reescribe `process_sale` para líneas libres (retrocompatible).
+- [x] **POS: descuento + nota** (2026-07-05): descuento total ($/%) con reparto proporcional de IVA
+  + nota/cliente por venta. Migración #42 `pos_descuento_nota` (restaura patrón wrapper/core DEFINER
+  de `process_sale`). Verificado e2e `verify-pos-servicios.mjs` 9/9.
 
 ### Bloque C — Offline (✅ hecho, verificado e2e en navegador)
 - [x] Dexie.js: DB local (`productos` cache, `ventasPendientes` cola)

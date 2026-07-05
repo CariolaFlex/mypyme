@@ -3,7 +3,7 @@ import Dexie, { type Table } from 'dexie';
 /** Una línea de venta: producto del catálogo o cobro manual (concepto + monto). */
 export type LineaVenta =
   | { producto_id: string; cantidad: number }
-  | { descripcion: string; precio: number; cantidad: number };
+  | { descripcion: string; precio: number; cantidad: number; tasa_iva?: number };
 
 /** Payload de una venta lista para enviar al RPC process_sale. */
 export type VentaPayload = {
@@ -11,6 +11,8 @@ export type VentaPayload = {
   sesionCajaId: string | null;
   lineas: LineaVenta[];
   pagos: { metodo_pago_id: string; monto: number; monto_recibido?: number }[];
+  descuento?: number;
+  nota?: string | null;
 };
 
 /** Venta encolada localmente mientras no hay conexión. */

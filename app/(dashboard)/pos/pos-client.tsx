@@ -46,6 +46,10 @@ export function PosClient({
   const [productos, setProductos] = useState<ProductoCache[]>(productosIniciales);
   const [cart, setCart] = useState<Record<string, number>>({});
   const [manuales, setManuales] = useState<Manual[]>([]);
+  // Descuento total (sobre el bruto) y nota/cliente de la venta.
+  const [descMode, setDescMode] = useState<'monto' | 'pct'>('monto');
+  const [descInput, setDescInput] = useState('');
+  const [nota, setNota] = useState('');
   const [busqueda, setBusqueda] = useState('');
   const [catId, setCatId] = useState<string | null>(null);
   // Multi-pago: una fila por método. Con 1 fila el monto es el total (y permite
@@ -109,7 +113,14 @@ export function PosClient({
     0
   );
   const totalManual = manuales.reduce((s, m) => s + m.monto, 0);
-  const total = totalProductos + totalManual;
+  const totalBruto = totalProductos + totalManual;
+  // Descuento: por monto ($) o por porcentaje (%). Clampeado a [0, bruto].
+  const descRaw = Number(descInput) || 0;
+  const descuento = Math.min(
+    descMode === 'pct' ? Math.round(totalBruto * (Math.min(descRaw, 100) / 100)) : Math.round(descRaw),
+    totalBruto
+  );
+  const total = Math.max(totalBruto - descuento, 0);
   // Hay algo que cobrar (productos y/o cobros manuales).
   const hayItems = items.length > 0 || manuales.length > 0;
   const numItems = items.length + manuales.length;
@@ -249,6 +260,9 @@ export function PosClient({
   const limpiar = () => {
     setCart({});
     setManuales([]);
+    setDescInput('');
+    setDescMode('monto');
+    setNota('');
     setRecibido('');
     setPagos([{ key: 'p0', metodoId: metodos[0]?.id ?? '' }]);
     setMontos({});
@@ -322,9 +336,18 @@ export function PosClient({
       sesionCajaId,
       lineas: [
         ...items.map(([producto_id, cantidad]) => ({ producto_id, cantidad })),
-        ...manuales.map((m) => ({ descripcion: m.concepto, precio: m.monto, cantidad: 1 })),
+        // El monto manual se trata como IVA-incluido a la tasa del negocio (igual
+        // que los precios de productos), para que el F29 no quede subvaluado.
+        ...manuales.map((m) => ({
+          descripcion: m.concepto,
+          precio: m.monto,
+          cantidad: 1,
+          tasa_iva: negocio.usaIva ? negocio.tasaIva : 0,
+        })),
       ],
       pagos: pagosPayload,
+      descuento,
+      nota: nota.trim() || null,
     };
     const totalVenta = total;
     const vueltoVenta = vuelto;
@@ -341,9 +364,12 @@ export function PosClient({
         }),
         ...manuales.map((m) => ({ nombre: m.concepto, cantidad: 1, precioUnit: m.monto, subtotal: m.monto })),
       ],
+      subtotal: totalBruto,
+      descuento,
       total: totalVenta,
       pagos: pagosPayload.map((p) => ({ nombre: nombreMetodo(p.metodo_pago_id), monto: p.monto })),
       vuelto: vueltoVenta,
+      nota: nota.trim() || null,
       fecha: new Date(),
       ref: payload.ventaId.slice(0, 8).toUpperCase(),
     };
@@ -369,6 +395,8 @@ export function PosClient({
               pagos: payload.pagos,
               sesionCajaId: payload.sesionCajaId,
               total: totalVenta,
+              descuento: payload.descuento,
+              nota: payload.nota,
             }),
           });
           const data = await res.json().catch(() => ({}));
@@ -490,6 +518,50 @@ export function PosClient({
 
   const footerCarrito = (
     <>
+      {/* Descuento total: por monto ($) o porcentaje (%) */}
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-muted-foreground">Descuento</span>
+        <div className="ml-auto flex items-center gap-1">
+          <div className="flex overflow-hidden rounded-md border">
+            {(['monto', 'pct'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setDescMode(m)}
+                className={`px-2 py-1 text-xs ${
+                  descMode === m ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+                }`}
+              >
+                {m === 'monto' ? '$' : '%'}
+              </button>
+            ))}
+          </div>
+          <Input
+            type="number"
+            min="0"
+            inputMode="numeric"
+            placeholder="0"
+            value={descInput}
+            onChange={(e) => setDescInput(e.target.value)}
+            className="h-8 w-20"
+          />
+        </div>
+      </div>
+      {descuento > 0 && (
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>Subtotal {clp.format(totalBruto)}</span>
+          <span>− {clp.format(descuento)}</span>
+        </div>
+      )}
+
+      {/* Nota / cliente (útil para servicios: nombre, cita, referencia) */}
+      <Input
+        value={nota}
+        onChange={(e) => setNota(e.target.value)}
+        placeholder="Nota / cliente (opcional)"
+        className="h-8 text-sm"
+      />
+
       <div className="flex items-center justify-between text-lg font-bold">
         <span>Total</span>
         <span className="tabular-nums">{clp.format(total)}</span>

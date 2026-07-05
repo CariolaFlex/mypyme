@@ -7,6 +7,20 @@
 
 ## ⭐ Punto de continuación (2026-07-05)
 
+**POS: descuento total + nota/cliente + FIX de arquitectura de `process_sale`.**
+- **Descuento** en el POS (por $ o %) aplicado al total, con reparto proporcional sobre neto/IVA
+  (F29 correcto; los reportes suman desde la cabecera `ventas`). Columna `ventas.descuento`.
+- **Nota / cliente** por venta (`ventas.nota`) — útil para servicios (nombre, cita, referencia).
+  Sale en la boleta.
+- **Cobro manual ahora hereda la tasa de IVA del negocio** (IVA-incluido) para no subvaluar el F29.
+- **FIX crítico**: la migración de servicios (010000) había inline-ado `process_sale` (INVOKER) y
+  dejado el `process_sale_core` (usado por el webhook MP) sin líneas libres. La migración #42
+  `20260705020000_pos_descuento_nota.sql` **restaura el patrón wrapper/core DEFINER**: toda la lógica
+  (catálogo + líneas libres + descuento + nota) vive en `process_sale_core`; `process_sale` y
+  `registrar_venta_mp` delegan en él. Aplicada en cloud (dry-run+push).
+- **Verificado e2e real** contra la DB cloud: `scripts/verify-pos-servicios.mjs` **9/9** (descuento,
+  reparto IVA, cobro manual afecto, nota, línea libre, idempotencia). Build/tsc/lint ✅.
+
 **POS para servicios (barbería, kine, dental, taxi, profesional).** Dos gaps que bloqueaban los
 rubros de servicio, ahora cerrados:
 - **Cobro manual / monto libre** en el POS: botón «Cobro manual» → concepto + monto → línea de

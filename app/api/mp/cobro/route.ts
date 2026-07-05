@@ -34,6 +34,8 @@ export async function POST(request: Request) {
     pagos?: Pago[];
     sesionCajaId?: string | null;
     total?: number;
+    descuento?: number;
+    nota?: string | null;
   };
   try {
     body = await request.json();
@@ -41,7 +43,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Payload inválido' }, { status: 400 });
   }
 
-  const { ventaId, lineas, pagos, sesionCajaId, total } = body;
+  const { ventaId, lineas, pagos, sesionCajaId, total, descuento, nota } = body;
   if (!ventaId || !lineas?.length || !pagos?.length || !total || total <= 0) {
     return NextResponse.json({ error: 'Faltan datos de la venta' }, { status: 400 });
   }
@@ -71,7 +73,13 @@ export async function POST(request: Request) {
         device_id: device.device_id,
         monto: total,
         estado: 'pending',
-        payload: { lineas, pagos, sesion_caja_id: sesionCajaId ?? null },
+        payload: {
+          lineas,
+          pagos,
+          sesion_caja_id: sesionCajaId ?? null,
+          descuento: descuento ?? 0,
+          nota: nota ?? null,
+        },
         raw: intent.raw,
       })
       .select('id')

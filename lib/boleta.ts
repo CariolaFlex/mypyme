@@ -20,9 +20,15 @@ export type PagoBoleta = { nombre: string; monto: number };
 export type BoletaData = {
   negocio: NegocioBoleta;
   lineas: LineaBoleta[];
+  /** Suma bruta de líneas antes del descuento (opcional; solo si hay descuento). */
+  subtotal?: number;
+  /** Descuento aplicado al total (opcional). */
+  descuento?: number;
   total: number;
   pagos: PagoBoleta[];
   vuelto: number;
+  /** Nota / cliente de la venta (opcional). */
+  nota?: string | null;
   fecha: Date;
   /** Referencia corta (no es folio tributario). */
   ref: string;
@@ -41,7 +47,7 @@ function fmtFechaHora(d: Date) {
 }
 
 export function boletaHtml(data: BoletaData): string {
-  const { negocio, lineas, total, pagos, vuelto, fecha, ref } = data;
+  const { negocio, lineas, subtotal, descuento, total, pagos, vuelto, nota, fecha, ref } = data;
 
   // Desglose IVA: precios incluyen IVA → neto derivado (igual que en la app).
   let netoIvaHtml = '';
@@ -99,11 +105,16 @@ export function boletaHtml(data: BoletaData): string {
   <hr>
   ${lineasHtml}
   <hr>
+  ${descuento && descuento > 0
+    ? `<div class="row"><span>Subtotal</span><span>${clp.format(subtotal ?? total + descuento)}</span></div>` +
+      `<div class="row"><span>Descuento</span><span>- ${clp.format(descuento)}</span></div>`
+    : ''}
   ${netoIvaHtml}
   <div class="row total"><span>TOTAL</span><span>${clp.format(total)}</span></div>
   <hr>
   ${pagosHtml}
   ${vuelto > 0 ? `<div class="row"><span>Vuelto</span><span>${clp.format(vuelto)}</span></div>` : ''}
+  ${nota ? `<hr><div class="muted">Nota: ${esc(nota)}</div>` : ''}
   <div class="center foot">Comprobante interno — no válido como documento tributario.</div>
   <div class="center foot">¡Gracias por su compra!</div>
 </body></html>`;

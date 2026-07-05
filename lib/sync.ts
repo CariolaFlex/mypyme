@@ -12,6 +12,8 @@ export async function enviarVenta(payload: VentaPayload): Promise<void> {
     p_lineas: payload.lineas,
     p_pagos: payload.pagos,
     p_sesion_caja_id: payload.sesionCajaId,
+    p_descuento: payload.descuento ?? 0,
+    p_nota: payload.nota ?? null,
   });
   if (error) throw new Error(error.message);
 }
