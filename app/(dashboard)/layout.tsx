@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { AppSidebar } from '@/components/app-sidebar';
+import { NavFlotante } from '@/components/nav-flotante';
 import { AvisoZoom } from '@/components/aviso-zoom';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -32,11 +33,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="mesh-bg min-h-screen lg:flex">
       <AppSidebar empresaNombre={empresa?.razon_social ?? 'Tu negocio'} stockBajo={stockBajo} esAdmin={esAdmin} />
       <main className="flex-1 overflow-x-hidden">
-        <div className="mx-auto max-w-6xl animate-in fade-in-50 slide-in-from-bottom-1 p-6 duration-300 sm:p-8">
+        {/* pb extra en móvil: la barra inferior de tabs no debe tapar contenido */}
+        <div className="mx-auto max-w-6xl animate-in fade-in-50 slide-in-from-bottom-1 p-6 pb-28 duration-300 sm:p-8 lg:pb-8">
           <AvisoZoom />
           {children}
         </div>
       </main>
+      <NavFlotante />
     </div>
   );
 }
