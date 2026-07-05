@@ -1,5 +1,10 @@
 # Plan de pendientes — Etapa 1 (cierre) + Etapa 2 (OCR)
 
+> **⚠ SUPERADO (2026-07-04):** la Etapa 2 se construyó y luego se reconstruyó como motor
+> universal multi-documento (preprocesado pro, clasificador, estrategias, confianza por campo).
+> El estado vigente del OCR está en `docs/ocr-upgrade-progress.md`. Este archivo queda como
+> registro histórico del scope original.
+
 **Fecha:** 2026-06-21 · **Objetivo:** dejar todo construido para testear en una sola pasada.
 **Orden:** primero lo automatizable (Claude), las tareas manuales de Andrés al final.
 
