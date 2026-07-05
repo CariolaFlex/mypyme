@@ -40,7 +40,7 @@ export function parseItems(lines: { text: string }[]): ItemFactura[] {
   // Unidades de medida típicas: el OCR aplana las columnas y la cantidad suele
   // quedar antes de la unidad ("... 10 BOT"), fuera de la cola de montos.
   const UNIDAD =
-    /^(bot|un|unid|und|ud|kg|kgs|gr|grs|lt|lts|cc|ml|cj|caja|cajas|doc|docena|pack|saco|sacos|bid[oó]n|tarro|tarros|tira|tiras|bulto|bultos|kilo|kilos|kls?|pza|pzas|rollo|rollos|barra|barras|lata|latas|frasco|frascos|paq|pqt|sobre|sobres|display)$/i;
+    /^(bot|un|unid|und|ud|kg|kgs|gr|grs|lt|lts|cc|ml|cj|caja|cajas|doc|docena|pack|saco|sacos|bid[oó]n|tarro|tarros|tira|tiras|bulto|bultos|kilo|kilos|kls?|pza|pzas|rollo|rollos|barra|barras|lata|latas|frasco|frascos|paq|pqt|sobre|sobres|display|lote|lotes|par|pares|set|sets|kit|kits|mt|mts|metro|metros|cm|plancha|planchas|placa|placas|bolsa|bolsas|malla|mallas|atado|atados|gal[oó]n|galones|prenda|prendas|talla|tallas)$/i;
 
   const parseMonto = (s: string) => Number(s.replace(/[^\d]/g, '')) || 0;
 
