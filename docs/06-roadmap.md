@@ -131,7 +131,9 @@ Backend: migración `20260613007000_reportes.sql` — 5 RPCs `security invoker`
 - [x] Reporte caja: historial de sesiones + cuadraturas — ya vive en `/caja`
 - [x] Reporte inventario: stock actual + alertas + movimientos — ya vive en `/inventario/stock`
 - [x] Reporte IVA (`/reportes/iva`): débito (ventas) − crédito (gastos) por mes/año = resultado F29.
-- [x] Exportar a CSV/Excel (BOM es-CL) en `/reportes/ventas` y `/reportes/iva` (Sprint 3).
+- [x] Reporte de gastos (`/reportes/gastos`): egresos por categoría/día + **resultado del período**
+  (ventas − gastos), con export CSV. Sin RPC nuevo (agrega en JS sobre `gastos` con RLS). (2026-07-05)
+- [x] Exportar a CSV/Excel (BOM es-CL) en `/reportes/ventas`, `/reportes/gastos` y `/reportes/iva`.
 
 **Entregable:** el dueño ve su negocio en números sin abrir Excel. ✅
 

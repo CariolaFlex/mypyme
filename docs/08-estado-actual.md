@@ -7,6 +7,13 @@
 
 ## ⭐ Punto de continuación (2026-07-05)
 
+**Reporte de Gastos + Resultado del negocio.** Nuevo `/reportes/gastos`: el dueño ve en qué se
+va la plata (egresos por categoría con %, por día, detalle) y el **resultado del período**
+(ventas − gastos = ¿ganó o perdió?). Export CSV. Enlazado en sidebar (Operación), sección
+Reportes del dashboard y manual de ayuda. **Sin migración**: agrega en JS sobre `gastos` (RLS) y
+reutiliza el RPC `reporte_ventas_resumen` para las ventas del período. Helper `fechaSantiago` en
+`lib/reportes.ts` para filtrar la columna DATE. Build/tsc/lint ✅.
+
 **Módulo de Deudas cerrado.** `/deudas` pasó de MVP (crear/abonar/borrar) a módulo maduro,
 a la par de Gastos/Compras:
 - **Editar deuda** (`editarDeuda` en `actions.ts`) con reconciliación de saldo: el monto total

@@ -73,6 +73,7 @@ export function AppSidebar({
         { href: '/pos', label: 'Punto de venta', icon: ShoppingCart },
         { href: '/caja', label: 'Caja', icon: Wallet },
         { href: '/reportes/ventas', label: 'Reportes de ventas', icon: BarChart3 },
+        { href: '/reportes/gastos', label: 'Reporte de gastos', icon: TrendingDown },
         { href: '/reportes/iva', label: 'Reporte IVA (F29)', icon: FileText },
         { href: '/reportes/mercadopago', label: 'Reportes Mercado Pago', icon: Nfc },
       ],

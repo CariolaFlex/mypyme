@@ -195,6 +195,7 @@ export const MODULOS: Modulo[] = [
     intro: <>Mira cómo va tu negocio y ten el IVA del mes calculado como insumo para tu declaración F29.</>,
     pasos: [
       { titulo: 'Revisa tus ventas', detalle: <>Filtra por período y mira el total, el ticket promedio y el detalle por día, método de pago, producto y cajero.</> },
+      { titulo: 'Mira en qué se va la plata', detalle: <>El reporte de <strong>gastos</strong> agrupa tus egresos por categoría y por día, y te muestra el <strong>resultado</strong> del período (ventas − gastos): si ganaste o perdiste.</> },
       { titulo: 'Calcula tu IVA', detalle: <>El reporte <strong>IVA (F29)</strong> muestra el débito (IVA de ventas) menos el crédito (IVA de gastos con factura) por mes.</> },
       { titulo: 'Exporta a Excel', detalle: <>Usa el botón <strong>«Exportar»</strong> para descargar un CSV compatible con Excel chileno.</> },
     ],

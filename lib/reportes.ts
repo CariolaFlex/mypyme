@@ -39,6 +39,12 @@ function zonedMidnightToUtc(y: number, m: number, day: number): Date {
   return new Date(guess - (tz.getTime() - utc.getTime()));
 }
 
+/** Fecha 'YYYY-MM-DD' (hora Santiago) de un instante — para filtrar columnas DATE. */
+export const fechaSantiago = (d: Date = new Date()): string =>
+  new Intl.DateTimeFormat('en-CA', {
+    timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(d);
+
 export const clp = new Intl.NumberFormat('es-CL', {
   style: 'currency', currency: 'CLP', maximumFractionDigits: 0,
 });

@@ -259,6 +259,10 @@ export default async function DashboardPage() {
               Reporte de ventas
               <ArrowRight className="size-3.5 transition-transform group-hover/l:translate-x-0.5" />
             </Link>
+            <Link href="/reportes/gastos" className="group/l inline-flex items-center gap-1 text-primary transition-colors hover:text-primary/80">
+              Reporte de gastos
+              <ArrowRight className="size-3.5 transition-transform group-hover/l:translate-x-0.5" />
+            </Link>
             <Link href="/reportes/iva" className="group/l inline-flex items-center gap-1 text-primary transition-colors hover:text-primary/80">
               Reporte de IVA (F29)
               <ArrowRight className="size-3.5 transition-transform group-hover/l:translate-x-0.5" />
