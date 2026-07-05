@@ -7,7 +7,7 @@ import {
   LayoutDashboard, ShoppingCart, Wallet, Package, Boxes, Tags, Upload,
   Truck, ClipboardList, ReceiptText, TrendingDown, BarChart3, FileText,
   Building2, CreditCard, Users, Sparkles, LogOut, History, Menu, X,
-  LifeBuoy, BookOpen, ScanLine, ScanText, Nfc,
+  LifeBuoy, BookOpen, ScanLine, ScanText, Nfc, HandCoins,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -55,6 +55,7 @@ export function AppSidebar({
         { href: '/compras/proveedores', label: 'Proveedores', icon: Truck },
         { href: '/compras/ordenes', label: 'Órdenes de compra', icon: ClipboardList },
         { href: '/gastos', label: 'Gastos', icon: TrendingDown },
+        { href: '/deudas', label: 'Deudas', icon: HandCoins },
       ],
     },
     {
