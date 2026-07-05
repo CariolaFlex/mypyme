@@ -1,12 +1,12 @@
 import { Building2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { PageHeader } from '@/components/page-header';
-import { guardarNegocio } from './actions';
+import { guardarNegocio, cargarKitRubro } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { TIPOS_NEGOCIO } from '@/lib/tipos-negocio';
+import { TIPOS_NEGOCIO, tieneKit } from '@/lib/tipos-negocio';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +42,7 @@ export default async function NegocioPage({
 
       {ok && (
         <p className="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm">
-          Cambios guardados.
+          {ok === '1' ? 'Cambios guardados.' : ok}
         </p>
       )}
       {error && (
@@ -143,6 +143,21 @@ export default async function NegocioPage({
 
         <Button type="submit">Guardar cambios</Button>
       </form>
+
+      {tieneKit(config?.tipo_negocio ?? '') && (
+        <div className="rounded-lg border bg-muted/10 p-4">
+          <h3 className="text-sm font-semibold">Kit de ejemplo de tu rubro</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Carga categorías y fichas de partida para tu rubro (ej. «Corte $8.000», «Sesión $25.000»),
+            listas para cobrar en el POS. No duplica lo que ya tengas; puedes editarlas o borrarlas después.
+          </p>
+          <form action={cargarKitRubro} className="mt-3">
+            <Button type="submit" variant="outline" size="sm">
+              Cargar kit de ejemplo
+            </Button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

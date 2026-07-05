@@ -79,6 +79,16 @@ export default async function OnboardingPage({
                 ))}
               </select>
             </div>
+            <label className="flex items-start gap-2 text-sm">
+              <input type="checkbox" name="cargar_kit" defaultChecked className="mt-0.5 size-4 accent-primary" />
+              <span>
+                Cargar ejemplos de mi rubro
+                <span className="block text-xs text-muted-foreground">
+                  Categorías y fichas de partida (ej. «Corte $8.000», «Sesión $25.000») listas para
+                  cobrar en el POS. Las puedes editar o borrar después.
+                </span>
+              </span>
+            </label>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" name="usa_iva" defaultChecked className="size-4 accent-primary" />
               Mi negocio emite con IVA (19%)

@@ -148,7 +148,15 @@ export type TipoNegocio =
   | 'construccion'
   | 'arriendo'
   | 'profesional'
-  | 'otro';
+  | 'otro'
+  // Rubros de servicio (POS: cobro manual + fichas sin stock).
+  | 'barberia'
+  | 'salud'
+  | 'dental'
+  | 'estetica'
+  | 'transporte'
+  | 'mascotas'
+  | 'educacion';
 
 /** Contexto que la app inyecta al DocumentParser (perfil del negocio). */
 export interface ParserContext {

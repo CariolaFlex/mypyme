@@ -7,6 +7,22 @@
 
 ## ⭐ Punto de continuación (2026-07-05)
 
+**Rubros de servicio + Kit inicial por rubro.** Cierra el círculo del "POS para servicios":
+- **Rubros ampliados**: `TIPOS_NEGOCIO` ahora incluye barbería, salud/kine, dental, estética,
+  mascotas, transporte/taxi, educación (además de los de producto). Migración #43 amplía el CHECK de
+  `configuracion_negocio.tipo_negocio` + `TipoNegocio` en `lib/ocr/types.ts`. La lista es compartida,
+  así que **onboarding y Configuración→Negocio se actualizan solos**.
+- **Kit inicial por rubro** (`lib/tipos-negocio.ts` `KIT_RUBRO` + helper `lib/kit-rubro.ts`): al elegir
+  rubro se siembran categorías + fichas de ejemplo (ej. barbería → «Corte $8.000», «Corte+barba
+  $12.000» como servicios sin stock; minimarket → categorías Bebidas/Snacks/…). Listas para cobrar
+  en el POS. Idempotente (salta lo que ya existe por nombre).
+- **Propagación**: opción «Cargar ejemplos de mi rubro» en el **onboarding** (checkbox) y botón
+  «Cargar kit de ejemplo» en **Configuración→Negocio** (aparece si el rubro tiene kit). El helper es
+  el mismo para ambos.
+- **Verificado e2e** contra la DB cloud: `scripts/verify-kit-rubro.mjs` **7/7** (rubro nuevo aceptado
+  por el CHECK, ficha de servicio sin stock con neto derivado, vende por el POS sin mover inventario).
+  Build/tsc/lint ✅.
+
 **POS: descuento total + nota/cliente + FIX de arquitectura de `process_sale`.**
 - **Descuento** en el POS (por $ o %) aplicado al total, con reparto proporcional sobre neto/IVA
   (F29 correcto; los reportes suman desde la cabecera `ventas`). Columna `ventas.descuento`.

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { esTipoNegocio } from '@/lib/tipos-negocio';
+import { sembrarKitRubro } from '@/lib/kit-rubro';
 
 export async function guardarNegocio(formData: FormData) {
   const supabase = await createClient();
@@ -53,4 +54,35 @@ export async function guardarNegocio(formData: FormData) {
 
   revalidatePath('/configuracion/negocio');
   redirect('/configuracion/negocio?ok=1');
+}
+
+/** Siembra el kit de ejemplo del rubro declarado (categorías + fichas). Idempotente:
+ *  no duplica lo que ya existe. Útil para negocios que quedaron sin cargar ejemplos. */
+export async function cargarKitRubro() {
+  const supabase = await createClient();
+  const { data: claims } = await supabase.auth.getClaims();
+  const empresaId = (claims?.claims as Record<string, unknown> | undefined)?.empresa_id as
+    | string
+    | undefined;
+  if (!empresaId) redirect('/onboarding');
+
+  const { data: cfg } = await supabase
+    .from('configuracion_negocio')
+    .select('tipo_negocio')
+    .eq('empresa_id', empresaId)
+    .maybeSingle();
+  const tipo = String(cfg?.tipo_negocio ?? '');
+  if (!esTipoNegocio(tipo)) {
+    redirect('/configuracion/negocio?error=' + encodeURIComponent('Primero elige tu tipo de negocio y guarda.'));
+  }
+
+  const r = await sembrarKitRubro(supabase, empresaId, tipo);
+  revalidatePath('/configuracion/negocio');
+  revalidatePath('/inventario/productos');
+  revalidatePath('/inventario/categorias');
+  const msg =
+    r.categorias + r.fichas > 0
+      ? `Kit cargado: ${r.categorias} categoría(s) y ${r.fichas} ficha(s).`
+      : 'Tu catálogo ya tenía todo lo del kit; no se duplicó nada.';
+  redirect('/configuracion/negocio?ok=' + encodeURIComponent(msg));
 }

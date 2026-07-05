@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { esTipoNegocio } from '@/lib/tipos-negocio';
+import { sembrarKitRubro } from '@/lib/kit-rubro';
 
 function mensajeError(code: string | undefined, raw: string): string {
   switch (code) {
@@ -63,6 +64,7 @@ export async function crearEmpresa(formData: FormData) {
   // porque el RLS de configuracion_negocio exige el claim empresa_id. Best-effort
   // (no toca la firma del RPC de alta): si falla, se declara en Configuración.
   const tipoNegocio = String(formData.get('tipo_negocio') ?? '').trim();
+  const cargarKit = formData.get('cargar_kit') === 'on';
   if (esTipoNegocio(tipoNegocio)) {
     const { data: claims } = await supabase.auth.getClaims();
     const empresaId = (claims?.claims as Record<string, unknown> | undefined)?.empresa_id as
@@ -73,6 +75,15 @@ export async function crearEmpresa(formData: FormData) {
         .from('configuracion_negocio')
         .update({ tipo_negocio: tipoNegocio, actualizado_en: new Date().toISOString() })
         .eq('empresa_id', empresaId);
+      // Kit inicial de ejemplo (categorías + fichas de servicio/producto). Best-effort:
+      // si falla, el negocio arranca vacío y puede cargar el kit desde Configuración.
+      if (cargarKit) {
+        try {
+          await sembrarKitRubro(supabase, empresaId, tipoNegocio);
+        } catch {
+          /* no bloquear el onboarding por el kit */
+        }
+      }
     }
   }
 
