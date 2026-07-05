@@ -85,6 +85,9 @@
 - [x] Movimientos de caja manuales (entrada/salida) — form en `/caja` + lista; afecta el esperado
 - [x] Cobro con múltiples métodos a la vez — multi-pago en POS (split con validación de cuadre)
 - [x] Búsqueda/filtro en el POS — buscador por nombre + chips por categoría
+- [x] **POS para servicios** (2026-07-05): «Cobro manual» (línea de monto libre sin producto) para
+  taxi/servicios variables + productos de servicio (`controla_stock=false`, toggle en el form).
+  Migración #41 `pos_servicios` reescribe `process_sale` para líneas libres (retrocompatible).
 
 ### Bloque C — Offline (✅ hecho, verificado e2e en navegador)
 - [x] Dexie.js: DB local (`productos` cache, `ventasPendientes` cola)

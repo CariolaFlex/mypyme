@@ -1,10 +1,15 @@
 import Dexie, { type Table } from 'dexie';
 
+/** Una línea de venta: producto del catálogo o cobro manual (concepto + monto). */
+export type LineaVenta =
+  | { producto_id: string; cantidad: number }
+  | { descripcion: string; precio: number; cantidad: number };
+
 /** Payload de una venta lista para enviar al RPC process_sale. */
 export type VentaPayload = {
   ventaId: string;
   sesionCajaId: string | null;
-  lineas: { producto_id: string; cantidad: number }[];
+  lineas: LineaVenta[];
   pagos: { metodo_pago_id: string; monto: number; monto_recibido?: number }[];
 };
 

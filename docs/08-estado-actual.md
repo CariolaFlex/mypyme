@@ -7,6 +7,19 @@
 
 ## ⭐ Punto de continuación (2026-07-05)
 
+**POS para servicios (barbería, kine, dental, taxi, profesional).** Dos gaps que bloqueaban los
+rubros de servicio, ahora cerrados:
+- **Cobro manual / monto libre** en el POS: botón «Cobro manual» → concepto + monto → línea de
+  venta SIN producto. Ideal para taxi/servicios variables. Total, boleta y **offline** lo absorben
+  transparente (el payload viaja igual por `enviarVenta`/`flushQueue`).
+- **Productos de servicio**: toggle «Es un servicio (no controla stock)» en el form de producto →
+  `controla_stock=false`, oculta granel y stock. Fichas reutilizables en el POS (Corte, Sesión…).
+- **Migración #41** `20260705010000_pos_servicios.sql` (aplicada en cloud, dry-run+push): `ventas_lineas.producto_id`
+  nullable + columna `descripcion`; `process_sale` reescrito para aceptar líneas libres (concepto +
+  precio c/IVA, sin movimiento de stock). **Retrocompatible**: las líneas con `producto_id` siguen
+  idénticas; MP Point y OCR no se tocan. `reporte_top_productos` (JOIN productos) excluye las líneas
+  de servicio naturalmente. Tipo `LineaVenta` (unión) en `lib/db.ts`. Build/tsc/lint ✅.
+
 **Reporte de Gastos + Resultado del negocio.** Nuevo `/reportes/gastos`: el dueño ve en qué se
 va la plata (egresos por categoría con %, por día, detalle) y el **resultado del período**
 (ventas − gastos = ¿ganó o perdió?). Export CSV. Enlazado en sidebar (Operación), sección

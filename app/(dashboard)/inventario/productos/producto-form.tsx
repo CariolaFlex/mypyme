@@ -43,6 +43,7 @@ export function ProductoForm({
     contenido: '',
     ivaMode: 'afecto' as 'afecto' | 'exento' | 'custom',
     tasa_iva: String(tasaDefault),
+    servicio: false,
     granel: false,
     precio_total: '',
     stock_inicial: '',
@@ -247,24 +248,46 @@ export function ProductoForm({
         <p className="text-xs text-muted-foreground">Tamaño del producto: ej. 1,5 L · 500 g · 1 unidad. Opcional.</p>
       </div>
 
-      {/* Se vende a granel / por peso */}
+      {/* Es un servicio (sin stock): barbería, kine, dentista, profesional */}
       <div className="col-span-2 flex items-start gap-2 rounded-md border bg-muted/10 p-3">
         <input
-          id="granel"
-          name="granel"
+          id="servicio"
+          name="servicio"
           type="checkbox"
-          checked={f.granel}
-          onChange={(e) => set('granel', e.target.checked)}
+          checked={f.servicio}
+          onChange={(e) => set('servicio', e.target.checked)}
           className="mt-0.5 size-4 accent-primary"
         />
-        <label htmlFor="granel" className="text-sm">
-          <span className="font-medium">Se vende a granel / por peso</span>
+        <label htmlFor="servicio" className="text-sm">
+          <span className="font-medium">Es un servicio (no controla stock)</span>
           <span className="block text-xs text-muted-foreground">
-            El precio de abajo será <strong>por {f.unidad_medida === 'unidad' ? 'unidad de medida (elige kg, g, L…)' : f.unidad_medida}</strong>.
-            En el POS se cobra por peso o por monto (ej. $1.000 de queso).
+            Para cortes, sesiones, consultas, mano de obra, etc. Aparece como ficha en el POS
+            para cobrarlo rápido, sin inventario. Para un cobro suelto sin ficha, usa
+            «Cobro manual» en el POS.
           </span>
         </label>
       </div>
+
+      {/* Se vende a granel / por peso (no aplica a servicios) */}
+      {!f.servicio && (
+        <div className="col-span-2 flex items-start gap-2 rounded-md border bg-muted/10 p-3">
+          <input
+            id="granel"
+            name="granel"
+            type="checkbox"
+            checked={f.granel}
+            onChange={(e) => set('granel', e.target.checked)}
+            className="mt-0.5 size-4 accent-primary"
+          />
+          <label htmlFor="granel" className="text-sm">
+            <span className="font-medium">Se vende a granel / por peso</span>
+            <span className="block text-xs text-muted-foreground">
+              El precio de abajo será <strong>por {f.unidad_medida === 'unidad' ? 'unidad de medida (elige kg, g, L…)' : f.unidad_medida}</strong>.
+              En el POS se cobra por peso o por monto (ej. $1.000 de queso).
+            </span>
+          </label>
+        </div>
+      )}
 
       {/* IVA: Exento / 19% / Personalizado */}
       <div className="space-y-1.5">
@@ -385,32 +408,36 @@ export function ProductoForm({
         )}
       </div>
 
-      {/* Stock inicial + alerta de mínimo (último, opcional) */}
-      <div className="space-y-1.5">
-        <Label htmlFor="stock_inicial">Stock inicial (opcional)</Label>
-        <Input
-          id="stock_inicial"
-          name="stock_inicial"
-          type="number"
-          min="0"
-          value={f.stock_inicial}
-          onChange={(e) => set('stock_inicial', e.target.value)}
-        />
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="stock_minimo">Alerta de stock mínimo (opcional)</Label>
-        <Input
-          id="stock_minimo"
-          name="stock_minimo"
-          type="number"
-          min="0"
-          value={f.stock_minimo}
-          onChange={(e) => set('stock_minimo', e.target.value)}
-        />
-        <p className="text-xs text-muted-foreground">
-          Te avisaremos cuando el stock caiga por debajo de esta cantidad.
-        </p>
-      </div>
+      {/* Stock inicial + alerta de mínimo (último, opcional; no aplica a servicios) */}
+      {!f.servicio && (
+        <>
+          <div className="space-y-1.5">
+            <Label htmlFor="stock_inicial">Stock inicial (opcional)</Label>
+            <Input
+              id="stock_inicial"
+              name="stock_inicial"
+              type="number"
+              min="0"
+              value={f.stock_inicial}
+              onChange={(e) => set('stock_inicial', e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="stock_minimo">Alerta de stock mínimo (opcional)</Label>
+            <Input
+              id="stock_minimo"
+              name="stock_minimo"
+              type="number"
+              min="0"
+              value={f.stock_minimo}
+              onChange={(e) => set('stock_minimo', e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Te avisaremos cuando el stock caiga por debajo de esta cantidad.
+            </p>
+          </div>
+        </>
+      )}
 
       <div className="col-span-2">
         <Button type="submit">Agregar producto</Button>

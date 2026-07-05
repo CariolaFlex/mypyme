@@ -47,6 +47,9 @@ export async function crearProducto(formData: FormData) {
   const contenidoRaw = formData.get('contenido');
   const contenido = contenidoRaw && String(contenidoRaw).trim() ? Number(contenidoRaw) : null;
   const granel = formData.get('granel') === 'on';
+  // Servicio = no controla stock (barbería, kine, dentista, profesional). No lleva
+  // inventario ni granel; su "venta" solo registra el cobro.
+  const servicio = formData.get('servicio') === 'on';
 
   const { data: prod, error } = await supabase
     .from('productos')
@@ -58,11 +61,12 @@ export async function crearProducto(formData: FormData) {
       categoria_id: categoriaId || null,
       unidad_medida: unidadMedida,
       contenido,
-      granel,
+      granel: servicio ? false : granel,
+      controla_stock: !servicio,
       precio_total: precioTotal,
       precio_neto: precioNeto,
       tasa_iva: tasaIva,
-      stock_minimo: stockMin ? Number(stockMin) : null,
+      stock_minimo: servicio ? null : stockMin ? Number(stockMin) : null,
       imagen_url: imagenUrl,
     })
     .select('id')
@@ -73,8 +77,8 @@ export async function crearProducto(formData: FormData) {
   }
 
   // Stock inicial (opcional): registra un movimiento de ajuste en la bodega
-  // por defecto, igual que el import masivo.
-  if (stockInicial > 0 && prod?.id) {
+  // por defecto, igual que el import masivo. Los servicios no llevan stock.
+  if (!servicio && stockInicial > 0 && prod?.id) {
     const { data: bodega } = await supabase
       .from('bodegas')
       .select('id')
@@ -217,6 +221,7 @@ export async function editarProducto(formData: FormData) {
   const contenidoRaw = formData.get('contenido');
   const contenido = contenidoRaw && String(contenidoRaw).trim() ? Number(contenidoRaw) : null;
   const granel = formData.get('granel') === 'on';
+  const servicio = formData.get('servicio') === 'on';
 
   const { error } = await supabase
     .from('productos')
@@ -226,12 +231,13 @@ export async function editarProducto(formData: FormData) {
       codigo_barras: codigoBarras || null,
       unidad_medida: unidadMedida,
       contenido,
-      granel,
+      granel: servicio ? false : granel,
+      controla_stock: !servicio,
       categoria_id: categoriaId || null,
       precio_total: precioTotal,
       precio_neto: precioNeto,
       tasa_iva: tasaIva,
-      stock_minimo: stockMin ? Number(stockMin) : null,
+      stock_minimo: servicio ? null : stockMin ? Number(stockMin) : null,
       actualizado_en: new Date().toISOString(),
     })
     .eq('id', id);

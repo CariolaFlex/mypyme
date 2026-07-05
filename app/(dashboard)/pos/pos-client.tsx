@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { toast } from 'sonner';
-import { Nfc, ScanLine, ShoppingCart, X } from 'lucide-react';
+import { Nfc, ScanLine, ShoppingCart, X, Plus, Trash2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,8 @@ import { imprimirBoleta, type BoletaData, type NegocioBoleta } from '@/lib/bolet
 type Metodo = { id: string; nombre: string; tipo: string | null };
 type Categoria = { id: string; nombre: string };
 type PagoRow = { key: string; metodoId: string };
+// Cobro manual: línea de venta sin producto (servicios, taxi, conceptos sueltos).
+type Manual = { key: string; concepto: string; monto: number };
 
 const clp = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' });
 const qtyFmt = new Intl.NumberFormat('es-CL', { maximumFractionDigits: 3 });
@@ -43,6 +45,7 @@ export function PosClient({
 }) {
   const [productos, setProductos] = useState<ProductoCache[]>(productosIniciales);
   const [cart, setCart] = useState<Record<string, number>>({});
+  const [manuales, setManuales] = useState<Manual[]>([]);
   const [busqueda, setBusqueda] = useState('');
   const [catId, setCatId] = useState<string | null>(null);
   // Multi-pago: una fila por método. Con 1 fila el monto es el total (y permite
@@ -101,10 +104,15 @@ export function PosClient({
 
   const productosById = useMemo(() => new Map(productos.map((p) => [p.id, p])), [productos]);
   const items = Object.entries(cart).filter(([, qty]) => qty > 0);
-  const total = items.reduce(
+  const totalProductos = items.reduce(
     (sum, [id, qty]) => sum + (productosById.get(id)?.precio_total ?? 0) * qty,
     0
   );
+  const totalManual = manuales.reduce((s, m) => s + m.monto, 0);
+  const total = totalProductos + totalManual;
+  // Hay algo que cobrar (productos y/o cobros manuales).
+  const hayItems = items.length > 0 || manuales.length > 0;
+  const numItems = items.length + manuales.length;
 
   // Catálogo filtrado por búsqueda + categoría.
   const productosFiltrados = useMemo(() => {
@@ -195,6 +203,27 @@ export function PosClient({
     setGranelInput('');
   };
 
+  // ── Cobro manual (monto libre) ──────────────────────────────────────────
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualConcepto, setManualConcepto] = useState('');
+  const [manualMonto, setManualMonto] = useState('');
+  const manualMontoNum = Number(manualMonto) || 0;
+  const confirmarManual = () => {
+    if (!(manualMontoNum > 0)) return;
+    setManuales((prev) => [
+      ...prev,
+      {
+        key: `m${Date.now()}`,
+        concepto: manualConcepto.trim() || 'Cobro manual',
+        monto: Math.round(manualMontoNum),
+      },
+    ]);
+    setManualConcepto('');
+    setManualMonto('');
+    setManualOpen(false);
+  };
+  const quitarManual = (key: string) => setManuales((prev) => prev.filter((m) => m.key !== key));
+
   const agregarPago = () => {
     setPagos((prev) => {
       // Al pasar a multi, fija el monto de la primera fila al total actual.
@@ -219,6 +248,7 @@ export function PosClient({
   // Deja el carrito y los pagos en limpio tras una venta.
   const limpiar = () => {
     setCart({});
+    setManuales([]);
     setRecibido('');
     setPagos([{ key: 'p0', metodoId: metodos[0]?.id ?? '' }]);
     setMontos({});
@@ -261,7 +291,7 @@ export function PosClient({
   };
 
   function onCobrar() {
-    if (!items.length || !sesionCajaId || !pagosValidos) return;
+    if (!hayItems || !sesionCajaId || !pagosValidos) return;
     const usaMP = pagos.some((p) => tipoDe(p.metodoId) === 'mercadopago_point');
     if (usaMP && multi) {
       toast.error('El cobro con Mercado Pago no se puede dividir por ahora.');
@@ -290,7 +320,10 @@ export function PosClient({
     const payload = {
       ventaId: crypto.randomUUID(),
       sesionCajaId,
-      lineas: items.map(([producto_id, cantidad]) => ({ producto_id, cantidad })),
+      lineas: [
+        ...items.map(([producto_id, cantidad]) => ({ producto_id, cantidad })),
+        ...manuales.map((m) => ({ descripcion: m.concepto, precio: m.monto, cantidad: 1 })),
+      ],
       pagos: pagosPayload,
     };
     const totalVenta = total;
@@ -300,11 +333,14 @@ export function PosClient({
     const nombreMetodo = (id: string) => metodos.find((m) => m.id === id)?.nombre ?? 'Pago';
     const boletaData: BoletaData = {
       negocio,
-      lineas: items.map(([id, cantidad]) => {
-        const p = productosById.get(id)!;
-        const precioUnit = p.precio_total ?? 0;
-        return { nombre: p.nombre, cantidad, precioUnit, subtotal: precioUnit * cantidad };
-      }),
+      lineas: [
+        ...items.map(([id, cantidad]) => {
+          const p = productosById.get(id)!;
+          const precioUnit = p.precio_total ?? 0;
+          return { nombre: p.nombre, cantidad, precioUnit, subtotal: precioUnit * cantidad };
+        }),
+        ...manuales.map((m) => ({ nombre: m.concepto, cantidad: 1, precioUnit: m.monto, subtotal: m.monto })),
+      ],
       total: totalVenta,
       pagos: pagosPayload.map((p) => ({ nombre: nombreMetodo(p.metodo_pago_id), monto: p.monto })),
       vuelto: vueltoVenta,
@@ -396,8 +432,25 @@ export function PosClient({
 
   // Contenido del carrito reutilizado en el panel lateral (desktop) y en el
   // bottom sheet (móvil): la lista de ítems y el footer de cobro.
-  const listaCarrito = items.length ? (
+  const listaCarrito = hayItems ? (
     <ul className="space-y-2">
+      {manuales.map((m) => (
+        <li key={m.key} className="flex items-center justify-between gap-2 text-sm">
+          <span className="flex-1 truncate">
+            {m.concepto}
+            <span className="ml-1 text-xs text-muted-foreground">(manual)</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => quitarManual(m.key)}
+            aria-label="Quitar"
+            className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-destructive"
+          >
+            <Trash2 className="size-3.5" />
+          </button>
+          <span className="w-20 text-right tabular-nums">{clp.format(m.monto)}</span>
+        </li>
+      ))}
       {items.map(([id, qty]) => {
         const p = productosById.get(id)!;
         return (
@@ -529,7 +582,7 @@ export function PosClient({
         size="lg"
         className="grad-brand-vivid w-full border-0 text-white shadow-lg shadow-primary/30 transition-transform hover:scale-[1.01] disabled:opacity-50"
         disabled={
-          !items.length ||
+          !hayItems ||
           pending ||
           mpEsperando ||
           !sesionCajaId ||
@@ -589,6 +642,14 @@ export function PosClient({
               onClick={() => setScanOpen(true)}
             >
               <ScanLine className="size-4" /> Escanear
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="shrink-0 gap-2"
+              onClick={() => setManualOpen(true)}
+            >
+              <Plus className="size-4" /> Cobro manual
             </Button>
           </div>
           {categorias.length > 0 && (
@@ -658,7 +719,7 @@ export function PosClient({
       >
         <span className="flex items-center gap-2 text-sm font-medium">
           <ShoppingCart className="size-4" />
-          {items.length ? `${items.length} ítem(s)` : 'Carrito'}
+          {numItems ? `${numItems} ítem(s)` : 'Carrito'}
         </span>
         <span className="text-sm font-bold tabular-nums">{clp.format(total)}</span>
       </button>
@@ -677,7 +738,7 @@ export function PosClient({
             className="absolute inset-x-0 bottom-0 flex max-h-[88vh] flex-col rounded-t-2xl border-t bg-card shadow-xl duration-200 animate-in slide-in-from-bottom"
           >
             <div className="flex items-center justify-between border-b p-3">
-              <span className="font-medium">Carrito{items.length ? ` · ${items.length}` : ''}</span>
+              <span className="font-medium">Carrito{numItems ? ` · ${numItems}` : ''}</span>
               <button
                 type="button"
                 onClick={() => setCarritoOpen(false)}
@@ -760,6 +821,51 @@ export function PosClient({
               Cancelar
             </Button>
             <Button type="button" size="sm" disabled={!(granelCantidad > 0)} onClick={confirmarGranel}>
+              Agregar al carrito
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Cobro manual: concepto + monto libre (servicios, taxi, conceptos sueltos) */}
+      <Modal open={manualOpen} onClose={() => setManualOpen(false)} title="Cobro manual">
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Cobra un concepto suelto sin tenerlo en el catálogo (ej. «Sesión», «Corte», «Carrera»).
+          </p>
+          <div className="space-y-1.5">
+            <Label htmlFor="manual-concepto">Concepto</Label>
+            <Input
+              id="manual-concepto"
+              value={manualConcepto}
+              onChange={(e) => setManualConcepto(e.target.value)}
+              placeholder="Ej. Sesión kinesiología"
+              autoFocus
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="manual-monto">Monto *</Label>
+            <Input
+              id="manual-monto"
+              type="number"
+              min="1"
+              inputMode="numeric"
+              value={manualMonto}
+              onChange={(e) => setManualMonto(e.target.value)}
+              placeholder="0"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  confirmarManual();
+                }
+              }}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => setManualOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="button" size="sm" disabled={!(manualMontoNum > 0)} onClick={confirmarManual}>
               Agregar al carrito
             </Button>
           </div>
