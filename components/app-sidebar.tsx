@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, ShoppingCart, Wallet, Package, Boxes, Tags, Upload,
-  Truck, ClipboardList, ReceiptText, TrendingDown, BarChart3, FileText,
+  Truck, ClipboardList, ReceiptText, Receipt, TrendingDown, BarChart3, FileText,
   Building2, CreditCard, Users, Sparkles, LogOut, History, Menu, X,
   LifeBuoy, BookOpen, ScanLine, ScanText, Nfc, HandCoins, ChevronDown, Search,
   Activity,
@@ -74,6 +74,7 @@ export function AppSidebar({
         { href: '/pos', label: 'Punto de venta', icon: ShoppingCart },
         { href: '/caja', label: 'Caja', icon: Wallet },
         { href: '/flujo-caja', label: 'Flujo de caja', icon: Activity },
+        { href: '/ventas', label: 'Historial de ventas', icon: Receipt },
         { href: '/reportes/ventas', label: 'Reportes de ventas', icon: BarChart3 },
         { href: '/reportes/gastos', label: 'Reporte de gastos', icon: TrendingDown },
         { href: '/reportes/iva', label: 'Reporte IVA (F29)', icon: FileText },

@@ -7,6 +7,17 @@
 
 ## ⭐ Punto de continuación (2026-07-05)
 
+**Historial y detalle de ventas.** Cierra la propagación de descuento/nota/líneas manuales:
+- **`/ventas`** (sidebar Operación): lista de boletas por período con fecha/hora, N°, ítems, método,
+  total, e íconos de descuento/nota. Fila → detalle.
+- **`/ventas/[id]`**: detalle completo — líneas (productos con nombre + **cobros manuales con badge
+  «manual»** y su descripción), desglose Subtotal → Descuento → Neto/IVA → Total, pagos y vuelto,
+  nota del cliente, y botón **reimprimir comprobante** (mismo generador `lib/boleta` que el POS).
+- **Propagación**: enlace en el sidebar, en el reporte de ventas («Historial de ventas»), y cada
+  venta del feed de Flujo de Caja enlaza a su detalle.
+- Verificado en navegador (dark) con datos reales: desglose cuadra exacto (Subtotal $13.000 −
+  Descuento $2.000 = Total $11.000; Neto+IVA = Total), badge «manual» y nota visibles.
+
 **Flujo de Caja + gráficos configurables + fix dark mode.**
 - **Nueva pestaña `/flujo-caja`** (sidebar Operación + accesos rápidos): centraliza TODO el dinero —
   ingresos (ventas), egresos (gastos), resultado, por cobrar/por pagar, efectivo en caja (sesión

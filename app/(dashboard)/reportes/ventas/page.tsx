@@ -51,13 +51,21 @@ export default async function ReporteVentasPage({
           <h1 className="text-2xl font-bold">Reporte de ventas</h1>
           <p className="text-sm text-muted-foreground">Totales, métodos de pago y productos por período.</p>
         </div>
-        <a
-          href={`/reportes/ventas/export?rango=${rango}`}
-          className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent"
-        >
-          <Download className="size-4" />
-          Exportar CSV
-        </a>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/ventas"
+            className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent"
+          >
+            Historial de ventas
+          </Link>
+          <a
+            href={`/reportes/ventas/export?rango=${rango}`}
+            className="inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent"
+          >
+            <Download className="size-4" />
+            Exportar CSV
+          </a>
+        </div>
       </div>
 
       {/* Selector de rango */}

@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic';
 type PorDiaVenta = { dia: string; num_ventas: number; total: number };
 type GastoRow = { fecha: string; descripcion: string; monto_total: number; monto_iva: number; categorias_gasto: { nombre: string } | null };
 type DeudaRow = { tipo: string; saldo: number; fecha_vencimiento: string | null };
-type Mov = { fecha: string; etiqueta: string; detalle: string; monto: number; entra: boolean };
+type Mov = { fecha: string; etiqueta: string; detalle: string; monto: number; entra: boolean; href?: string };
 
 const dia = (s: string) => s.slice(0, 10);
 
@@ -103,8 +103,9 @@ export default async function FlujoCajaPage({
 
   // Feed unificado de movimientos recientes (ventas, gastos, abonos de deuda).
   const movimientos: Mov[] = [
-    ...((ultVentas as { fecha_venta: string; monto_total: number }[] | null) ?? []).map((v) => ({
+    ...((ultVentas as { id: string; fecha_venta: string; monto_total: number }[] | null) ?? []).map((v) => ({
       fecha: v.fecha_venta, etiqueta: 'Venta', detalle: 'Ingreso por venta', monto: Number(v.monto_total), entra: true,
+      href: `/ventas/${v.id}`,
     })),
     ...((ultGastos as { creado_en: string; descripcion: string; monto_total: number }[] | null) ?? []).map((g) => ({
       fecha: g.creado_en, etiqueta: 'Gasto', detalle: g.descripcion, monto: Number(g.monto_total), entra: false,
@@ -215,27 +216,40 @@ export default async function FlujoCajaPage({
           <CardContent>
             {movimientos.length ? (
               <ul className="divide-y">
-                {movimientos.map((m, i) => (
-                  <li key={i} className="flex items-center gap-3 py-2.5">
-                    <span
-                      className={cn(
-                        'flex size-8 shrink-0 items-center justify-center rounded-full',
-                        m.entra
-                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                          : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                {movimientos.map((m, i) => {
+                  const contenido = (
+                    <>
+                      <span
+                        className={cn(
+                          'flex size-8 shrink-0 items-center justify-center rounded-full',
+                          m.entra
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                            : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                        )}
+                      >
+                        {m.entra ? <ArrowDownLeft className="size-4" /> : <ArrowUpRight className="size-4" />}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{m.etiqueta}</p>
+                        <p className="truncate text-xs text-muted-foreground">{m.detalle} · {fmtFecha(m.fecha)}</p>
+                      </div>
+                      <span className={cn('shrink-0 text-sm font-semibold tabular-nums', m.entra ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
+                        {m.entra ? '+' : '−'}{clp.format(m.monto)}
+                      </span>
+                    </>
+                  );
+                  return (
+                    <li key={i}>
+                      {m.href ? (
+                        <Link href={m.href} className="-mx-2 flex items-center gap-3 rounded-md px-2 py-2.5 transition-colors hover:bg-muted/60">
+                          {contenido}
+                        </Link>
+                      ) : (
+                        <div className="flex items-center gap-3 py-2.5">{contenido}</div>
                       )}
-                    >
-                      {m.entra ? <ArrowDownLeft className="size-4" /> : <ArrowUpRight className="size-4" />}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{m.etiqueta}</p>
-                      <p className="truncate text-xs text-muted-foreground">{m.detalle} · {fmtFecha(m.fecha)}</p>
-                    </div>
-                    <span className={cn('shrink-0 text-sm font-semibold tabular-nums', m.entra ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400')}>
-                      {m.entra ? '+' : '−'}{clp.format(m.monto)}
-                    </span>
-                  </li>
-                ))}
+                    </li>
+                  );
+                })}
               </ul>
             ) : (
               <p className="py-8 text-center text-sm text-muted-foreground">Sin movimientos todavía.</p>
