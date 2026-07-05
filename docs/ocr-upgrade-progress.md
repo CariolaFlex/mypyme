@@ -17,6 +17,15 @@ Tracking de la misión descrita en `prompt_claude_ocr_upgrade.md`.
 
 Validación por fase: `npm run lint && npm run typecheck && npm run build` — todo verde.
 
+## Resultado del test en terreno (2026-07-04, Andrés)
+
+Probado con facturas reales incl. 2 muy difíciles (Andina/Coca-Cola escaneada y
+DSV-GL borrosa con timbres y anotaciones a mano): **cumple** — extrae "lo justo",
+no inventa datos (comportamiento deseado), pero en fotos muy borrosas a veces
+confunde dígitos. Mitigación actual: resaltado ámbar por confianza. Pendiente de
+más feedback: boletas de supermercado y compras multi-categoría/variantes
+(ropa con tallas, lotes) — se agregaron esas unidades al parser de ítems.
+
 ## ⚠ Pendiente manual
 
 - **Aplicar la migración** `supabase/migrations/20260704000000_tipo_negocio.sql`
