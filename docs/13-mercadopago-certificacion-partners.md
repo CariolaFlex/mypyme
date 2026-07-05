@@ -59,16 +59,47 @@ Concretamente:
 - `docs/12-plan-mercadopago-point.md` actualizado para reflejar esto en su Fase 0 y en la lista de
   preguntas para el ejecutivo.
 
-### Fase 1 — Certificación prioritaria (siguiente paso)
-- **Candidata: Checkout Pro** como puerta de entrada — es la certificación más estándar/documentada
-  del `<dev>program` y no depende de tener hardware Point físico para completarla.
-  - **Verificar al entrar al portal** si existe una certificación específica de **Point/POS
-    presencial**; si existe y es más directa al objetivo final (cobro con Point desde Gestionala),
-    priorizarla en su lugar. No asumir sin confirmar en el portal — la lista de certificaciones
-    puede haber cambiado.
-- Requisitos a documentar apenas se abra el proceso en el portal (pendiente de confirmar, no
-  inventar): cuenta personal verificada, entorno de prueba/sandbox, integración de ejemplo
-  funcionando, evidencia de la integración (URL o video, según pida el flujo).
+### Fase 1 — Certificación prioritaria — ✅ EN CURSO (2026-07-05, confirmado en el portal)
+- **Confirmado en el portal:** las únicas 3 certificaciones ofrecidas hoy son **Checkout Pro,
+  WooCommerce y Adobe Commerce**. **No existe una certificación específica de Point/POS presencial.**
+  Se descarta la duda de la Fase 1 original — **Checkout Pro es la única opción aplicable** (requisitos:
+  API REST y GitHub, PHP/.NET/Java/Node.js, configuración básica de servidores — Node.js encaja
+  directo con el stack de Andrés).
+- **Cómo funciona el desafío (confirmado, portal "Bienvenida"):** hay que resolver un desafío práctico
+  de integración de Checkout Pro en **una tienda online creada por Andrés** (no en mypyme/Gestionala
+  — es un ejercicio aparte, ver nota de alcance más abajo). Se simula un pago con credenciales y
+  usuarios de prueba (comprador/vendedor) + una tarjeta de prueba que MP entrega. Cada pago simulado
+  genera un **Payment ID único**; en la última etapa se envía ese Payment ID para validar que la
+  integración cumple las especificaciones.
+- **6 etapas del flujo del desafío:** 1) Bienvenida, 2) Contexto del desafío, 3) Prepara tu ambiente,
+  4) Configura tu integración, 5) Simula un pago, 6) Resultado. **Hoy completada la etapa 1.**
+  Pendiente avanzar 2→6 en el portal para obtener las credenciales/specs exactas — no se inventan
+  aquí porque MP las genera específicas para este desafío.
+- **Conceptos confirmados que exige el desafío:**
+  - **Cuenta de prueba:** simulan cuentas reales de MP para probar sin dinero real.
+  - **Credenciales de prueba** (Access Token + Public Key) para simular; **las de producción se usan
+    después, ya con la cuenta real, para cobrar de verdad.**
+  - **Integrator ID:** para este desafío, MP entrega un ID específico que hay que configurar en la
+    integración (distinto del Integrator ID final del programa, que se emite recién al aprobar).
+  - **Payment ID:** identifica cada pago simulado; el que se envía al final para validar.
+  - **Access Token** (backend, privado, nunca en el cliente) y **Public Key** (frontend, cifra datos
+    de tarjeta).
+- **Criterios de evaluación confirmados (6):** 1) Integrator ID del desafío configurado en la
+  integración, 2) datos del producto de la compra simulada según especificación, 3) medios de pago
+  del Checkout configurados según especificación, 4) manejo correcto de **páginas/URLs de retorno**
+  (back_urls), 5) **webhook de notificaciones** funcionando (recibir actualizaciones de estado de
+  pago en tiempo real), 6) campo **`external_reference`** de la preferencia configurado correctamente
+  (identifica la transacción).
+- **Nota de alcance/dónde vive el código de este desafío (decisión, no bloquea):** este ejercicio de
+  certificación **no es una feature de Gestionala/mypyme** — es un checkout de prueba personal de
+  Andrés. Para no mezclar código de certificación con el producto multi-tenant, se construirá **aislado
+  dentro de este mismo repo pero fuera de las rutas del producto** (ej. `app/mp-cert-checkout-pro/` +
+  1–2 API routes dedicadas, sin tocar tablas/tenants/RLS existentes, con sus propias env vars
+  `MP_CERT_*` distintas de `MP_CLIENT_ID/SECRET` de Point), aprovechando que el dominio ya está
+  desplegado en Vercel (evita crear y desplegar un proyecto nuevo solo para esto — más rápido). Se
+  elimina o se deja inerte después de aprobar la certificación. **Esto se construye recién cuando
+  Andrés pegue el contenido de las etapas 2–4** (ahí vienen las credenciales de prueba y el detalle
+  exacto del producto/monto/flujo a simular — no hay que inventarlos).
 - Entregable de esta fase: certificación aprobada + captura/constancia guardada en
   `docs/` (o carpeta de evidencia) para referencia futura.
 
@@ -139,15 +170,21 @@ Concretamente:
 
 ## 7. Próxima acción concreta inmediata
 
-**Entrar al portal `<dev>program` de Mercado Pago con la cuenta personal de Andrés y:**
-1. Revisar las certificaciones disponibles y confirmar si hay una específica de Point/POS presencial.
-2. Elegir Checkout Pro (o la de Point si existe y aplica mejor) y arrancar la integración de prueba.
-3. Aprobar la certificación → obtener el Integrator ID.
-4. Con el Integrator ID en mano, buscar el canal de contacto con Partners/ejecutivo y llevar las
-   preguntas de la Fase 3 (§4).
+**Estado (2026-07-05): ya se descartó Point como certificación (no existe) y se avanzó a la etapa 1
+"Bienvenida" de Checkout Pro.** Siguiente paso de Andrés en el portal:
 
-No hay tarea de código pendiente para esto — es 100% gestión/certificación fuera del repo. El
-repo ya tiene el lado técnico listo y gateado esperando el resultado de esta conversación.
+1. Click "Próximo" y avanzar las etapas **2) Contexto del desafío, 3) Prepara tu ambiente, 4) Configura
+   tu integración** — pegar el contenido de esas pantallas para tener las credenciales de prueba, el
+   Integrator ID del desafío, y la especificación exacta del producto/flujo a simular.
+2. Con eso confirmado (no antes, para no inventar specs), Claude Code construye la integración
+   aislada (`app/mp-cert-checkout-pro/`, ver Fase 1 arriba) en este repo.
+3. Etapa 5: simular el pago con la tarjeta de prueba → obtener el Payment ID.
+4. Etapa 6: enviar el Payment ID → esperar el resultado de la certificación.
+5. Al aprobar → se emite el **Integrator ID real del programa** → con eso, buscar el canal de contacto
+   con Partners y llevar las preguntas de la Fase 3.
+
+Hasta el punto 1 (pegar etapas 2–4) no hay código que escribir — inventar specs de credenciales o
+producto violaría la regla de "no inventar datos no confirmados".
 
 ---
 
