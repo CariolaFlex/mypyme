@@ -13,6 +13,8 @@ import { clp, inicioDiaSantiago, inicioHaceDias, inicioMesSantiago } from '@/lib
 import { diasRestantesTrial } from '@/lib/flow/subscription';
 import { VentasPorDiaChart } from '@/components/charts/dynamic';
 import { StatCard } from '@/components/dashboard/stat-card';
+import { AccesosRapidos } from '@/components/dashboard/accesos-rapidos';
+import type { AccesoRapido } from '@/lib/accesos';
 
 export const dynamic = 'force-dynamic';
 
@@ -54,6 +56,11 @@ export default async function DashboardPage() {
     supabase.from('vw_stock_actual').select('producto_id, stock'),
     supabase.from('ventas').select('id', { count: 'exact', head: true }),
   ]);
+
+  const { data: accesos } = await supabase
+    .from('accesos_rapidos')
+    .select('id, etiqueta, icono, destino, color, orden')
+    .order('orden', { ascending: true });
 
   const hoyR = (rHoy?.[0] as Resumen | undefined) ?? null;
   const semanaR = (rSemana?.[0] as Resumen | undefined) ?? null;
@@ -170,6 +177,9 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Accesos rápidos personalizables del usuario */}
+      <AccesosRapidos inicial={(accesos as AccesoRapido[] | null) ?? []} />
 
       {/* KPIs por período */}
       <div className="grid gap-4 sm:grid-cols-3">

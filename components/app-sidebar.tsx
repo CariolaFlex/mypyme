@@ -204,9 +204,10 @@ export function AppSidebar({
           </div>
         ) : (
           visibles.map((g) => {
-            // El grupo de la página activa nunca se colapsa (siempre ves dónde estás).
-            const tieneActivo = g.items.some((i) => isActive(i.href));
-            const cerrado = !!colapsados[g.titulo] && !tieneActivo;
+            // Cualquier grupo se puede colapsar (incluido el de la página activa):
+            // el ítem activo sigue resaltado al re-expandir y el buscador cubre el
+            // acceso directo. La preferencia se guarda por grupo.
+            const cerrado = !!colapsados[g.titulo];
             return (
               <div key={g.titulo}>
                 <button
