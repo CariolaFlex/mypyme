@@ -3,6 +3,11 @@
 **Versión:** 1.0 · **Fecha:** 2026-06-13
 
 > Aplica a la operación de Vectium como emisor del SaaS, no al cliente final.
+>
+> **Nota (2026-07-05):** Vectium SpA aún no está formalizada a favor de Andrés (sin acciones a su
+> nombre; formalización postergada hasta haber ingresos reales — ver
+> `docs/13-mercadopago-certificacion-partners.md` §1). Este documento describe el régimen aplicable
+> **cuando** la operación quede formalizada bajo esa estructura; hoy no es el estado vigente.
 
 ---
 

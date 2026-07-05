@@ -4,6 +4,12 @@
 
 > Documento fuente de verdad. Las decisiones técnicas están cerradas (ver `01-decisiones-tecnicas.md`).
 > No se vuelven a cuestionar salvo cambio explícito registrado en el historial de versiones.
+>
+> **Nota societaria (2026-07-05):** "Vectium SpA" identifica la marca/proyecto bajo la que se
+> comercializa Gestionala, no implica que Andrés sea hoy accionista formal — la formalización
+> societaria sigue pendiente (postergada a propósito hasta haber ingresos reales). No asumir
+> personería jurídica resuelta en gestiones externas (p. ej. Mercado Pago): ver
+> `docs/13-mercadopago-certificacion-partners.md` §1.
 
 ---
 

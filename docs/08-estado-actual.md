@@ -7,6 +7,21 @@
 
 ## ⭐ Punto de continuación (2026-07-05)
 
+**Mercado Pago — corrección de ruta: persona natural, no Vectium SpA.** Vectium SpA todavía no está
+formalizada a favor de Andrés (no tiene acciones; el socio Joaquín es quien aparece legalmente hoy).
+Se corrigió el supuesto de que la certificación/cuenta/Partners de Mercado Pago serían bajo Vectium
+SpA. **Decisión:** avanzar como persona natural — cuenta personal de MP, certificación individual en
+el `<dev>program`, obtener el Integrator ID, y con eso abrir la conversación con Partners/ejecutivo.
+La vía empresa queda para después de validar el modelo (ingresos reales). El lado técnico (Fase 1 de
+MP Point: OAuth + cobro desde el POS + webhook + reporte) ya está construido y gateado — no cambia.
+Documentado en **`docs/13-mercadopago-certificacion-partners.md`** (nuevo, es la fuente de verdad
+para certificación/identidad/Partners) y referenciado desde `docs/12-plan-mercadopago-point.md`
+(Fase 0 y sección 7 actualizadas). **Próximo paso concreto (fuera del repo, sin código):** Andrés
+entra al portal `<dev>program` de MP con su cuenta personal, revisa certificaciones disponibles
+(candidata: Checkout Pro, o Point si existe una específica), la aprueba, obtiene el Integrator ID, y
+busca el canal de contacto con Partners llevando las preguntas de `docs/13-...md` §4 Fase 3
+(incluida la de migración futura a cuenta empresa).
+
 **Fix warnings de `<script>` en consola (dev) + se quita next-themes.** El warning de React 19
 «Encountered a script tag while rendering React component» venía de **next-themes**: su
 `ThemeProvider` (componente cliente) renderiza un `<script>` anti-flash, y React 19 avisa cuando un

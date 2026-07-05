@@ -4,6 +4,14 @@
 > cloud + e2e 17/17 verde), gateada e inerte como Flow; pendiente la app en el portal MP + env en
 > Vercel + prueba con hardware real. Fase 0 (acuerdo comercial) e ingresos #2/#4 siguen pendientes.
 > **Autor del análisis:** sesión Claude Code (investigación + diseño + implementación Fase 1).
+>
+> **⚠️ Corrección de ruta (2026-07-05):** la Fase 0 de este documento y la lista de preguntas de §7
+> asumían implícitamente una contraparte "empresa". Eso queda corregido y ampliado en
+> **`docs/13-mercadopago-certificacion-partners.md`**: hoy se avanza como **persona natural**
+> (Vectium SpA aún no está formalizada a favor de Andrés), empezando por certificación en el
+> `<dev>program` para obtener el Integrator ID. Leer ese documento antes de agendar o preparar la
+> reunión con Mercado Pago. El diseño técnico de este documento (§3–§6, ya implementado) sigue
+> vigente sin cambios.
 > **Resumen en una frase:** ofrecer la maquinita **Mercado Pago Point** como add-on del plan de
 > Gestionala, que el cobro con tarjeta se dispare **desde el POS** y quede registrado en la
 > plataforma (venta + caja + inventario), y que Andrés gane por ello.
@@ -109,8 +117,11 @@
 
 ## 5. Fases (MVP acotado — reducir scope)
 
-- **Fase 0 — Validación comercial (SIN código). BLOQUEANTE.**
-  Reunión con MP Chile. No avanzar a código sin respuestas a la sección 7.
+- **Fase 0 — Certificación + validación comercial (SIN código). BLOQUEANTE.**
+  Ver `docs/13-mercadopago-certificacion-partners.md` para el flujo detallado: certificarse como
+  **persona natural** en el `<dev>program` → obtener Integrator ID → contactar a Partners/ejecutivo
+  con las preguntas de la sección 7 (ampliadas allí con la pregunta de migración futura a empresa).
+  No avanzar a más código de integración comercial (split, revenue share, reventa) sin esas respuestas.
 - **Fase 1 — Cobro básico (núcleo técnico). ✅ IMPLEMENTADA (2026-06-22).**
   OAuth por comerciante → vincular 1 device → botón "Cobrar con MP" en el POS → payment intent →
   webhook → registrar venta. **Sin split/fee.** Ingreso de esta fase = markup de suscripción (#1) +
@@ -175,6 +186,9 @@
 
 ## 7. Qué confirmar con Mercado Pago (Fase 0 — llevar esto a la reunión)
 
+> Lista completa y actualizada (incluye la pregunta de identidad/migración persona natural → empresa)
+> en `docs/13-mercadopago-certificacion-partners.md` §4 Fase 3. Resumen:
+
 1. **Partners Program / Platform:** ¿a qué nivel entro y cuál es el **% de revenue share**? ¿Aplica al
    **TPV presencial (Point)** o solo a checkout online?
 2. **Reventa de hardware:** ¿hay comisión por vender cada Point + bonos por metas? ¿Bajo qué contrato?
@@ -184,6 +198,8 @@
    ¿Hay sandbox/terminales de prueba?
 5. **Certificación:** ¿el Dev Program / certificación es requisito para el revenue share?
 6. **Operativa:** ¿quién da soporte del lector al comerciante? ¿tiempos de liquidación del dinero?
+7. **Identidad/migración (nueva, 2026-07-05):** certificándome ahora como persona natural, ¿cómo se
+   migra el Integrator ID / titularidad del acuerdo cuando se formalice la SpA? ¿Hay que recertificar?
 
 ---
 
