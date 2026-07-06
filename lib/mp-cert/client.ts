@@ -29,23 +29,36 @@ export type MpCertPreferencia = {
   sandbox_init_point: string;
 };
 
-/** Crea la preferencia de pago del producto de prueba del desafío Checkout Pro. */
-export async function crearPreferenciaCert(
-  siteUrl: string,
-  externalReference: string
-): Promise<MpCertPreferencia> {
+/**
+ * Crea la preferencia de pago del producto de prueba del desafío Checkout Pro.
+ * Specs exigidas por la etapa 4 del wizard ("Configura tu integración"):
+ *  - id de 4 dígitos, descripción EXACTA "Dispositivo de tienda móvil de comercio
+ *    electrónico", cantidad 1, precio > US$1.
+ *  - Máximo 6 cuotas con crédito, excluir Visa.
+ *  - external_reference = correo de la cuenta de Mercado Pago (MP_CERT_EXTERNAL_REF_EMAIL).
+ */
+export async function crearPreferenciaCert(siteUrl: string): Promise<MpCertPreferencia> {
+  const externalReference = process.env.MP_CERT_EXTERNAL_REF_EMAIL;
+  if (!externalReference) throw new Error('MP_CERT_EXTERNAL_REF_EMAIL no configurado');
+
   const preference = new Preference(client());
   const resultado = await preference.create({
     body: {
       items: [
         {
-          id: 'producto-cert-1',
+          id: '4210',
           title: 'Producto de prueba — certificación Checkout Pro',
+          description: 'Dispositivo de tienda móvil de comercio electrónico',
+          picture_url: 'https://placehold.co/300x300?text=Cert+MP',
           quantity: 1,
-          unit_price: 2000,
+          unit_price: 5000, // CLP, ampliamente sobre US$1
           currency_id: 'CLP',
         },
       ],
+      payment_methods: {
+        installments: 6,
+        excluded_payment_methods: [{ id: 'visa' }],
+      },
       external_reference: externalReference,
       back_urls: {
         success: `${siteUrl}/mp-cert-checkout-pro/retorno?status=success`,
