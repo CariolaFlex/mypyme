@@ -59,9 +59,12 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith('/recuperar') ||
     pathname.startsWith('/actualizar-clave') ||
     pathname.startsWith('/auth') ||
-    // Tienda de prueba del desafío de certificación MP (no es parte del producto,
-    // no requiere sesión de Gestionala). Ver docs/13-mercadopago-certificacion-partners.md.
-    pathname.startsWith('/mp-cert-checkout-pro');
+    // Tienda de prueba del desafío de certificación MP + su API de preferencia (no es
+    // parte del producto, no requiere sesión de Gestionala). Sin esto, el fetch a la API
+    // desde una sesión sin login redirige a /login (HTML) → "Unexpected token '<'" en el
+    // cliente. Ver docs/13-mercadopago-certificacion-partners.md.
+    pathname.startsWith('/mp-cert-checkout-pro') ||
+    pathname.startsWith('/api/mp-cert');
 
   if (!user && !esRutaAuth && !esRutaPublica) {
     return redirigir('/login');
