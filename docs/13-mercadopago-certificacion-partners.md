@@ -170,6 +170,39 @@ Concretamente:
 
 ## 7. Próxima acción concreta inmediata
 
+**Estado (2026-07-06, etapa 4/6 COMPLETA + integración verificada en producción):**
+- ✅ Etapas 1–4 del wizard completadas. App de certificación **creada desde la cuenta del vendedor de
+  prueba** (requisito del desafío): app N.º `5842735244616907`, credenciales de prueba en `.env.local`
+  + Vercel (`MP_CERT_ACCESS_TOKEN`, `NEXT_PUBLIC_MP_CERT_PUBLIC_KEY`, `MP_CERT_EXTERNAL_REF_EMAIL`).
+- ✅ **Integrator ID del desafío:** `dev_24c65fb163bf11ea96500242ac130004` (hardcodeado en
+  `lib/mp-cert/client.ts`, va como header `X-Integrator-Id` vía el SDK oficial).
+- ✅ **Specs de la etapa 4 implementadas y verificadas en producción** (creando una preferencia real y
+  abriendo su checkout sandbox): producto con `description` = "Dispositivo de tienda móvil de comercio
+  electrónico", precio $5.000 CLP (>US$1), máx 6 cuotas de crédito, **Visa excluida**,
+  `external_reference` = `cariolaflex@gmail.com` (correo de la cuenta real de MP), back_urls y
+  notification_url apuntando a `mypyme-blond.vercel.app`. El endpoint `/api/mp-cert/preference`
+  responde 200 con preferencia válida y el checkout muestra $5.000 ✓.
+- ⚠️ **Gotcha resuelto:** un "Redeploy" en Vercel del commit viejo (42e4d5c) se quedó con el alias de
+  producción y servía specs viejas ($2.000, external_reference UUID). Se corrigió **promoviendo el
+  deploy de `b67c7f3`** a producción. Regla: tras cambiar env vars, promover/redeployar el commit
+  MÁS NUEVO de main, no un deploy anterior.
+
+**PENDIENTE de Andrés (etapa 5 "Simula un pago" — requiere login como comprador de prueba):**
+1. En una ventana de **incógnito**, iniciar sesión en Mercado Pago con el **comprador de prueba**
+   (Buyer Test User: User ID `3520858392`, ver usuario/contraseña completos en el panel "Cuentas de
+   prueba" de la app; contraseña `aHkCB0srx6`, código `858392`).
+2. Abrir `https://mypyme-blond.vercel.app/mp-cert-checkout-pro`, clic "Comprar con Mercado Pago".
+3. Pagar con una **tarjeta de prueba** (tabla en la doc pública), usando el titular **APRO** para un
+   pago aprobado (nombre "APRO", documento `123456789`).
+4. Copiar el **Payment ID** del pago aprobado.
+5. Etapa 6 del wizard: pegar el Payment ID → obtener el resultado de la certificación.
+
+Este paso lo hace Andrés porque implica login con otra identidad (acción de autenticación).
+
+---
+
+### Historial de estado previo (2026-07-05)
+
 **Estado (2026-07-05): ya se descartó Point como certificación (no existe) y se avanzó a la etapa 1
 "Bienvenida" de Checkout Pro.** Siguiente paso de Andrés en el portal:
 

@@ -56,7 +56,8 @@ export default function MpCertCheckoutProPage() {
       <Script src="https://sdk.mercadopago.com/js/v2" onLoad={() => setSdkListo(true)} />
       <h1>Tienda de prueba — Checkout Pro</h1>
       <p>Producto de prueba — certificación Checkout Pro</p>
-      <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>$2.000 CLP</p>
+      <p style={{ color: '#555' }}>Dispositivo de tienda móvil de comercio electrónico</p>
+      <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>$5.000 CLP</p>
       <button onClick={comprar} disabled={cargando}>
         {cargando ? 'Cargando…' : 'Comprar con Mercado Pago'}
       </button>
