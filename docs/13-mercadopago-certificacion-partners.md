@@ -1,10 +1,37 @@
 # Mercado Pago — Certificación, Integrator ID y Partners (ruta persona natural)
 
-**Fecha:** 2026-07-05 · **Estado:** decisión tomada, ejecución pendiente
+**Fecha:** 2026-07-06 · **Estado:** ✅ **CERTIFICACIÓN CHECKOUT PRO APROBADA**
 **Reemplaza el supuesto societario** de `docs/12-plan-mercadopago-point.md` §5 Fase 0 y de las
 menciones a "Vectium SpA" como parte comercial en el contexto de Mercado Pago. Este documento es
 la fuente de verdad para la ruta de certificación/partners; `docs/12-plan-mercadopago-point.md`
 sigue siendo la fuente de verdad para el **diseño técnico** (ya implementado y gateado).
+
+---
+
+## 0. ✅ RESULTADO — Certificación aprobada (2026-07-06)
+
+El desafío de Checkout Pro se **aprobó** (Payment ID `166576992509`, pago APRO simulado con el
+comprador de prueba). Datos emitidos:
+
+- **Integrator ID REAL del programa:** `dev_9ea92f9c793311f198b4c692d38b9660`
+  - Este es el que va en las integraciones REALES para acceder a los beneficios del Partners Program
+    (distinto del Integrator ID del desafío `dev_24c65fb163bf11ea96500242ac130004`, que era solo para
+    aprobar el examen). Cuando se active MP Point en producción, este ID debería ir en `lib/mp/` (como
+    header `X-Integrator-Id`, env `MP_INTEGRATOR_ID`). Guardado en `.env.local` como referencia.
+- **Código de validación del certificado:** `cert_9eece3ea793311f198b4c692d38b9660`
+- Certificado a nombre de "Andres", 6 de julio de 2026. Descargable en PDF desde el portal
+  (Andrés puede bajarlo cuando quiera: "Descargar certificado en PDF" en la pantalla de resultado).
+
+**Ventajas del Partners Program que se desbloquean con la certificación** (según el portal):
+promoción en el Centro de Partners, atención prioritaria de soporte, **incentivo financiero por cada
+nueva integración**, y **tasa preferencial para los clientes** integrados a través de Andrés.
+
+### ➡️ Siguiente acción (retomar aquí con "continua")
+Ya no es certificación — es la **conversación comercial con Partners** (Fase 3 §4). Con el Integrator
+ID en mano, entrar al **Centro de Partners** del portal y abrir la conversación con un ejecutivo,
+llevando las preguntas de la Fase 3 (revenue share, si aplica a Point presencial, reventa de hardware,
+`application_fee`, y la de migración persona natural → SpA cuando se formalice Vectium). El lado
+técnico de MP Point (Fase 1) ya está construido y gateado esperando ese acuerdo.
 
 ---
 
