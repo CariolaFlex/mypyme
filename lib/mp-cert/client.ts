@@ -1,18 +1,26 @@
 // Cliente de Checkout Pro para el desafío de certificación personal de Andrés en el
 // <dev>program de Mercado Pago. NO es parte del producto Gestionala/mypyme: es un
 // checkout de prueba aislado (ver docs/13-mercadopago-certificacion-partners.md §4 Fase 1).
-// Usa credenciales de prueba propias (MP_CERT_*), separadas de MP_CLIENT_ID/SECRET de
-// Point. Se elimina o se deja inerte una vez aprobada la certificación.
-const MP_API = 'https://api.mercadopago.com';
+// Usa el SDK oficial "mercadopago" (Server-Side) con credenciales de prueba propias
+// (MP_CERT_*), separadas de MP_CLIENT_ID/SECRET de Point. Se elimina o se deja inerte
+// una vez aprobada la certificación.
+import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 
 export function mpCertConfigurado(): boolean {
   return !!process.env.MP_CERT_ACCESS_TOKEN;
 }
 
-function accessToken(): string {
-  const token = process.env.MP_CERT_ACCESS_TOKEN;
-  if (!token) throw new Error('MP_CERT_ACCESS_TOKEN no configurado');
-  return token;
+// Integrator ID del desafío de certificación Checkout Pro (dado por MP en la etapa 4
+// del wizard, específico de este desafío — no es el Integrator ID final del programa).
+const CERT_INTEGRATOR_ID = 'dev_24c65fb163bf11ea96500242ac130004';
+
+function client(): MercadoPagoConfig {
+  const accessToken = process.env.MP_CERT_ACCESS_TOKEN;
+  if (!accessToken) throw new Error('MP_CERT_ACCESS_TOKEN no configurado');
+  return new MercadoPagoConfig({
+    accessToken,
+    options: { integratorId: CERT_INTEGRATOR_ID },
+  });
 }
 
 export type MpCertPreferencia = {
@@ -26,18 +34,12 @@ export async function crearPreferenciaCert(
   siteUrl: string,
   externalReference: string
 ): Promise<MpCertPreferencia> {
-  const res = await fetch(`${MP_API}/checkout/preferences`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${accessToken()}`,
-      'Content-Type': 'application/json',
-      // TODO(confirmar etapa 4 "Configura tu integración"): el desafío puede pedir el
-      // Integrator ID en un header propio (p. ej. X-Integrator-Id o X-Meli-Session-Id) o
-      // como atributo de la preferencia. No inventar el mecanismo hasta ver la etapa 4.
-    },
-    body: JSON.stringify({
+  const preference = new Preference(client());
+  const resultado = await preference.create({
+    body: {
       items: [
         {
+          id: 'producto-cert-1',
           title: 'Producto de prueba — certificación Checkout Pro',
           quantity: 1,
           unit_price: 2000,
@@ -52,27 +54,18 @@ export async function crearPreferenciaCert(
       },
       auto_return: 'approved',
       notification_url: `${siteUrl}/api/webhooks/mp-cert`,
-    }),
+    },
   });
-  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
-  if (!res.ok) {
-    throw new Error((data?.message as string) || `MP preferencia HTTP ${res.status}`);
-  }
   return {
-    id: String(data.id ?? ''),
-    init_point: String(data.init_point ?? ''),
-    sandbox_init_point: String(data.sandbox_init_point ?? ''),
+    id: String(resultado.id ?? ''),
+    init_point: String(resultado.init_point ?? ''),
+    sandbox_init_point: String(resultado.sandbox_init_point ?? ''),
   };
 }
 
 /** Consulta un pago por ID (usado por el webhook tras recibir la notificación). */
 export async function obtenerPagoCert(paymentId: string): Promise<Record<string, unknown>> {
-  const res = await fetch(`${MP_API}/v1/payments/${paymentId}`, {
-    headers: { Authorization: `Bearer ${accessToken()}` },
-  });
-  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
-  if (!res.ok) {
-    throw new Error((data?.message as string) || `MP pago HTTP ${res.status}`);
-  }
-  return data;
+  const payment = new Payment(client());
+  const resultado = await payment.get({ id: paymentId });
+  return resultado as unknown as Record<string, unknown>;
 }
