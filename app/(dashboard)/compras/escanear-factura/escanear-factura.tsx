@@ -283,7 +283,10 @@ export function EscanearFactura({
   // falle. Tolerancia de ±2 por redondeos.
   const sumaItems = d.items.reduce((a, it) => a + (Number(it.total) || 0), 0);
   const cuadraIva = d.total > 0 && Math.abs(d.neto + d.iva - d.total) <= 2;
-  const cuadraItems = sumaItems > 0 && d.total > 0 && Math.abs(sumaItems - d.total) <= 2;
+  // En factura los ítems vienen netos (cuadran con el neto); en boleta traen IVA (cuadran con el total).
+  const cuadraItemsTotal = sumaItems > 0 && d.total > 0 && Math.abs(sumaItems - d.total) <= 2;
+  const cuadraItemsNeto = sumaItems > 0 && d.neto > 0 && Math.abs(sumaItems - d.neto) <= 2;
+  const cuadraItems = cuadraItemsTotal || cuadraItemsNeto;
   const nCargar = cargarSel.filter((s) => s !== '').length;
 
   // Resaltado de campos dudosos: bajo este umbral de confianza el campo se
@@ -514,7 +517,11 @@ export function EscanearFactura({
           {sumaItems > 0 && (
             <p className={cuadraItems ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}>
               {cuadraItems ? '✓' : '⚠'} Suma de ítems = {clp.format(sumaItems)}
-              {cuadraItems ? ' (cuadra con el total)' : ` — no coincide con el total ${clp.format(d.total)}`}
+              {cuadraItemsTotal
+                ? ' (cuadra con el total)'
+                : cuadraItemsNeto
+                  ? ' (cuadra con el neto)'
+                  : ` — no coincide con el neto ${clp.format(d.neto)} ni con el total ${clp.format(d.total)}`}
             </p>
           )}
         </div>
