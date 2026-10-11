@@ -1,5 +1,10 @@
 # Mercado Pago — Certificación, Integrator ID y Partners (ruta persona natural)
 
+> **Nota del 2026-10-11:** donde este documento dice que Andrés no es accionista de Vectium SpA,
+> quedó desactualizado. Desde el 21-09-2026 el Registro de Empresas certifica 50% Andrés / 50%
+> Joaquín; el SII aún no lo refleja y el representante legal sigue siendo Joaquín. La vía
+> "persona natural" para Mercado Pago se puede reevaluar cuando eso cierre.
+
 **Fecha:** 2026-07-06 · **Estado:** ✅ **CERTIFICACIÓN CHECKOUT PRO APROBADA**
 **Reemplaza el supuesto societario** de `docs/12-plan-mercadopago-point.md` §5 Fase 0 y de las
 menciones a "Vectium SpA" como parte comercial en el contexto de Mercado Pago. Este documento es
