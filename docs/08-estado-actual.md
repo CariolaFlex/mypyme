@@ -5,7 +5,16 @@
 > Documento de handoff. Resume qué está hecho, cómo funciona y qué sigue.
 > Verificado: build OK, ESLint 0 errores, TypeScript OK, deploy Vercel sano, npm audit 0 vulns.
 
-## ⭐ Punto de continuación (2026-07-05)
+## ⭐ Punto de continuación (2026-10-15)
+
+**Cambio de rol.** Gestionala deja de desarrollarse como SaaS de suscripción. Desde ahora es un
+**prototipo de demostración** y una **base de componentes** (funciones, herramientas, diseño y
+conexiones) para otros proyectos. La suscripción (planes en `lib/planes.ts`, Flow, prueba gratis,
+`app/suscripcion-requerida`) queda **en pausa**: no se construye ni se mejora hasta que exista un
+análisis de competencia y costos. Pendiente: decidir qué mostrar en la landing pública, que todavía
+invita a registrarse con prueba gratis.
+
+## ⭐ Punto de continuación anterior (2026-07-05)
 
 **Mercado Pago — corrección de ruta: persona natural, no Vectium SpA.** Vectium SpA todavía no está
 formalizada a favor de Andrés (no tiene acciones; el socio Joaquín es quien aparece legalmente hoy).

@@ -2,6 +2,11 @@
 
 **Versión:** 1.0 · **Fecha:** 2026-06-13
 
+> ⏸️ **En pausa desde el 2026-10-15.** La suscripción descrita aquí (planes, cobro por Flow, prueba
+> gratis) no está vigente. Gestionala se usa como prototipo de demostración y como base de
+> componentes. Un modelo de suscripción solo se retoma después de un análisis de competencia y
+> costos. Este documento queda como registro.
+
 ---
 
 ## Planes
