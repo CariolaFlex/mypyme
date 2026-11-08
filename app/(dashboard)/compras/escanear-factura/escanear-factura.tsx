@@ -11,6 +11,7 @@ import { AvisoHerramienta } from '@/components/aviso-herramienta';
 import { runOCRInBrowser } from '@/lib/ocr/engine';
 import { parseDocument, aFacturaExtraida } from '@/lib/ocr/parser';
 import type { DocumentoExtraido, FacturaExtraida, OCRProgress, TipoDocOCR, TipoNegocio } from '@/lib/ocr/types';
+import { cuadrarMontos, rutClave } from '@/lib/ocr/compras';
 import { guardarScan, registrarFactura, cargarInventario } from './actions';
 
 const VACIO: FacturaExtraida = {
@@ -27,7 +28,8 @@ const TIPOS: { value: TipoDocOCR; label: string }[] = [
 
 type Proveedor = { id: string; nombre: string; rut: string | null };
 type Producto = { id: string; nombre: string };
-const rutKey = (s: string | null | undefined) => (s ?? '').replace(/[.\-\s]/g, '').toUpperCase();
+// RUT canónico (con o sin puntos y guion es el mismo proveedor).
+const rutKey = rutClave;
 
 type IvaModo = 'con' | 'sin' | 'exento';
 
@@ -64,7 +66,10 @@ export function EscanearFactura({
   const router = useRouter();
   const [fase, setFase] = useState<'idle' | 'procesando' | 'review'>(inicial ? 'review' : 'idle');
   const [progress, setProgress] = useState<OCRProgress | null>(null);
-  const [d, setD] = useState<FacturaExtraida>(inicial?.datos ?? VACIO);
+  // Un borrador reabierto también se cuadra: neto + IVA = total (antes podía volver con IVA $0).
+  const [d, setD] = useState<FacturaExtraida>(
+    inicial ? { ...inicial.datos, ...cuadrarMontos(inicial.datos, tasaDefault) } : VACIO
+  );
   const [meta, setMeta] = useState<{ textoPlano: string; confianza: number }>(
     inicial ? { textoPlano: inicial.textoPlano, confianza: inicial.confianza } : { textoPlano: '', confianza: 0 }
   );
@@ -83,6 +88,8 @@ export function EscanearFactura({
   // Mapeo ítem→destino de inventario, paralelo a d.items: '' = no cargar,
   // 'NEW' = crear producto, o el id de un producto existente.
   const [cargarSel, setCargarSel] = useState<string[]>(inicial?.datos.items.map(() => '') ?? []);
+  // Evita cargar el mismo escaneo dos veces al inventario (hasta escanear otro documento).
+  const [inventarioCargado, setInventarioCargado] = useState(false);
 
   async function onFile(file: File) {
     setFase('procesando');
@@ -99,12 +106,15 @@ export function EscanearFactura({
       });
       const extra = aFacturaExtraida(documento);
       setDoc(documento);
-      setD(extra);
       // El OCR entrega el total con IVA → arranca en 'con'. Si detectó tasa real
       // (iva/neto) la usa; si no, la del negocio. El usuario puede cambiarlo.
       const tasaOCR = extra.neto > 0 ? Math.round((extra.iva / extra.neto) * 100) : 0;
+      const tasaUsada = tasaOCR >= 1 && tasaOCR <= 40 ? tasaOCR : tasaDefault;
+      // Neto + IVA = total siempre (antes, si el OCR no leía el IVA, quedaba en $0).
+      setD({ ...extra, ...cuadrarMontos(extra, tasaUsada) });
       setIvaModo('con');
-      setTasa(tasaOCR >= 1 && tasaOCR <= 40 ? tasaOCR : tasaDefault);
+      setTasa(tasaUsada);
+      setInventarioCargado(false);
       setIvaManual(false);
       setCargarSel(extra.items.map(() => ''));
       // Auto-vincular proveedor si el RUT escaneado coincide con uno existente.
@@ -142,10 +152,13 @@ export function EscanearFactura({
   function setItem(i: number, campo: 'descripcion' | 'cantidad' | 'precio' | 'total', v: string) {
     setD((p) => {
       const items = [...p.items];
-      items[i] = {
+      const nuevo = {
         ...items[i],
         [campo]: campo === 'descripcion' ? v : Number(v) || 0,
       };
+      // Cambiar cantidad o precio recalcula el total de la línea (el total sigue editable a mano).
+      if (campo === 'cantidad' || campo === 'precio') nuevo.total = Math.round(nuevo.cantidad * nuevo.precio);
+      items[i] = nuevo;
       return { ...p, items };
     });
   }
@@ -175,6 +188,7 @@ export function EscanearFactura({
     const res = await cargarInventario({ rows });
     setBusy(false);
     if ('error' in res) return toast.error(res.error);
+    if (res.cargados > 0) setInventarioCargado(true);
     if (res.errores.length)
       toast.warning(`Cargados ${res.cargados}. ${res.errores.length} con error: ${res.errores[0]}`);
     else toast.success(`${res.cargados} ítem(s) cargados al inventario.`);
@@ -197,6 +211,8 @@ export function EscanearFactura({
       textoPlano: meta.textoPlano,
       confianza: meta.confianza,
       tipo,
+      ivaModo,
+      tasa,
       proveedorId: proveedorId || undefined,
       vendedor: vendedor.trim() || undefined,
     });
@@ -501,8 +517,8 @@ export function EscanearFactura({
           <span className="text-xs text-muted-foreground">
             {nCargar} ítem(s) marcados para sumar stock en la bodega principal (costo = precio).
           </span>
-          <Button type="button" size="sm" variant="outline" disabled={busy} onClick={cargarAlInventario} className="gap-2">
-            <Boxes className="size-4" /> Cargar al inventario
+          <Button type="button" size="sm" variant="outline" disabled={busy || inventarioCargado} onClick={cargarAlInventario} className="gap-2">
+            <Boxes className="size-4" /> {inventarioCargado ? 'Ya cargado al inventario' : 'Cargar al inventario'}
           </Button>
         </div>
       )}

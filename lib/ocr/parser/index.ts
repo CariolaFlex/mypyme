@@ -17,6 +17,8 @@ import type {
 } from '../types';
 import { clasificarDocumento } from '../clasificador';
 import { detectarMoneda } from '../montos';
+import { itemsPorCuentasGestionala } from '../items-cuentas';
+import { completarIva } from '../compras';
 import {
   estrategiaFactura,
   estrategiaServicio,
@@ -59,6 +61,30 @@ export function parseDocument(raw: OCRRaw, ctx: ParserContext = {}): DocumentoEx
     default:
       // factura / boleta / guia / nota_credito / otro → parser formal (histórico).
       res = estrategiaFactura(raw, aTipoDocOCR(tipo));
+  }
+
+  // ── Líneas guiadas por las cuentas (motor de Vectium) ───────────────────
+  // Prueba las lecturas posibles de cada fila (cantidad, unidad, precio, descuento,
+  // total) y elige la que cierra. Se usa si su suma cuadra mejor con el neto (o el
+  // total) que las líneas de la estrategia. Lee también «600,00 ENVASE … 85,81 51.486».
+  {
+    const porCuentas = itemsPorCuentasGestionala(raw.lines);
+    const meta = res.neto.valor > 0 ? res.neto.valor : res.total.valor;
+    const dist = (xs: { total: number }[]) => (xs.length ? Math.abs(xs.reduce((s, x) => s + (x.total || 0), 0) - meta) : Infinity);
+    // Cuántas líneas cierran su propia cuenta (cantidad × precio = total): desempata cuando las dos sumas cuadran.
+    const cierran = (xs: { cantidad: number; precio: number; total: number }[]) =>
+      xs.filter((x) => Math.abs(x.cantidad * x.precio - x.total) <= Math.max(2, Math.abs(x.total) * 0.005)).length;
+    const dc = dist(porCuentas.items);
+    const dr = dist(res.items);
+    if (meta > 0 && porCuentas.items.length && (dc < dr || (dc === dr && porCuentas.cierran > cierran(res.items))))
+      res.items = porCuentas.items;
+  }
+
+  // ── IVA no leído: si neto + IVA tiene que dar el total, se completa ─────
+  // (antes quedaba IVA 0 y la factura se guardaba como exenta: se perdía el crédito fiscal).
+  {
+    const c = completarIva({ neto: res.neto.valor, iva: res.iva.valor, total: res.total.valor }, ctx.tasaIva ?? 19);
+    if (c && c.iva !== res.iva.valor) res.iva = { valor: c.iva, confianza: 0.85, fuente: 'derivado' };
   }
 
   // ── Cross-validation aritmética ─────────────────────────────────────────

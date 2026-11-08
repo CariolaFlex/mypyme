@@ -3,15 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import type { FacturaExtraida, TipoDocOCR } from '@/lib/ocr/types';
-
-/** Mapea el tipo del escáner al tipo_documento tributario (afecta el F29: el
- *  crédito fiscal cuenta solo 'factura'). */
-const TIPO_DOC: Record<TipoDocOCR, string> = {
-  factura: 'factura',
-  boleta: 'boleta',
-  guia: 'sin_documento',
-  otro: 'sin_documento',
-};
+import { rutClave, tipoDocumentoCompra } from '@/lib/ocr/compras';
 
 async function getEmpresaId() {
   const supabase = await createClient();
@@ -67,6 +59,10 @@ export async function registrarFactura(input: {
   textoPlano?: string;
   confianza?: number;
   tipo?: TipoDocOCR;
+  /** Cómo se ingresó el monto: «Exento» guarda factura_exenta / boleta_exenta. */
+  ivaModo?: 'con' | 'sin' | 'exento';
+  /** Tasa de IVA elegida en la pantalla (la real). Antes se recalculaba como iva/neto y daba 0 si el IVA no se leyó. */
+  tasa?: number;
   /** Si viene, usa ese proveedor existente (no resuelve ni crea). */
   proveedorId?: string;
   /** Vendedor/contacto al crear un proveedor nuevo. */
@@ -84,9 +80,11 @@ export async function registrarFactura(input: {
     const nombreProv = d.razonSocial.trim();
     if (!nombreProv) return { error: 'Elige un proveedor o escribe la razón social' };
     const rut = d.rut.trim();
-    if (rut) {
-      const { data } = await supabase.from('proveedores').select('id').eq('rut', rut).limit(1);
-      proveedorId = data?.[0]?.id ?? null;
+    // Buscar por RUT canónico: el OCR lo trae con puntos y el proveedor pudo guardarse sin ellos (antes se duplicaba).
+    const clave = rutClave(rut);
+    if (clave) {
+      const { data } = await supabase.from('proveedores').select('id, rut').not('rut', 'is', null);
+      proveedorId = data?.find((p) => rutClave(p.rut) === clave)?.id ?? null;
     }
     if (!proveedorId) {
       const { data: ins, error: insErr } = await supabase
@@ -113,19 +111,26 @@ export async function registrarFactura(input: {
   }
 
   // ── Crear la factura (la RPC deriva neto/IVA del total + tasa) ─────────
-  const tasa = d.neto > 0 ? Math.round((d.iva / d.neto) * 100) : 0;
+  // La tasa es la elegida en pantalla (o 19 % si no vino); exento = 0. Nunca se recalcula desde iva/neto:
+  // si el OCR no leyó el IVA eso daba 0 y la factura quedaba exenta, perdiendo el crédito fiscal.
+  const tasa = input.ivaModo === 'exento' ? 0 : input.tasa && input.tasa > 0 ? input.tasa : 19;
+  // Sin folio legible no se usa «S/N» a secas (chocaba con el siguiente documento sin número del mismo proveedor).
+  const numero = d.folio.trim() || `S/N-${new Date().toISOString().slice(0, 16).replace(/\D/g, '')}`;
   const { data: facturaId, error: rpcErr } = await supabase.rpc('crear_factura_proveedor', {
     p_proveedor_id: proveedorId,
-    p_numero_factura: d.folio.trim() || 'S/N',
+    p_numero_factura: numero,
     p_monto_total: d.total,
     p_tasa_iva: tasa,
     p_fecha: d.fecha || null,
   });
-  if (rpcErr) return { error: rpcErr.message };
+  if (rpcErr) {
+    if (rpcErr.code === '23505') return { error: `Ya registraste el documento N° ${numero} de este proveedor.` };
+    return { error: rpcErr.message };
+  }
 
   await supabase
     .from('facturas_proveedor')
-    .update({ tipo_documento: TIPO_DOC[input.tipo ?? 'factura'] })
+    .update({ tipo_documento: tipoDocumentoCompra(input.tipo ?? 'factura', input.ivaModo ?? 'con') })
     .eq('id', facturaId);
 
   // ── Marcar el scan como importado ─────────────────────────────────────
