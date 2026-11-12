@@ -5,6 +5,48 @@
 > Documento de handoff. Resume qué está hecho, cómo funciona y qué sigue.
 > Verificado: build OK, ESLint 0 errores, TypeScript OK, deploy Vercel sano, npm audit 0 vulns.
 
+## ⭐ Estado al 2026-11-12, antes de la mudanza al Mac
+
+Revisado contra git, Vercel, Supabase y GitHub (solo lectura).
+
+- **Git:** `main` = `origin/main` en `3d28e34` (08-11), árbol limpio, sin stash, sin worktrees extra
+  y sin PR abiertos. `develop` (13-06) ya está mezclada en `main`: no le queda nada propio.
+- **Publicado:** producción de Vercel corre `3d28e34`, desplegado solo desde GitHub el 08-11
+  (estado READY, CI verde). O sea, **los arreglos de compras del 08-11 (IVA en $0, RUT canónico,
+  líneas guiadas por las cuentas) ya están en el sitio**, no "sin publicar" como se anotó ese día.
+  Este proyecto no sufrió el bloqueo de despliegues que afecta a otros del mismo equipo de Vercel.
+- **Lectura de facturas sin API de IA** (decisión del 08-11): solo el motor de código en el
+  navegador. Las mejoras posteriores del motor compartido (campo nuevo del 08-11, reparto de
+  impuestos específicos por línea y el patrón de pantalla de ingreso del 09-11) **no se han traído
+  aquí**: se incorporan cuando se vuelva a empaquetar el motor.
+- **Sitio público:** sigue ofreciendo "14 días gratis · prueba gratis". Decisión pendiente (página
+  de demostración o cerrar el registro). En la base hay 10 empresas, todas de prueba o demostración
+  (ninguna registrada por un tercero).
+- **Base de datos:** el proyecto de Supabase está activo y la app la alcanza (Auth y REST
+  responden). La API de administración falla al entrar como `postgres` (error 28P01), así que
+  **no se pudo comparar las 43 migraciones del repo con las aplicadas**: revisarlo con la clave de
+  la base cuando se vuelva a usar el CLI.
+
+### Conexiones y cómo reconectar en el Mac
+
+| Servicio | Qué es | Dónde vive el secreto | Reconectar |
+|---|---|---|---|
+| **GitHub** | `CariolaFlex/mypyme`, **público**. 1 Action (`ci.yml`: lint, typecheck y build en push y PR a `main`/`develop`). Alertas de Dependabot desactivadas | — | `git clone https://github.com/CariolaFlex/mypyme.git` |
+| **Vercel** | Proyecto `mypyme`, equipo `andres-cariolas-projects` (cuenta cariolaflex). Dominio `mypyme-blond.vercel.app`. Despliegue automático desde `main`. Sin crons | 12 variables en Vercel (Production + Preview) | `vercel link --scope andres-cariolas-projects --project mypyme` y `vercel env pull .env.local` (con el token de cariolaflex) |
+| **Supabase** | Proyecto `mypyme` (`igpplasotoshtuwbdzmf`), org `CariolaFlex-Supabase`, plan gratis (se pausa por inactividad), sa-east-1, Postgres 17 | URL y claves en Vercel y `.env.local`; clave de la base en el gestor de contraseñas | `supabase link --project-ref igpplasotoshtuwbdzmf` con `SUPABASE_ACCESS_TOKEN` |
+| **Flow** | Cobro de la suscripción (en pausa). `FLOW_ENROLL_ENABLED` existe **solo en Vercel** | Vercel y `.env.local` | Panel de Flow |
+| **Mercado Pago** | Checkout Pro certificado (`MP_CERT_*`, cuenta personal). OAuth por comercio (`mp_conexiones`) y Point **sin configurar**: faltan `MP_CLIENT_ID`, `MP_CLIENT_SECRET`, `MP_TOKEN_ENC_KEY` y `MP_WEBHOOK_SECRET` en todas partes, así que esas pantallas quedan apagadas | Vercel y `.env.local` | MercadoPago Developers |
+| **Resend** | Correos de la suscripción. **Sin configurar** (`RESEND_API_KEY` no existe): el código queda inerte | — | — |
+| **Plausible** | Analítica. Sin configurar | — | — |
+| **Open Food Facts** | Catálogo por código de barras | API pública | — |
+
+- **`.env.local`** (11 variables) coincide en nombres con Vercel; Vercel tiene además
+  `FLOW_ENROLL_ENABLED`. **`.env.demo.local`** (4 variables de la empresa "Vivero Demo") **no está en
+  Vercel**: se respalda en Drive y va en el zip del proyecto.
+- **Mac:** el repo no depende de Windows (scripts en Node `.mjs`, sin `.ps1` ni rutas `C:\`). Solo
+  `CLAUDE.md` nombra la carpeta de Windows. Después de clonar: `npm install`, crear `.env.local` y
+  `.env.demo.local`, y `npm run dev` (Next con `--webpack`, Node 24).
+
 ## ⭐ Punto de continuación (2026-10-15)
 
 **Cambio de rol.** Gestionala deja de desarrollarse como SaaS de suscripción. Desde ahora es un
